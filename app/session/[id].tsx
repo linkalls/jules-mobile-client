@@ -7,39 +7,74 @@ import {
   FlatList,
   StyleSheet,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
+  Animated,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ActivityItem, LoadingOverlay } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
-import { useSecureStorage } from '@/hooks/use-secure-storage';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Activity } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
+import { useApiKey } from '@/constants/api-key-context';
 
 export default function SessionDetailScreen() {
   const { id, title } = useLocalSearchParams<{ id: string; title: string }>();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { t } = useI18n();
+  const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
 
-  const [apiKey, setApiKey] = useState('');
+  const { apiKey } = useApiKey();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [messageInput, setMessageInput] = useState('');
+  const keyboardPadding = useRef(new Animated.Value(0)).current;
 
   const flatListRef = useRef<FlatList>(null);
-  const { getApiKey } = useSecureStorage();
-  const { isLoading, error, clearError, fetchActivities, approvePlan } = useJulesApi({ apiKey });
+  const { isLoading, error, clearError, fetchActivities, approvePlan } = useJulesApi({ apiKey, t });
 
-  // APIキー読み込み
+  // キーボード表示時のアニメーション付きパディング調整
   useEffect(() => {
-    const loadApiKey = async () => {
-      const key = await getApiKey();
-      if (key) setApiKey(key);
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      const keyboardHeight = event.endCoordinates.height;
+      // iOSではKeyboardAvoidingViewが処理、Androidでは手動でパディング
+      if (Platform.OS === 'android') {
+        Animated.timing(keyboardPadding, {
+          toValue: keyboardHeight,
+          duration: 250,
+          useNativeDriver: false,
+        }).start();
+      }
+      // キーボード表示時に最下部へスクロール
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    });
+    
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      if (Platform.OS === 'android') {
+        Animated.timing(keyboardPadding, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      }
+    });
+    
+    return () => {
+      showSub.remove();
+      hideSub.remove();
     };
-    loadApiKey();
-  }, [getApiKey]);
+  }, [keyboardPadding]);
+
 
   // アクティビティ読み込み（初回＋ポーリング）
   useEffect(() => {
@@ -114,7 +149,7 @@ export default function SessionDetailScreen() {
       <KeyboardAvoidingView
         style={[styles.container, isDark && styles.containerDark]}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
         {/* エラー表示 */}
         {error && (
@@ -133,6 +168,8 @@ export default function SessionDetailScreen() {
           keyExtractor={(item) => item.name}
           renderItem={({ item }) => <ActivityItem activity={item} onApprovePlan={handleApprovePlan} />}
           contentContainerStyle={styles.chatContent}
+          style={styles.chatList}
+          keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             !isLoading ? (
               <View style={styles.emptyContainer}>
@@ -145,8 +182,15 @@ export default function SessionDetailScreen() {
           }
         />
 
-        {/* 入力エリア */}
-        <View style={[styles.inputContainer, isDark && styles.inputContainerDark]}>
+        {/* 入力エリア - Androidではキーボード用パディング付き */}
+        <Animated.View
+          style={[
+            styles.inputContainer,
+            isDark && styles.inputContainerDark,
+            { paddingBottom: 12 + insets.bottom },
+            Platform.OS === 'android' && { marginBottom: keyboardPadding },
+          ]}
+        >
           <TextInput
             style={[styles.input, isDark && styles.inputDark]}
             value={messageInput}
@@ -161,7 +205,7 @@ export default function SessionDetailScreen() {
           >
             <IconSymbol name="paperplane.fill" size={18} color="#ffffff" />
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
         <LoadingOverlay visible={isLoading && activities.length === 0} message={t('loading')} />
       </KeyboardAvoidingView>
@@ -203,6 +247,9 @@ const styles = StyleSheet.create({
   chatContent: {
     padding: 16,
     paddingBottom: 8,
+  },
+  chatList: {
+    flex: 1,
   },
   emptyContainer: {
     alignItems: 'center',

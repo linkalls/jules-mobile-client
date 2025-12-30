@@ -53,6 +53,16 @@ const translations = {
     inputError: 'リポジトリを選んで、依頼内容を書いてね！',
     createSuccess: 'セッションを作成したよ！',
     processing: '処理中...',
+    
+    // API Errors
+    apiKeyNotSet: 'APIキーが設定されていないよ！設定画面で入力してね。',
+    apiError: 'APIエラー',
+    fetchSourcesFailed: 'ソースの取得に失敗したよ',
+    fetchSessionsFailed: 'セッションの取得に失敗したよ',
+    fetchActivitiesFailed: 'チャット履歴が見れなかったよ...',
+    approvePlanFailed: 'プランの承認に失敗したよ',
+    createSessionFailed: 'セッションが作れなかったよ',
+    loadingMore: 'さらに読み込み中...',
   },
   en: {
     // Common
@@ -102,6 +112,16 @@ const translations = {
     inputError: 'Please select a repository and enter your request!',
     createSuccess: 'Session created!',
     processing: 'Processing...',
+    
+    // API Errors
+    apiKeyNotSet: 'API key not set! Enter it in Settings.',
+    apiError: 'API Error',
+    fetchSourcesFailed: 'Failed to fetch sources',
+    fetchSessionsFailed: 'Failed to fetch sessions',
+    fetchActivitiesFailed: 'Failed to fetch chat history...',
+    approvePlanFailed: 'Failed to approve plan',
+    createSessionFailed: 'Failed to create session',
+    loadingMore: 'Loading more...',
   },
 };
 

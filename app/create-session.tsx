@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,51 +7,65 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router, Stack } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LoadingOverlay } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
-import { useSecureStorage } from '@/hooks/use-secure-storage';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import type { Source } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
+import { useApiKey } from '@/constants/api-key-context';
 
 export default function CreateSessionScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
 
-  const [apiKey, setApiKey] = useState('');
-  const [sources, setSources] = useState<Source[]>([]);
+  const { apiKey } = useApiKey();
   const [selectedSource, setSelectedSource] = useState('');
   const [prompt, setPrompt] = useState('');
   const [sourcesLoaded, setSourcesLoaded] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const { getApiKey } = useSecureStorage();
-  const { isLoading, error, clearError, fetchSources, createSession } = useJulesApi({ apiKey });
+  const { 
+    isLoading, 
+    error, 
+    clearError, 
+    sources,
+    hasMoreSources,
+    isLoadingMoreSources,
+    fetchSources, 
+    fetchMoreSources,
+    createSession 
+  } = useJulesApi({ apiKey, t });
 
-  // APIキー読み込み
-  useEffect(() => {
-    const loadApiKey = async () => {
-      const key = await getApiKey();
-      if (key) setApiKey(key);
-    };
-    loadApiKey();
-  }, [getApiKey]);
-
-  // ソース読み込みと表示切り替え
+  // Load sources when dropdown opens
   const toggleSources = async () => {
     if (!sourcesLoaded) {
-      const data = await fetchSources();
-      setSources(data);
+      await fetchSources();
       setSourcesLoaded(true);
     }
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  // セッション作成
+  // Handle scroll to load more sources
+  const handleSourcesScroll = (event: { nativeEvent: { layoutMeasurement: { height: number }; contentOffset: { y: number }; contentSize: { height: number } } }) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
+    
+    if (isCloseToBottom && hasMoreSources && !isLoadingMoreSources) {
+      fetchMoreSources();
+    }
+  };
+
+  // Create session
   const handleCreate = async () => {
     if (!selectedSource || !prompt.trim()) {
       Alert.alert(t('error'), t('inputError'));
@@ -81,9 +95,16 @@ export default function CreateSessionScreen() {
         }}
       />
 
-      <View style={[styles.container, isDark && styles.containerDark]}>
-        <ScrollView contentContainerStyle={styles.content}>
-          {/* エラー表示 */}
+      <KeyboardAvoidingView
+        style={[styles.container, isDark && styles.containerDark]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
+      >
+        <ScrollView 
+          contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Error */}
           {error && (
             <View style={[styles.errorBanner, isDark && styles.errorBannerDark]}>
               <Text style={styles.errorText}>{error}</Text>
@@ -93,7 +114,7 @@ export default function CreateSessionScreen() {
             </View>
           )}
 
-          {/* ソース選択 */}
+          {/* Source selection */}
           <View style={styles.section}>
             <Text style={[styles.label, isDark && styles.labelDark]}>
               {t('selectRepo')}
@@ -118,12 +139,14 @@ export default function CreateSessionScreen() {
               <IconSymbol name={isDropdownOpen ? 'chevron.up' : 'chevron.down'} size={16} color={isDark ? '#64748b' : '#94a3b8'} />
             </TouchableOpacity>
 
-            {/* ソースリスト */}
+            {/* Source list with lazy loading */}
             {isDropdownOpen && sourcesLoaded && sources.length > 0 && (
               <ScrollView 
                 style={[styles.sourceList, isDark && styles.sourceListDark]}
                 nestedScrollEnabled
                 showsVerticalScrollIndicator
+                onScroll={handleSourcesScroll}
+                scrollEventThrottle={400}
               >
                 {sources.map((source) => {
                   const displayName = source.githubRepo
@@ -160,6 +183,23 @@ export default function CreateSessionScreen() {
                     </TouchableOpacity>
                   );
                 })}
+                {/* Loading indicator for more sources */}
+                {isLoadingMoreSources && (
+                  <View style={styles.loadingMore}>
+                    <ActivityIndicator size="small" color="#2563eb" />
+                    <Text style={[styles.loadingMoreText, isDark && styles.loadingMoreTextDark]}>
+                      {t('loadingMore')}
+                    </Text>
+                  </View>
+                )}
+                {/* End of list indicator */}
+                {!hasMoreSources && sources.length > 20 && (
+                  <View style={styles.endOfList}>
+                    <Text style={[styles.endOfListText, isDark && styles.endOfListTextDark]}>
+                      {sources.length} repos
+                    </Text>
+                  </View>
+                )}
               </ScrollView>
             )}
 
@@ -197,7 +237,7 @@ export default function CreateSessionScreen() {
         </ScrollView>
 
         <LoadingOverlay visible={isLoading} message={t('processing')} />
-      </View>
+      </KeyboardAvoidingView>
     </>
   );
 }
@@ -212,7 +252,6 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    paddingBottom: 40,
   },
   errorBanner: {
     marginBottom: 16,
@@ -355,5 +394,30 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  loadingMore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    gap: 8,
+  },
+  loadingMoreText: {
+    fontSize: 12,
+    color: '#64748b',
+  },
+  loadingMoreTextDark: {
+    color: '#94a3b8',
+  },
+  endOfList: {
+    alignItems: 'center',
+    padding: 8,
+  },
+  endOfListText: {
+    fontSize: 11,
+    color: '#94a3b8',
+  },
+  endOfListTextDark: {
+    color: '#64748b',
   },
 });

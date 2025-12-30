@@ -15,36 +15,41 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSecureStorage } from '@/hooks/use-secure-storage';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
+import { useApiKey } from '@/constants/api-key-context';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const [apiKey, setApiKey] = useState('');
-  const [manualDarkMode, setManualDarkMode] = useState(false);
+  const { apiKey, setApiKey: saveApiKeyToContext } = useApiKey();
+  const [localApiKey, setLocalApiKey] = useState(apiKey);
+  const [manualDarkMode, setManualDarkMode] = useState(isDark);
   
   const { language, setLanguage, t } = useI18n();
 
-  const { saveApiKey, getApiKey, saveTheme, getTheme } = useSecureStorage();
+  const { saveTheme, getTheme } = useSecureStorage();
 
-  // 初期読み込み
+  // Sync local key with context
   useEffect(() => {
-    const loadSettings = async () => {
-      const savedKey = await getApiKey();
-      const savedTheme = await getTheme();
+    setLocalApiKey(apiKey);
+  }, [apiKey]);
 
-      if (savedKey) setApiKey(savedKey);
+  // Load theme on mount
+  useEffect(() => {
+    const loadTheme = async () => {
+      const savedTheme = await getTheme();
       if (savedTheme === 'dark') setManualDarkMode(true);
+      else if (savedTheme === 'light') setManualDarkMode(false);
     };
-    loadSettings();
-  }, [getApiKey, getTheme]);
+    loadTheme();
+  }, [getTheme]);
 
   const handleSave = async () => {
     try {
-      await saveApiKey(apiKey);
-      Alert.alert('保存完了', 'APIキーをセキュアに保存したよ！');
+      await saveApiKeyToContext(localApiKey);
+      Alert.alert(t('savedSuccess'));
     } catch {
-      Alert.alert('エラー', '保存に失敗しちゃった...');
+      Alert.alert(t('error'), t('savedError'));
     }
   };
 
@@ -73,8 +78,8 @@ export default function SettingsScreen() {
           <Text style={[styles.label, isDark && styles.labelDark]}>{t('apiKeyLabel')}</Text>
           <TextInput
             style={[styles.input, isDark && styles.inputDark]}
-            value={apiKey}
-            onChangeText={setApiKey}
+            value={localApiKey}
+            onChangeText={setLocalApiKey}
             placeholder="AIzaSy..."
             placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
             secureTextEntry

@@ -12,10 +12,10 @@ import { router } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SessionCard, LoadingOverlay } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
-import { useSecureStorage } from '@/hooks/use-secure-storage';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
+import { useApiKey } from '@/constants/api-key-context';
 
 // Memoized SessionCard wrapper for performance
 const MemoizedSessionCard = memo(({ session, onPress }: { session: Session; onPress: () => void }) => (
@@ -28,23 +28,11 @@ export default function SessionsScreen() {
   const isDark = colorScheme === 'dark';
   const { t } = useI18n();
 
-  const [apiKey, setApiKey] = useState<string>('');
+  const { apiKey } = useApiKey();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { getApiKey } = useSecureStorage();
-  const { isLoading, error, clearError, fetchSessions } = useJulesApi({ apiKey });
-
-  // APIキーを読み込む
-  useEffect(() => {
-    const loadApiKey = async () => {
-      const key = await getApiKey();
-      if (key) {
-        setApiKey(key);
-      }
-    };
-    loadApiKey();
-  }, [getApiKey]);
+  const { isLoading, error, clearError, fetchSessions } = useJulesApi({ apiKey, t });
 
   // APIキーが設定されたらセッションを取得
   useEffect(() => {
