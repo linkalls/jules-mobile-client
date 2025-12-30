@@ -235,7 +235,10 @@ export function ActivityItem({ activity, onApprovePlan }: ActivityItemProps) {
     const artifacts = activity.artifacts || [];
     
     const bashArtifacts = artifacts.filter(a => a.bashOutput);
-    const changeSetArtifacts = artifacts.filter(a => a.changeSet?.gitPatch);
+    // CLI実行時(bashOutputあり)は、過去の変更履歴(changeSet)を表示しないようにする
+    const changeSetArtifacts = bashArtifacts.length > 0
+      ? []
+      : artifacts.filter(a => a.changeSet?.gitPatch);
     
     return (
       <View style={styles.container}>

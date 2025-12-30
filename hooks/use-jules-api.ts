@@ -105,6 +105,26 @@ export function useJulesApi({ apiKey }: UseJulesApiOptions) {
     [julesFetch]
   );
 
+  // プラン承認
+  const approvePlan = useCallback(
+    async (planId: string): Promise<void> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        await julesFetch(`/${planId}:approve`, {
+          method: 'POST',
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'プランの承認に失敗したよ';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [julesFetch]
+  );
+
   // 新規セッション作成
   const createSession = useCallback(
     async (sourceName: string, prompt: string): Promise<Session | null> => {
@@ -149,5 +169,6 @@ export function useJulesApi({ apiKey }: UseJulesApiOptions) {
     fetchSessions,
     fetchActivities,
     createSession,
+    approvePlan,
   };
 }

@@ -30,7 +30,7 @@ export default function SessionDetailScreen() {
 
   const flatListRef = useRef<FlatList>(null);
   const { getApiKey } = useSecureStorage();
-  const { isLoading, error, clearError, fetchActivities } = useJulesApi({ apiKey });
+  const { isLoading, error, clearError, fetchActivities, approvePlan } = useJulesApi({ apiKey });
 
   // APIキー読み込み
   useEffect(() => {
@@ -74,6 +74,17 @@ export default function SessionDetailScreen() {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 300);
   }, [id, fetchActivities]);
+
+  // プラン承認ハンドラ
+  const handleApprovePlan = async (planId: string) => {
+    try {
+      await approvePlan(planId);
+      // リストを更新
+      await loadActivities();
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // TODO: 実際の送信エンドポイントに合わせて実装
   const handleSend = () => {
@@ -120,7 +131,7 @@ export default function SessionDetailScreen() {
           ref={flatListRef}
           data={activities}
           keyExtractor={(item) => item.name}
-          renderItem={({ item }) => <ActivityItem activity={item} />}
+          renderItem={({ item }) => <ActivityItem activity={item} onApprovePlan={handleApprovePlan} />}
           contentContainerStyle={styles.chatContent}
           ListEmptyComponent={
             !isLoading ? (
