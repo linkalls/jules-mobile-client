@@ -50,8 +50,8 @@ export function useJulesApi({ apiKey }: UseJulesApiOptions) {
   );
 
   // ソース一覧の取得
-  const fetchSources = useCallback(async (): Promise<Source[]> => {
-    setIsLoading(true);
+  const fetchSources = useCallback(async (silent: boolean = false): Promise<Source[]> => {
+    if (!silent) setIsLoading(true);
     setError(null);
     try {
       const data = await julesFetch<ListSourcesResponse>('/sources');
@@ -61,13 +61,13 @@ export function useJulesApi({ apiKey }: UseJulesApiOptions) {
       setError(message);
       return [];
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   }, [julesFetch]);
 
   // セッション一覧の取得
-  const fetchSessions = useCallback(async (): Promise<Session[]> => {
-    setIsLoading(true);
+  const fetchSessions = useCallback(async (silent: boolean = false): Promise<Session[]> => {
+    if (!silent) setIsLoading(true);
     setError(null);
     try {
       const data = await julesFetch<ListSessionsResponse>('/sessions?pageSize=20');
@@ -77,14 +77,14 @@ export function useJulesApi({ apiKey }: UseJulesApiOptions) {
       setError(message);
       return [];
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   }, [julesFetch]);
 
   // アクティビティ（チャット履歴）の取得
   const fetchActivities = useCallback(
-    async (sessionName: string): Promise<Activity[]> => {
-      setIsLoading(true);
+    async (sessionName: string, silent: boolean = false): Promise<Activity[]> => {
+      if (!silent) setIsLoading(true);
       setError(null);
       try {
         const data = await julesFetch<ListActivitiesResponse>(
@@ -99,7 +99,7 @@ export function useJulesApi({ apiKey }: UseJulesApiOptions) {
         setError(message);
         return [];
       } finally {
-        setIsLoading(false);
+        if (!silent) setIsLoading(false);
       }
     },
     [julesFetch]

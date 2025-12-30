@@ -27,6 +27,7 @@ export default function CreateSessionScreen() {
   const [selectedSource, setSelectedSource] = useState('');
   const [prompt, setPrompt] = useState('');
   const [sourcesLoaded, setSourcesLoaded] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const { getApiKey } = useSecureStorage();
   const { isLoading, error, clearError, fetchSources, createSession } = useJulesApi({ apiKey });
@@ -40,12 +41,14 @@ export default function CreateSessionScreen() {
     loadApiKey();
   }, [getApiKey]);
 
-  // ソース読み込み
-  const loadSources = async () => {
-    if (sourcesLoaded) return;
-    const data = await fetchSources();
-    setSources(data);
-    setSourcesLoaded(true);
+  // ソース読み込みと表示切り替え
+  const toggleSources = async () => {
+    if (!sourcesLoaded) {
+      const data = await fetchSources();
+      setSources(data);
+      setSourcesLoaded(true);
+    }
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   // セッション作成
@@ -97,7 +100,7 @@ export default function CreateSessionScreen() {
             </Text>
             <TouchableOpacity
               style={[styles.selectButton, isDark && styles.selectButtonDark]}
-              onPress={loadSources}
+              onPress={toggleSources}
               disabled={isLoading}
             >
               <Text
@@ -112,11 +115,11 @@ export default function CreateSessionScreen() {
                   ? sources.find((s) => s.name === selectedSource)?.displayName || selectedSource
                   : t('selectPlaceholder')}
               </Text>
-              <IconSymbol name="chevron.down" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
+              <IconSymbol name={isDropdownOpen ? 'chevron.up' : 'chevron.down'} size={16} color={isDark ? '#64748b' : '#94a3b8'} />
             </TouchableOpacity>
 
             {/* ソースリスト */}
-            {sourcesLoaded && sources.length > 0 && (
+            {isDropdownOpen && sourcesLoaded && sources.length > 0 && (
               <ScrollView 
                 style={[styles.sourceList, isDark && styles.sourceListDark]}
                 nestedScrollEnabled
@@ -134,7 +137,10 @@ export default function CreateSessionScreen() {
                         selectedSource === source.name && styles.sourceItemSelected,
                         isDark && styles.sourceItemDark,
                       ]}
-                      onPress={() => setSelectedSource(source.name)}
+                      onPress={() => {
+                        setSelectedSource(source.name);
+                        setIsDropdownOpen(false);
+                      }}
                     >
                       <IconSymbol
                         name="link"
@@ -157,7 +163,7 @@ export default function CreateSessionScreen() {
               </ScrollView>
             )}
 
-            {sourcesLoaded && sources.length === 0 && (
+            {sourcesLoaded && sources.length === 0 && isDropdownOpen && (
               <Text style={[styles.hint, { color: '#f59e0b' }]}>
                 {t('noSourcesFound')}
               </Text>
@@ -274,6 +280,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 8,
     overflow: 'hidden',
+    maxHeight: 250,
   },
   sourceListDark: {
     backgroundColor: '#1e293b',

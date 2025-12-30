@@ -17,7 +17,7 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
-        name="sessions"
+        name="index"
         options={{
           title: 'Sessions',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="message.fill" color={color} />,
@@ -28,13 +28,6 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
-        }}
-      />
-      {/* 既存の画面を非表示に */}
-      <Tabs.Screen
-        name="index"
-        options={{
-          href: null,
         }}
       />
       <Tabs.Screen

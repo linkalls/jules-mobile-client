@@ -39,11 +39,10 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: '#ffffff',
     padding: 24,
-    paddingHorizontal: 32,
+    paddingHorizontal: 48,
     borderRadius: 16,
     alignItems: 'center',
     gap: 12,
-    minWidth: 140,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,

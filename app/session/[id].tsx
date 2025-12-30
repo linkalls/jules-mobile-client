@@ -41,10 +41,25 @@ export default function SessionDetailScreen() {
     loadApiKey();
   }, [getApiKey]);
 
-  // アクティビティ読み込み
+  // アクティビティ読み込み（初回＋ポーリング）
   useEffect(() => {
     if (apiKey && id) {
       loadActivities();
+
+      // ポーリング設定 (5秒ごと)
+      const interval = setInterval(() => {
+        fetchActivities(id, true).then((data) => {
+          setActivities((prev) => {
+            // データが増えている場合のみ更新
+            if (data.length > prev.length) {
+              return data;
+            }
+            return prev;
+          });
+        });
+      }, 5000);
+
+      return () => clearInterval(interval);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, id]);
