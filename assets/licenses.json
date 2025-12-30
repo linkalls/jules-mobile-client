@@ -1,0 +1,182 @@
+[
+  {
+    "name": "@expo/vector-icons",
+    "version": "^15.0.3",
+    "license": "MIT",
+    "url": "https://github.com/expo/vector-icons"
+  },
+  {
+    "name": "@react-navigation/bottom-tabs",
+    "version": "^7.4.0",
+    "license": "MIT",
+    "url": "https://github.com/react-navigation/react-navigation"
+  },
+  {
+    "name": "@react-navigation/elements",
+    "version": "^2.6.3",
+    "license": "MIT",
+    "url": "https://github.com/react-navigation/react-navigation"
+  },
+  {
+    "name": "@react-navigation/native",
+    "version": "^7.1.8",
+    "license": "MIT",
+    "url": "https://github.com/react-navigation/react-navigation"
+  },
+  {
+    "name": "expo",
+    "version": "~54.0.30",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo/tree/main/packages/expo"
+  },
+  {
+    "name": "expo-constants",
+    "version": "~18.0.12",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-font",
+    "version": "~14.0.10",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-haptics",
+    "version": "~15.0.8",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-image",
+    "version": "~3.0.11",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-linking",
+    "version": "~8.0.11",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-router",
+    "version": "~6.0.21",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-secure-store",
+    "version": "~15.0.8",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-splash-screen",
+    "version": "~31.0.13",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-status-bar",
+    "version": "~3.0.9",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-symbols",
+    "version": "~1.0.8",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-system-ui",
+    "version": "~6.0.9",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "expo-web-browser",
+    "version": "~15.0.10",
+    "license": "MIT",
+    "url": "https://github.com/expo/expo"
+  },
+  {
+    "name": "react",
+    "version": "19.1.0",
+    "license": "MIT",
+    "url": "https://github.com/facebook/react"
+  },
+  {
+    "name": "react-dom",
+    "version": "19.1.0",
+    "license": "MIT",
+    "url": "https://github.com/facebook/react"
+  },
+  {
+    "name": "react-native",
+    "version": "0.81.5",
+    "license": "MIT",
+    "url": "https://github.com/facebook/react-native"
+  },
+  {
+    "name": "react-native-fit-image",
+    "version": "^1.5.5",
+    "license": "Beerware",
+    "url": "https://github.com/huiseoul/react-native-fit-image"
+  },
+  {
+    "name": "react-native-gesture-handler",
+    "version": "~2.28.0",
+    "license": "MIT",
+    "url": "https://github.com/software-mansion/react-native-gesture-handler"
+  },
+  {
+    "name": "react-native-markdown-display",
+    "version": "^7.0.2",
+    "license": "MIT",
+    "url": "https://github.com/iamacup/react-native-markdown-display/"
+  },
+  {
+    "name": "react-native-reanimated",
+    "version": "~4.1.1",
+    "license": "MIT",
+    "url": "https://github.com/software-mansion/react-native-reanimated"
+  },
+  {
+    "name": "react-native-safe-area-context",
+    "version": "~5.6.0",
+    "license": "MIT",
+    "url": "https://github.com/AppAndFlow/react-native-safe-area-context"
+  },
+  {
+    "name": "react-native-screens",
+    "version": "~4.16.0",
+    "license": "MIT",
+    "url": "https://github.com/software-mansion/react-native-screens"
+  },
+  {
+    "name": "react-native-syntax-highlighter",
+    "version": "^2.1.0",
+    "license": "MIT",
+    "url": "https://github.com/conorhastings/react-native-syntax-highlighter"
+  },
+  {
+    "name": "react-native-web",
+    "version": "~0.21.0",
+    "license": "MIT",
+    "url": "https://github.com/necolas/react-native-web"
+  },
+  {
+    "name": "react-native-worklets",
+    "version": "0.5.1",
+    "license": "MIT",
+    "url": "https://github.com/software-mansion/react-native-reanimated"
+  },
+  {
+    "name": "react-syntax-highlighter",
+    "version": "^16.1.0",
+    "license": "MIT",
+    "url": "https://github.com/react-syntax-highlighter/react-syntax-highlighter"
+  }
+]

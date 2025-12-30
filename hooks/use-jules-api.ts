@@ -49,13 +49,14 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': apiKey,
-        ...options.headers,
+        ...(options.headers as Record<string, string>),
       };
 
       const response = await fetch(url, { ...options, headers });
 
       if (!response.ok) {
         const errorData = (await response.json()) as ApiError;
+        console.log('API Error Response:', JSON.stringify(errorData, null, 2));
         throw new Error(errorData.error?.message || `${translate('apiError', 'API Error')}: ${response.status}`);
       }
 
@@ -173,17 +174,35 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
 
   // Create session
   const createSession = useCallback(
-    async (sourceName: string, prompt: string): Promise<Session | null> => {
+    async (sourceName: string, prompt: string, defaultBranch?: string): Promise<Session | null> => {
       setIsLoading(true);
       setError(null);
       try {
-        const body = {
-          prompt,
+        const body: {
+          prompt: string;
+          sourceContext: {
+            source: string;
+            githubRepoContext?: {
+              startingBranch: string;
+            };
+          };
+          title: string;
+        } = {
+          prompt: prompt.trim(),
           sourceContext: {
             source: sourceName,
           },
-          title: prompt.slice(0, 30) + (prompt.length > 30 ? '...' : ''),
+          title: prompt.trim().slice(0, 30) + (prompt.trim().length > 30 ? '...' : ''),
         };
+
+        // Add githubRepoContext if defaultBranch is provided
+        if (defaultBranch) {
+          body.sourceContext.githubRepoContext = {
+            startingBranch: defaultBranch,
+          };
+        }
+
+        console.log('Creating session with body:', JSON.stringify(body, null, 2));
 
         const session = await julesFetch<Session>('/sessions', {
           method: 'POST',

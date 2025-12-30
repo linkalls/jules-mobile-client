@@ -4,11 +4,11 @@ This guide covers development setup and workflows for the Jules Mobile Client.
 
 ## Prerequisites
 
-- **Node.js** 18 or later
-- **Bun** (recommended) or npm
+- **Bun** (recommended JavaScript runtime) - Install from [bun.sh](https://bun.sh/)
+- **Node.js** 18 or later (alternative)
 - **iOS**: Xcode 15+ with iOS Simulator
 - **Android**: Android Studio with an emulator or physical device
-- **Expo CLI** (installed automatically via npx)
+- **Expo CLI** (installed automatically via bunx)
 
 ## Getting Started
 
@@ -43,6 +43,54 @@ bun web     # Web browser
 2. Go to Settings tab
 3. Enter your Jules API Key
 4. The key is securely stored on device
+
+## Bun Commands Reference
+
+This project uses Bun as the primary package manager and runtime.
+
+### Package Management
+
+```bash
+# Install all dependencies
+bun install
+
+# Add a new package
+bun add <package-name>
+
+# Add a dev dependency
+bun add -d <package-name>
+
+# Add Expo-compatible version of a package
+bunx expo install <package-name>
+
+# Example: Install react-native-reanimated
+bunx expo install react-native-reanimated
+```
+
+### Development Commands
+
+```bash
+# Start development server
+bun start
+
+# Run on platforms
+bun ios         # iOS Simulator
+bun android     # Android Emulator  
+bun web         # Web browser
+
+# Linting
+bun lint        # Run ESLint
+
+# Reset project
+bun reset-project
+```
+
+### Why Bun?
+
+- **Faster installs** - Significantly faster than npm/yarn
+- **Built-in TypeScript** - No separate compilation step
+- **Automatic .env loading** - No need for dotenv package
+- **Compatible with npm** - Works with existing node_modules
 
 ## Project Structure
 

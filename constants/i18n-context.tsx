@@ -35,7 +35,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
       }
       setIsLoaded(true);
     };
-    loadLanguage();
+    void loadLanguage();
   }, []);
 
   // 言語変更時に永続化

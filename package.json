@@ -9,7 +9,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "build:android" : "eas build --platform android --local"
+    "build:android" : "eas build --platform android --local",
+    "oxc":"oxlint --type-aware",
+    "generate-licenses": "bun scripts/generate-licenses.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

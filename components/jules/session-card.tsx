@@ -1,12 +1,89 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useI18n } from '@/constants/i18n-context';
 import type { Session } from '@/constants/types';
 
 interface SessionCardProps {
   session: Session;
   onPress: () => void;
+}
+
+interface SkeletonProps {
+  width: number | string;
+  height: number;
+  style?: object;
+}
+
+/**
+ * シマー効果付きスケルトン
+ */
+function Skeleton({ width, height, style }: SkeletonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [shimmerAnim]);
+
+  const opacity = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <Animated.View
+      style={[
+        {
+          width,
+          height,
+          borderRadius: height / 2,
+          backgroundColor: isDark ? '#334155' : '#e2e8f0',
+          opacity,
+        },
+        style,
+      ]}
+    />
+  );
+}
+
+/**
+ * スケルトンカード
+ */
+export function SessionCardSkeleton() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  return (
+    <View style={[styles.card, isDark && styles.cardDark]}>
+      <View style={styles.headerRow}>
+        <Skeleton width="60%" height={20} />
+        <Skeleton width={60} height={20} />
+      </View>
+      <Skeleton width="80%" height={12} style={{ marginTop: 8 }} />
+      <View style={[styles.footer, { marginTop: 12 }]}>
+        <Skeleton width={12} height={12} style={{ borderRadius: 6 }} />
+        <Skeleton width={100} height={12} />
+      </View>
+    </View>
+  );
 }
 
 /**
@@ -15,6 +92,7 @@ interface SessionCardProps {
 export function SessionCard({ session, onPress }: SessionCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { t } = useI18n();
 
   const getStateColor = () => {
     switch (session.state) {
@@ -42,6 +120,19 @@ export function SessionCard({ session, onPress }: SessionCardProps) {
     }
   };
 
+  const getStateLabel = () => {
+    switch (session.state) {
+      case 'ACTIVE':
+        return t('stateActive');
+      case 'COMPLETED':
+        return t('stateCompleted');
+      case 'FAILED':
+        return t('stateFailed');
+      default:
+        return t('stateUnknown');
+    }
+  };
+
   return (
     <TouchableOpacity
       style={[styles.card, isDark && styles.cardDark]}
@@ -54,7 +145,7 @@ export function SessionCard({ session, onPress }: SessionCardProps) {
         </Text>
         <View style={[styles.badge, { backgroundColor: getStateBgColor() }]}>
           <Text style={[styles.badgeText, { color: getStateColor() }]}>
-            {session.state.replace('STATE_', '')}
+            {getStateLabel()}
           </Text>
         </View>
       </View>

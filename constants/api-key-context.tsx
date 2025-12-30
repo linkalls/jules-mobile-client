@@ -32,7 +32,7 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
       }
       setIsLoaded(true);
     };
-    loadApiKey();
+    void loadApiKey();
   }, []);
 
   // Save and update API key

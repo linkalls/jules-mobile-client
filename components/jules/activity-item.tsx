@@ -1,9 +1,132 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Activity } from '@/constants/types';
+
+interface ActivityItemProps {
+  activity: Activity;
+  onApprovePlan?: (planId: string) => void;
+}
+
+/**
+ * シマー効果付きスケルトン
+ */
+function Skeleton({ width, height, style }: { width: number | string; height: number; style?: object }) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [shimmerAnim]);
+
+  const opacity = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <Animated.View
+      style={[
+        {
+          width,
+          height,
+          borderRadius: height / 2,
+          backgroundColor: isDark ? '#334155' : '#e2e8f0',
+          opacity,
+        },
+        style,
+      ]}
+    />
+  );
+}
+
+/**
+ * アクティビティスケルトン（チャット風）
+ */
+export function ActivityItemSkeleton({ isAgent = true }: { isAgent?: boolean }) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  return (
+    <View style={[
+      skeletonStyles.container,
+      isAgent ? skeletonStyles.agentContainer : skeletonStyles.userContainer,
+    ]}>
+      <View style={[
+        skeletonStyles.bubble,
+        isDark && skeletonStyles.bubbleDark,
+        isAgent ? skeletonStyles.agentBubble : skeletonStyles.userBubble,
+        isDark && (isAgent ? skeletonStyles.agentBubbleDark : skeletonStyles.userBubbleDark),
+      ]}>
+        <View style={skeletonStyles.header}>
+          <Skeleton width={24} height={24} style={{ borderRadius: 12 }} />
+          <Skeleton width={80} height={14} />
+        </View>
+        <View style={{ marginTop: 12, gap: 8 }}>
+          <Skeleton width="100%" height={14} />
+          <Skeleton width="85%" height={14} />
+          <Skeleton width="70%" height={14} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const skeletonStyles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  agentContainer: {
+    alignItems: 'flex-start',
+  },
+  userContainer: {
+    alignItems: 'flex-end',
+  },
+  bubble: {
+    maxWidth: '85%',
+    padding: 14,
+    borderRadius: 16,
+  },
+  bubbleDark: {},
+  agentBubble: {
+    backgroundColor: '#ffffff',
+    borderBottomLeftRadius: 4,
+  },
+  agentBubbleDark: {
+    backgroundColor: '#1e293b',
+  },
+  userBubble: {
+    backgroundColor: '#dbeafe',
+    borderBottomRightRadius: 4,
+  },
+  userBubbleDark: {
+    backgroundColor: '#1e3a8a',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+});
 
 interface ActivityItemProps {
   activity: Activity;

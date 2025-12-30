@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { SessionCard, LoadingOverlay } from '@/components/jules';
+import { SessionCard, SessionCardSkeleton } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Session } from '@/constants/types';
@@ -37,7 +37,7 @@ export default function SessionsScreen() {
   // APIキーが設定されたらセッションを取得
   useEffect(() => {
     if (apiKey) {
-      loadSessions();
+      void loadSessions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
@@ -94,46 +94,58 @@ export default function SessionsScreen() {
       )}
 
       {/* セッション一覧 */}
-      <FlatList
-        data={sessions}
-        keyExtractor={(item) => item.name}
-        renderItem={({ item }) => (
-          <MemoizedSessionCard session={item} onPress={() => openSession(item)} />
-        )}
-        contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={isDark ? '#60a5fa' : '#2563eb'} />
-        }
-        removeClippedSubviews={true}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        getItemLayout={(_, index) => ({ length: 100, offset: 112 * index, index })}
-        ListEmptyComponent={
-          !isLoading && !apiKey ? (
-            <View style={styles.emptyContainer}>
-              <IconSymbol name="key" size={48} color={isDark ? '#475569' : '#94a3b8'} />
-              <Text style={[styles.emptyText, isDark && styles.emptyTextDark]}>
-                {t('noApiKey')}
-              </Text>
-              <Text style={[styles.emptySubtext, isDark && styles.emptySubtextDark]}>
-                {t('noApiKeyHint')}
-              </Text>
-            </View>
-          ) : !isLoading ? (
-            <View style={styles.emptyContainer}>
-              <IconSymbol name="terminal" size={48} color={isDark ? '#475569' : '#94a3b8'} />
-              <Text style={[styles.emptyText, isDark && styles.emptyTextDark]}>
-                {t('noSessions')}
-              </Text>
-              <Text style={[styles.emptySubtext, isDark && styles.emptySubtextDark]}>
-                {t('noSessionsHint')}
-              </Text>
-            </View>
-          ) : null
-        }
-      />
+      {isLoading && sessions.length === 0 ? (
+        <View style={styles.listContent}>
+          <SessionCardSkeleton />
+          <View style={{ height: 12 }} />
+          <SessionCardSkeleton />
+          <View style={{ height: 12 }} />
+          <SessionCardSkeleton />
+          <View style={{ height: 12 }} />
+          <SessionCardSkeleton />
+        </View>
+      ) : (
+        <FlatList
+          data={sessions}
+          keyExtractor={(item) => item.name}
+          renderItem={({ item }) => (
+            <MemoizedSessionCard session={item} onPress={() => openSession(item)} />
+          )}
+          contentContainerStyle={styles.listContent}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={isDark ? '#60a5fa' : '#2563eb'} />
+          }
+          removeClippedSubviews={true}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          getItemLayout={(_, index) => ({ length: 100, offset: 112 * index, index })}
+          ListEmptyComponent={
+            !apiKey ? (
+              <View style={styles.emptyContainer}>
+                <IconSymbol name="key" size={48} color={isDark ? '#475569' : '#94a3b8'} />
+                <Text style={[styles.emptyText, isDark && styles.emptyTextDark]}>
+                  {t('noApiKey')}
+                </Text>
+                <Text style={[styles.emptySubtext, isDark && styles.emptySubtextDark]}>
+                  {t('noApiKeyHint')}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <IconSymbol name="terminal" size={48} color={isDark ? '#475569' : '#94a3b8'} />
+                <Text style={[styles.emptyText, isDark && styles.emptyTextDark]}>
+                  {t('noSessions')}
+                </Text>
+                <Text style={[styles.emptySubtext, isDark && styles.emptySubtextDark]}>
+                  {t('noSessionsHint')}
+                </Text>
+              </View>
+            )
+          }
+        />
+      )}
 
       {/* FAB (新規作成ボタン) */}
       {apiKey && (
@@ -141,8 +153,6 @@ export default function SessionsScreen() {
           <IconSymbol name="plus" size={28} color="#ffffff" />
         </TouchableOpacity>
       )}
-
-      <LoadingOverlay visible={isLoading && sessions.length === 0} message={t('loading')} />
     </SafeAreaView>
   );
 }

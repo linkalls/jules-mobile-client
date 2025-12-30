@@ -42,6 +42,41 @@ interface ActivityItemProps {
 
 ---
 
+### ActivityItemSkeleton
+
+Chat-style skeleton placeholder for activity items.
+
+**Props:**
+
+```typescript
+interface ActivityItemSkeletonProps {
+  isAgent?: boolean; // Left-aligned (agent) or right-aligned (user)
+}
+```
+
+**Features:**
+
+- Chat bubble style skeleton
+- Shimmer animation
+- Agent/user alignment support
+- Dark mode support
+
+**Usage:**
+
+```tsx
+{isLoading ? (
+  <>
+    <ActivityItemSkeleton isAgent={true} />
+    <ActivityItemSkeleton isAgent={false} />
+    <ActivityItemSkeleton isAgent={true} />
+  </>
+) : (
+  activities.map(a => <ActivityItem key={a.name} activity={a} />)
+)}
+```
+
+---
+
 ### SessionCard
 
 Card component for session list items.
@@ -57,7 +92,8 @@ interface SessionCardProps {
 
 **Features:**
 
-- Status badge with color coding
+- Status badge with color coding (Processing/Completed/Failed/Creating)
+- i18n support for status labels
 - Title truncation
 - Session ID display (monospace)
 - Dark mode support
@@ -73,9 +109,36 @@ interface SessionCardProps {
 
 ---
 
+### SessionCardSkeleton
+
+Shimmer-animated skeleton placeholder for session cards.
+
+**Features:**
+
+- Smooth shimmer animation (opacity 0.3 → 0.7)
+- Matches SessionCard layout
+- Dark mode support
+
+**Usage:**
+
+```tsx
+{isLoading ? (
+  <>
+    <SessionCardSkeleton />
+    <SessionCardSkeleton />
+  </>
+) : (
+  sessions.map(s => <SessionCard key={s.name} session={s} />)
+)}
+```
+
+---
+
 ### LoadingOverlay
 
 Full-screen loading indicator overlay.
+
+> **Note:** Consider using skeleton components (`SessionCardSkeleton`, `ActivityItemSkeleton`) instead for a more modern UX.
 
 **Props:**
 
@@ -129,6 +192,35 @@ interface DataRendererProps {
   data: any;
   title?: string;
 }
+```
+
+---
+
+## Screens
+
+Located in `app/`
+
+### LicensesScreen
+
+Displays open source licenses for all third-party libraries used in the app.
+
+**Location:** `app/licenses.tsx`
+
+**Features:**
+
+- List of all dependencies with version and license type
+- Tappable items open GitHub repository
+- MIT License badge styling
+- Dark mode support
+- Accessible via Settings > Open Source Licenses
+
+**Navigation:**
+
+```tsx
+import { router } from 'expo-router';
+
+// From settings
+router.push('/licenses');
 ```
 
 ---

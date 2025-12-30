@@ -9,9 +9,10 @@
 </p>
 
 <p align="center">
-  <a href="README.md"> English</a> •
-  <a href="docs/ARCHITECTURE.md"> アーキテクチャ</a> •
-  <a href="docs/API.md"> API リファレンス</a>
+  <a href="README.md">🇺🇸 English</a> •
+  <a href="docs/ARCHITECTURE.md">📐 アーキテクチャ</a> •
+  <a href="docs/API.md">🔌 API リファレンス</a> •
+  <a href="docs/Agent.md">🤖 エージェントガイド</a>
 </p>
 
 ---
@@ -36,8 +37,8 @@
 
 ### 必要なもの
 
-- [Node.js](https://nodejs.org/) 18以上
-- [Bun](https://bun.sh/)（推奨）またはnpm
+- [Bun](https://bun.sh/)（推奨のJavaScriptランタイム）
+- [Node.js](https://nodejs.org/) 18以上（代替）
 - [Expo CLI](https://docs.expo.dev/get-started/installation/)
 - [Jules APIキー](https://console.cloud.google.com/) - Google Cloud Consoleから取得
 
@@ -48,8 +49,11 @@
 git clone https://github.com/linkalls/jules-mobile-client.git
 cd jules-mobile-client
 
-# 依存関係をインストール
+# 依存関係をインストール (bun推奨)
 bun install
+
+# Expo固有パッケージのインストール
+bunx expo install <package-name>
 
 # 開発サーバーを起動
 bun start
@@ -66,6 +70,25 @@ bun android
 
 # Web ブラウザ
 bun web
+```
+
+### Bunコマンド早見表
+
+```bash
+# 開発
+bun start          # Expo開発サーバー起動
+bun ios            # iOSシミュレーターで実行
+bun android        # Androidエミュレーターで実行
+bun web            # ブラウザで実行
+
+# パッケージ管理
+bun install        # 全依存関係をインストール
+bun add <pkg>      # 新しいパッケージを追加
+bunx expo install <pkg>  # Expo互換バージョンを追加
+
+# その他
+bun lint           # ESLintを実行
+bun reset-project  # クリーン状態にリセット
 ```
 
 ## ⚙️ 設定
@@ -92,9 +115,10 @@ jules-mobile-client/
 │   └── _layout.tsx        # ルートレイアウト
 ├── components/
 │   ├── jules/             # Jules専用コンポーネント
-│   │   ├── activity-item.tsx
-│   │   ├── session-card.tsx
-│   │   └── loading-overlay.tsx
+│   │   ├── activity-item.tsx  # チャット吹き出し + スケルトン
+│   │   ├── session-card.tsx   # セッションカード + スケルトン
+│   │   ├── loading-overlay.tsx
+│   │   └── code-block.tsx     # シンタックスハイライト
 │   └── ui/                # 汎用UIコンポーネント
 ├── constants/
 │   ├── types.ts           # TypeScript型定義

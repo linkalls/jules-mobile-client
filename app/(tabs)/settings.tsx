@@ -11,6 +11,7 @@ import {
   Appearance,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSecureStorage } from '@/hooks/use-secure-storage';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -20,6 +21,7 @@ import { useApiKey } from '@/constants/api-key-context';
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const router = useRouter();
 
   const { apiKey, setApiKey: saveApiKeyToContext } = useApiKey();
   const [localApiKey, setLocalApiKey] = useState(apiKey);
@@ -41,7 +43,7 @@ export default function SettingsScreen() {
       if (savedTheme === 'dark') setManualDarkMode(true);
       else if (savedTheme === 'light') setManualDarkMode(false);
     };
-    loadTheme();
+    void loadTheme();
   }, [getTheme]);
 
   const handleSave = async () => {
@@ -134,6 +136,22 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* ライセンス */}
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={[styles.switchRow, isDark && styles.switchRowDark]} 
+            onPress={() => router.push('/licenses')}
+          >
+            <View style={styles.switchLabel}>
+              <IconSymbol name="doc.text" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('licenses')}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={16} color={isDark ? '#475569' : '#94a3b8'} />
+          </TouchableOpacity>
+        </View>
+
         {/* ヒント */}
         <View style={[styles.hintBox, isDark && styles.hintBoxDark]}>
           <View style={styles.hintHeader}>
@@ -180,12 +198,13 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     paddingBottom: 40,
+    gap: 16,
   },
   section: {
     gap: 8,
   },
   sectionMargin: {
-    marginTop: 32,
+    marginTop: 16,
   },
   label: {
     fontSize: 14,
@@ -252,7 +271,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(37, 99, 235, 0.1)',
     padding: 16,
     borderRadius: 12,
-    marginTop: 32,
+    marginTop: 16,
   },
   hintBoxDark: {
     backgroundColor: 'rgba(37, 99, 235, 0.2)',

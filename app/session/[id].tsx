@@ -15,7 +15,7 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { ActivityItem, LoadingOverlay } from '@/components/jules';
+import { ActivityItem, ActivityItemSkeleton } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Activity } from '@/constants/types';
@@ -79,11 +79,11 @@ export default function SessionDetailScreen() {
   // アクティビティ読み込み（初回＋ポーリング）
   useEffect(() => {
     if (apiKey && id) {
-      loadActivities();
+      void loadActivities();
 
       // ポーリング設定 (5秒ごと)
       const interval = setInterval(() => {
-        fetchActivities(id, true).then((data) => {
+        void fetchActivities(id, true).then((data) => {
           setActivities((prev) => {
             // データが増えている場合のみ更新
             if (data.length > prev.length) {
@@ -162,25 +162,32 @@ export default function SessionDetailScreen() {
         )}
 
         {/* チャットエリア */}
-        <FlatList
-          ref={flatListRef}
-          data={activities}
-          keyExtractor={(item) => item.name}
-          renderItem={({ item }) => <ActivityItem activity={item} onApprovePlan={handleApprovePlan} />}
-          contentContainerStyle={styles.chatContent}
-          style={styles.chatList}
-          keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={
-            !isLoading ? (
+        {isLoading && activities.length === 0 ? (
+          <View style={styles.chatContent}>
+            <ActivityItemSkeleton isAgent={true} />
+            <ActivityItemSkeleton isAgent={false} />
+            <ActivityItemSkeleton isAgent={true} />
+            <ActivityItemSkeleton isAgent={true} />
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={activities}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item }) => <ActivityItem activity={item} onApprovePlan={handleApprovePlan} />}
+            contentContainerStyle={styles.chatContent}
+            style={styles.chatList}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <IconSymbol name="bubble.left.and.bubble.right" size={48} color={isDark ? '#475569' : '#94a3b8'} />
                 <Text style={[styles.emptyText, isDark && styles.emptyTextDark]}>
                   {t('noActivities')}
                 </Text>
               </View>
-            ) : null
-          }
-        />
+            }
+          />
+        )}
 
         {/* 入力エリア - Androidではキーボード用パディング付き */}
         <Animated.View
@@ -206,8 +213,6 @@ export default function SessionDetailScreen() {
             <IconSymbol name="paperplane.fill" size={18} color="#ffffff" />
           </TouchableOpacity>
         </Animated.View>
-
-        <LoadingOverlay visible={isLoading && activities.length === 0} message={t('loading')} />
       </KeyboardAvoidingView>
     </>
   );

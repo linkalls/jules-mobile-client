@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,16 +10,137 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { LoadingOverlay } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
+
+/**
+ * シマー効果付きスケルトン
+ */
+function Skeleton({ width, height, style }: { width: number | string; height: number; style?: object }) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [shimmerAnim]);
+
+  const opacity = shimmerAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <Animated.View
+      style={[
+        {
+          width,
+          height,
+          borderRadius: 8,
+          backgroundColor: isDark ? '#334155' : '#e2e8f0',
+          opacity,
+        },
+        style,
+      ]}
+    />
+  );
+}
+
+/**
+ * フォームスケルトン
+ */
+function FormSkeleton({ paddingBottom }: { paddingBottom: number }) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  return (
+    <ScrollView 
+      contentContainerStyle={[skeletonStyles.content, { paddingBottom }]}
+    >
+      {/* ラベル1 */}
+      <View style={skeletonStyles.section}>
+        <Skeleton width={200} height={16} style={{ marginBottom: 8 }} />
+        {/* セレクトボックス */}
+        <View style={[skeletonStyles.selectBox, isDark && skeletonStyles.selectBoxDark]}>
+          <Skeleton width="60%" height={16} />
+          <Skeleton width={16} height={16} style={{ borderRadius: 8 }} />
+        </View>
+      </View>
+
+      {/* ラベル2 */}
+      <View style={[skeletonStyles.section, { marginTop: 24 }]}>
+        <Skeleton width={180} height={16} style={{ marginBottom: 8 }} />
+        {/* テキストエリア */}
+        <View style={[skeletonStyles.textArea, isDark && skeletonStyles.textAreaDark]}>
+          <Skeleton width="90%" height={14} style={{ marginBottom: 8 }} />
+          <Skeleton width="75%" height={14} style={{ marginBottom: 8 }} />
+          <Skeleton width="60%" height={14} />
+        </View>
+      </View>
+
+      {/* ボタン */}
+      <Skeleton width="100%" height={52} style={{ marginTop: 24, borderRadius: 12 }} />
+    </ScrollView>
+  );
+}
+
+const skeletonStyles = StyleSheet.create({
+  content: {
+    padding: 16,
+  },
+  section: {
+    gap: 8,
+  },
+  selectBox: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectBoxDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
+  textArea: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    padding: 14,
+    height: 120,
+  },
+  textAreaDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
+});
 
 export default function CreateSessionScreen() {
   const colorScheme = useColorScheme();
@@ -46,22 +167,39 @@ export default function CreateSessionScreen() {
     createSession 
   } = useJulesApi({ apiKey, t });
 
-  // Load sources when dropdown opens
-  const toggleSources = async () => {
-    if (!sourcesLoaded) {
-      await fetchSources();
-      setSourcesLoaded(true);
+  // Pre-fetch sources when screen loads
+  useEffect(() => {
+    if (apiKey && !sourcesLoaded) {
+      void fetchSources().then(() => setSourcesLoaded(true));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKey]);
+
+  // Background fetch more sources while dropdown is open
+  useEffect(() => {
+    if (!isDropdownOpen || !hasMoreSources || isLoadingMoreSources) return;
+    
+    // Fetch next page after a short delay while dropdown is open
+    const timer = setTimeout(() => {
+      void fetchMoreSources();
+    }, 500);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDropdownOpen, hasMoreSources, isLoadingMoreSources, sources.length]);
+
+  // Toggle dropdown (sources already loaded)
+  const toggleSources = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  // Handle scroll to load more sources
+  // Handle scroll to load more sources (manual trigger)
   const handleSourcesScroll = (event: { nativeEvent: { layoutMeasurement: { height: number }; contentOffset: { y: number }; contentSize: { height: number } } }) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
     
     if (isCloseToBottom && hasMoreSources && !isLoadingMoreSources) {
-      fetchMoreSources();
+      void fetchMoreSources();
     }
   };
 
@@ -72,7 +210,11 @@ export default function CreateSessionScreen() {
       return;
     }
 
-    const session = await createSession(selectedSource, prompt);
+    // Get default branch from selected source
+    const source = sources.find((s) => s.name === selectedSource);
+    const defaultBranch = source?.githubRepo?.defaultBranch?.displayName || 'main';
+
+    const session = await createSession(selectedSource, prompt, defaultBranch);
     if (session) {
       Alert.alert(t('createSuccess'), '', [
         {
@@ -100,143 +242,145 @@ export default function CreateSessionScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
-        <ScrollView 
-          contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Error */}
-          {error && (
-            <View style={[styles.errorBanner, isDark && styles.errorBannerDark]}>
-              <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity onPress={clearError}>
-                <Text style={styles.errorClose}>×</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Source selection */}
-          <View style={styles.section}>
-            <Text style={[styles.label, isDark && styles.labelDark]}>
-              {t('selectRepo')}
-            </Text>
-            <TouchableOpacity
-              style={[styles.selectButton, isDark && styles.selectButtonDark]}
-              onPress={toggleSources}
-              disabled={isLoading}
-            >
-              <Text
-                style={[
-                  styles.selectButtonText,
-                  isDark && styles.selectButtonTextDark,
-                  !selectedSource && styles.placeholderText,
-                ]}
-                numberOfLines={1}
-              >
-                {selectedSource
-                  ? sources.find((s) => s.name === selectedSource)?.displayName || selectedSource
-                  : t('selectPlaceholder')}
-              </Text>
-              <IconSymbol name={isDropdownOpen ? 'chevron.up' : 'chevron.down'} size={16} color={isDark ? '#64748b' : '#94a3b8'} />
-            </TouchableOpacity>
-
-            {/* Source list with lazy loading */}
-            {isDropdownOpen && sourcesLoaded && sources.length > 0 && (
-              <ScrollView 
-                style={[styles.sourceList, isDark && styles.sourceListDark]}
-                nestedScrollEnabled
-                showsVerticalScrollIndicator
-                onScroll={handleSourcesScroll}
-                scrollEventThrottle={400}
-              >
-                {sources.map((source) => {
-                  const displayName = source.githubRepo
-                    ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
-                    : source.displayName || source.name;
-                  return (
-                    <TouchableOpacity
-                      key={source.name}
-                      style={[
-                        styles.sourceItem,
-                        selectedSource === source.name && styles.sourceItemSelected,
-                        isDark && styles.sourceItemDark,
-                      ]}
-                      onPress={() => {
-                        setSelectedSource(source.name);
-                        setIsDropdownOpen(false);
-                      }}
-                    >
-                      <IconSymbol
-                        name="link"
-                        size={14}
-                        color={selectedSource === source.name ? '#2563eb' : isDark ? '#64748b' : '#94a3b8'}
-                      />
-                      <Text
-                        style={[
-                          styles.sourceItemText,
-                          isDark && styles.sourceItemTextDark,
-                          selectedSource === source.name && styles.sourceItemTextSelected,
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {displayName}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-                {/* Loading indicator for more sources */}
-                {isLoadingMoreSources && (
-                  <View style={styles.loadingMore}>
-                    <ActivityIndicator size="small" color="#2563eb" />
-                    <Text style={[styles.loadingMoreText, isDark && styles.loadingMoreTextDark]}>
-                      {t('loadingMore')}
-                    </Text>
-                  </View>
-                )}
-                {/* End of list indicator */}
-                {!hasMoreSources && sources.length > 20 && (
-                  <View style={styles.endOfList}>
-                    <Text style={[styles.endOfListText, isDark && styles.endOfListTextDark]}>
-                      {sources.length} repos
-                    </Text>
-                  </View>
-                )}
-              </ScrollView>
-            )}
-
-            {sourcesLoaded && sources.length === 0 && isDropdownOpen && (
-              <Text style={[styles.hint, { color: '#f59e0b' }]}>
-                {t('noSourcesFound')}
-              </Text>
-            )}
-          </View>
-
-          {/* プロンプト入力 */}
-          <View style={[styles.section, { marginTop: 24 }]}>
-            <Text style={[styles.label, isDark && styles.labelDark]}>{t('promptLabel')}</Text>
-            <TextInput
-              style={[styles.textArea, isDark && styles.textAreaDark]}
-              value={prompt}
-              onChangeText={setPrompt}
-              placeholder={t('promptPlaceholder')}
-              placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
-              multiline
-              textAlignVertical="top"
-            />
-          </View>
-
-          {/* 作成ボタン */}
-          <TouchableOpacity
-            style={[styles.createButton, (!selectedSource || !prompt.trim()) && styles.createButtonDisabled]}
-            onPress={handleCreate}
-            disabled={!selectedSource || !prompt.trim() || isLoading}
-            activeOpacity={0.8}
+        {isLoading ? (
+          <FormSkeleton paddingBottom={40 + insets.bottom} />
+        ) : (
+          <ScrollView 
+            contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]}
+            keyboardShouldPersistTaps="handled"
           >
-            <IconSymbol name="plus" size={20} color="#ffffff" />
-            <Text style={styles.createButtonText}>{t('startSession')}</Text>
-          </TouchableOpacity>
-        </ScrollView>
+            {/* Error */}
+            {error && (
+              <View style={[styles.errorBanner, isDark && styles.errorBannerDark]}>
+                <Text style={styles.errorText}>{error}</Text>
+                <TouchableOpacity onPress={clearError}>
+                  <Text style={styles.errorClose}>×</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
-        <LoadingOverlay visible={isLoading} message={t('processing')} />
+            {/* Source selection */}
+            <View style={styles.section}>
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('selectRepo')}
+              </Text>
+              <TouchableOpacity
+                style={[styles.selectButton, isDark && styles.selectButtonDark]}
+                onPress={toggleSources}
+                disabled={isLoading}
+              >
+                <Text
+                  style={[
+                    styles.selectButtonText,
+                    isDark && styles.selectButtonTextDark,
+                    !selectedSource && styles.placeholderText,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {selectedSource
+                    ? sources.find((s) => s.name === selectedSource)?.displayName || selectedSource
+                    : t('selectPlaceholder')}
+                </Text>
+                <IconSymbol name={isDropdownOpen ? 'chevron.up' : 'chevron.down'} size={16} color={isDark ? '#64748b' : '#94a3b8'} />
+              </TouchableOpacity>
+
+              {/* Source list with lazy loading */}
+              {isDropdownOpen && sourcesLoaded && sources.length > 0 && (
+                <ScrollView 
+                  style={[styles.sourceList, isDark && styles.sourceListDark]}
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator
+                  onScroll={handleSourcesScroll}
+                  scrollEventThrottle={400}
+                >
+                  {sources.map((source) => {
+                    const displayName = source.githubRepo
+                      ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
+                      : source.displayName || source.name;
+                    return (
+                      <TouchableOpacity
+                        key={source.name}
+                        style={[
+                          styles.sourceItem,
+                          selectedSource === source.name && styles.sourceItemSelected,
+                          isDark && styles.sourceItemDark,
+                        ]}
+                        onPress={() => {
+                          setSelectedSource(source.name);
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        <IconSymbol
+                          name="link"
+                          size={14}
+                          color={selectedSource === source.name ? '#2563eb' : isDark ? '#64748b' : '#94a3b8'}
+                        />
+                        <Text
+                          style={[
+                            styles.sourceItemText,
+                            isDark && styles.sourceItemTextDark,
+                            selectedSource === source.name && styles.sourceItemTextSelected,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {displayName}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                  {/* Loading indicator for more sources */}
+                  {isLoadingMoreSources && (
+                    <View style={styles.loadingMore}>
+                      <ActivityIndicator size="small" color="#2563eb" />
+                      <Text style={[styles.loadingMoreText, isDark && styles.loadingMoreTextDark]}>
+                        {t('loadingMore')}
+                      </Text>
+                    </View>
+                  )}
+                  {/* End of list indicator */}
+                  {!hasMoreSources && sources.length > 20 && (
+                    <View style={styles.endOfList}>
+                      <Text style={[styles.endOfListText, isDark && styles.endOfListTextDark]}>
+                        {sources.length} repos
+                      </Text>
+                    </View>
+                  )}
+                </ScrollView>
+              )}
+
+              {sourcesLoaded && sources.length === 0 && isDropdownOpen && (
+                <Text style={[styles.hint, { color: '#f59e0b' }]}>
+                  {t('noSourcesFound')}
+                </Text>
+              )}
+            </View>
+
+            {/* プロンプト入力 */}
+            <View style={[styles.section, { marginTop: 24 }]}>
+              <Text style={[styles.label, isDark && styles.labelDark]}>{t('promptLabel')}</Text>
+              <TextInput
+                style={[styles.textArea, isDark && styles.textAreaDark]}
+                value={prompt}
+                onChangeText={setPrompt}
+                placeholder={t('promptPlaceholder')}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+                multiline
+                textAlignVertical="top"
+              />
+            </View>
+
+            {/* 作成ボタン */}
+            <TouchableOpacity
+              style={[styles.createButton, (!selectedSource || !prompt.trim()) && styles.createButtonDisabled]}
+              onPress={handleCreate}
+              disabled={!selectedSource || !prompt.trim() || isLoading}
+              activeOpacity={0.8}
+            >
+              <IconSymbol name="plus" size={20} color="#ffffff" />
+              <Text style={styles.createButtonText}>{t('startSession')}</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        )}
       </KeyboardAvoidingView>
     </>
   );

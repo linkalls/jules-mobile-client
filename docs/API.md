@@ -45,12 +45,12 @@ GET /sessions?pageSize=20
 
 **Session States:**
 
-| State | Description |
-|-------|-------------|
-| `STATE_UNSPECIFIED` | Unknown state |
-| `ACTIVE` | Session is in progress |
-| `COMPLETED` | Session finished successfully |
-| `FAILED` | Session encountered an error |
+| State | Description | App Display (ja/en) |
+|-------|-------------|---------------------|
+| `STATE_UNSPECIFIED` | Unknown/Creating state | 作成中 / Creating |
+| `ACTIVE` | Session is in progress | 処理中 / Processing |
+| `COMPLETED` | Session finished successfully | 完了 / Completed |
+| `FAILED` | Session encountered an error | 失敗 / Failed |
 
 #### Create Session
 
@@ -61,7 +61,10 @@ Content-Type: application/json
 {
   "prompt": "Fix the login bug",
   "sourceContext": {
-    "source": "sources/github/owner/repo"
+    "source": "sources/github/owner/repo",
+    "githubRepoContext": {
+      "startingBranch": "main"
+    }
   },
   "title": "Fix the login bug..."
 }

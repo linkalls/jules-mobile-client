@@ -45,8 +45,10 @@ Located in `app/` directory, using Expo Router's file-based routing.
 Specialized components for Jules functionality:
 
 - **`ActivityItem`** - Renders different activity types (messages, plans, artifacts)
-- **`SessionCard`** - Session list item with status badge
-- **`LoadingOverlay`** - Full-screen loading indicator
+- **`ActivityItemSkeleton`** - Chat-style shimmer skeleton for loading states
+- **`SessionCard`** - Session list item with i18n status badge
+- **`SessionCardSkeleton`** - Card shimmer skeleton for loading states
+- **`LoadingOverlay`** - Full-screen loading indicator (legacy)
 - **`DataRenderer`** - Generic JSON/data renderer
 - **`CodeBlock`** - Syntax highlighted code display
 

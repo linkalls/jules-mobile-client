@@ -11,7 +11,8 @@
 <p align="center">
   <a href="README.ja.md">🇯🇵 日本語</a> •
   <a href="docs/ARCHITECTURE.md">📐 Architecture</a> •
-  <a href="docs/API.md">🔌 API Reference</a>
+  <a href="docs/API.md">🔌 API Reference</a> •
+  <a href="docs/Agent.md">🤖 Agent Guide</a>
 </p>
 
 ---
@@ -36,8 +37,8 @@
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+
-- [Bun](https://bun.sh/) (recommended) or npm
+- [Bun](https://bun.sh/) (recommended JavaScript runtime)
+- [Node.js](https://nodejs.org/) 18+ (alternative)
 - [Expo CLI](https://docs.expo.dev/get-started/installation/)
 - [Jules API Key](https://console.cloud.google.com/) from Google Cloud Console
 
@@ -48,8 +49,11 @@
 git clone https://github.com/yourusername/jules-mobile-client.git
 cd jules-mobile-client
 
-# Install dependencies
+# Install dependencies (using bun - recommended)
 bun install
+
+# Or install Expo-specific packages
+bunx expo install <package-name>
 
 # Start the development server
 bun start
@@ -66,6 +70,25 @@ bun android
 
 # Web Browser
 bun web
+```
+
+### Bun Commands Quick Reference
+
+```bash
+# Development
+bun start          # Start Expo dev server
+bun ios            # Run on iOS simulator
+bun android        # Run on Android emulator
+bun web            # Run in browser
+
+# Package management
+bun install        # Install all dependencies
+bun add <pkg>      # Add a new package
+bunx expo install <pkg>  # Add Expo-compatible package version
+
+# Other
+bun lint           # Run ESLint
+bun reset-project  # Reset to clean state
 ```
 
 ## ⚙️ Configuration
@@ -92,9 +115,10 @@ jules-mobile-client/
 │   └── _layout.tsx        # Root layout
 ├── components/
 │   ├── jules/             # Jules-specific components
-│   │   ├── activity-item.tsx
-│   │   ├── session-card.tsx
-│   │   └── loading-overlay.tsx
+│   │   ├── activity-item.tsx  # Chat bubbles + ActivityItemSkeleton
+│   │   ├── session-card.tsx   # Session cards + SessionCardSkeleton
+│   │   ├── loading-overlay.tsx
+│   │   └── code-block.tsx     # Syntax highlighted code
 │   └── ui/                # Generic UI components
 ├── constants/
 │   ├── types.ts           # TypeScript types

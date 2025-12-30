@@ -81,7 +81,8 @@ export function DataRenderer({ data, depth = 0 }: DataRendererProps) {
     );
   }
 
-  return <Text>{String(data)}</Text>;
+  // Fallback for unknown types - convert to JSON string
+  return <Text>{JSON.stringify(data)}</Text>;
 }
 
 const styles = StyleSheet.create({

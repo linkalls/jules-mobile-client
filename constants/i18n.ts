@@ -54,6 +54,16 @@ const translations = {
     createSuccess: 'セッションを作成したよ！',
     processing: '処理中...',
     
+    // Session States
+    stateActive: '処理中',
+    stateCompleted: '完了',
+    stateFailed: '失敗',
+    stateUnknown: '作成中',
+    
+    // Licenses
+    licenses: 'オープンソースライセンス',
+    licensesDescription: 'このアプリは以下のオープンソースライブラリを使用しています。各ライブラリをタップするとGitHubリポジトリを開きます。',
+    
     // API Errors
     apiKeyNotSet: 'APIキーが設定されていないよ！設定画面で入力してね。',
     apiError: 'APIエラー',
@@ -112,6 +122,16 @@ const translations = {
     inputError: 'Please select a repository and enter your request!',
     createSuccess: 'Session created!',
     processing: 'Processing...',
+    
+    // Session States
+    stateActive: 'Processing',
+    stateCompleted: 'Completed',
+    stateFailed: 'Failed',
+    stateUnknown: 'Creating',
+    
+    // Licenses
+    licenses: 'Open Source Licenses',
+    licensesDescription: 'This app uses the following open source libraries. Tap each library to open its GitHub repository.',
     
     // API Errors
     apiKeyNotSet: 'API key not set! Enter it in Settings.',
