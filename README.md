@@ -52,7 +52,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/jules-mobile-client.git
+git clone https://github.com/linkalls/jules-mobile-client.git
 cd jules-mobile-client
 
 # Install dependencies (using bun - recommended)
