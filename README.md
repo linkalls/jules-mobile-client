@@ -29,9 +29,15 @@
 
 ## 📸 Screenshots
 
-| Sessions | Session Detail | Create Task | Settings |
-|----------|---------------|-------------|----------|
-| View all active sessions | Chat with Jules AI | Create new coding tasks | Configure API key |
+<p align="center">
+  <img src="assets/screenshots/sessions.png" alt="Sessions List" width="200" />
+  <img src="assets/screenshots/new-task.png" alt="New Task" width="200" />
+  <img src="assets/screenshots/settings.png" alt="Settings" width="200" />
+</p>
+
+| Sessions | New Task | Settings |
+|:--------:|:--------:|:--------:|
+| View all active sessions | Create new coding tasks | Configure API key & preferences |
 
 ## 🚀 Getting Started
 

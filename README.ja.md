@@ -29,9 +29,15 @@
 
 ##  スクリーンショット
 
-| セッション一覧 | セッション詳細 | タスク作成 | 設定 |
-|--------------|--------------|----------|------|
-| 全アクティブセッションを表示 | Jules AIとチャット | 新規コーディングタスク作成 | APIキーの設定 |
+<p align="center">
+  <img src="assets/screenshots/sessions.png" alt="セッション一覧" width="200" />
+  <img src="assets/screenshots/new-task.png" alt="タスク作成" width="200" />
+  <img src="assets/screenshots/settings.png" alt="設定" width="200" />
+</p>
+
+| セッション一覧 | タスク作成 | 設定 |
+|:------------:|:--------:|:----:|
+| 全アクティブセッションを表示 | 新規コーディングタスク作成 | APIキーと設定 |
 
 ##  はじめに
 
