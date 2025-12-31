@@ -196,7 +196,7 @@ eas build --platform ios --profile production
 
 ## �� ライセンス
 
-このプロジェクトはMITライセンスの下で公開されています - 詳細は[LICENSE](LICENSE)ファイルを参照してください。
+このプロジェクトはBSD 2-Clauseライセンスの下で公開されています - 詳細は[LICENSE](LICENSE)ファイルを参照してください。
 
 ##  謝辞
 
