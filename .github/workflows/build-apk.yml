@@ -1,0 +1,104 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install ccache
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ccache
+          echo "CCACHE_DIR=~/.ccache" >> $GITHUB_ENV
+          echo "NDK_CCACHE=ccache" >> $GITHUB_ENV
+          echo "CCACHE_MAXSIZE=2G" >> $GITHUB_ENV
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-${{ hashFiles('app.json', 'bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('app.json', 'bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Prebuild Android
+        run: npx expo prebuild --platform android
+
+      - name: Determine Build Type
+        id: build_type
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "TASK=assembleRelease" >> $GITHUB_ENV
+            echo "APK_PATH=android/app/build/outputs/apk/release/app-release.apk" >> $GITHUB_ENV
+            echo "ARTIFACT_NAME=app-release" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "TASK=assembleRelease" >> $GITHUB_ENV
+            echo "APK_PATH=android/app/build/outputs/apk/release/app-release*.apk" >> $GITHUB_ENV
+            echo "ARTIFACT_NAME=app-release" >> $GITHUB_ENV
+          else
+             echo "TASK=assembleRelease" >> $GITHUB_ENV
+             echo "APK_PATH=android/app/build/outputs/apk/release/app-release.apk" >> $GITHUB_ENV
+             echo "ARTIFACT_NAME=app-release" >> $GITHUB_ENV
+          fi
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew ${{ env.TASK }} --build-cache
+          ccache -s
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.APK_PATH }}
