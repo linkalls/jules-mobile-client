@@ -229,13 +229,10 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
       setError(null);
       try {
         const body = {
-          originator: 'user',
-          userMessaged: {
-            userMessage: message,
-          },
+          prompt: message,
         };
 
-        await julesFetch(`/${sessionName}/activities`, {
+        await julesFetch(`/${sessionName}:sendMessage`, {
           method: 'POST',
           body: JSON.stringify(body),
         });
