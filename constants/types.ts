@@ -28,13 +28,34 @@ export interface Source {
   };
 }
 
-// セッション (タスクの単位)
+/**
+ * PR object
+ */
+export interface PullRequest {
+  url?: string;
+  title?: string;
+  description?: string;
+}
+
+/**
+ * Session Output object
+ */
+export interface SessionOutput {
+  pullRequest?: PullRequest;
+  [key: string]: unknown;
+}
+
+/**
+ * Session (unit of work in Jules)
+ */
 export interface Session {
   name: string; // "sessions/..."
   title?: string;
   state: 'STATE_UNSPECIFIED' | 'ACTIVE' | 'COMPLETED' | 'FAILED';
   createTime: string;
   updateTime: string;
+  outputs?: SessionOutput[];
+  submittedPr?: string;
 }
 
 // プランステップ

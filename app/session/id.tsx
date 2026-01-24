@@ -10,6 +10,7 @@ import {
   Keyboard,
   Platform,
   Animated,
+  Linking,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useHeaderHeight } from '@react-navigation/elements';
@@ -23,7 +24,7 @@ import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
 
 export default function SessionDetailScreen() {
-  const { id, title } = useLocalSearchParams<{ id: string; title: string }>();
+  const { id, title, submittedPr } = useLocalSearchParams<{ id: string; title: string; submittedPr?: string }>();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { t } = useI18n();
@@ -186,6 +187,24 @@ export default function SessionDetailScreen() {
                 </Text>
               </View>
             }
+            ListFooterComponent={
+              submittedPr ? (
+                <View style={[styles.prCard, isDark && styles.prCardDark]}>
+                  <View style={styles.prHeader}>
+                    <IconSymbol name="link" size={16} color="#2563eb" />
+                    <Text style={[styles.prTitle, isDark && styles.prTitleDark]}>Pull Request Submitted</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.prButton}
+                    onPress={() => Linking.openURL(submittedPr)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.prButtonText}>View PR</Text>
+                    <IconSymbol name="chevron.right" size={16} color="#ffffff" />
+                  </TouchableOpacity>
+                </View>
+              ) : null
+            }
           />
         )}
 
@@ -310,5 +329,51 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: '#94a3b8',
     shadowOpacity: 0,
+  },
+  prCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginVertical: 6,
+  },
+  prCardDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
+  prHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  prTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e293b',
+  },
+  prTitleDark: {
+    color: '#e2e8f0',
+  },
+  prButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#2563eb',
+    borderRadius: 10,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  prButtonText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

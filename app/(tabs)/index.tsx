@@ -23,6 +23,21 @@ const MemoizedSessionCard = memo(({ session, onPress }: { session: Session; onPr
 ));
 MemoizedSessionCard.displayName = 'MemoizedSessionCard';
 
+// Extract PR URL from session outputs
+// The API returns PR information in outputs[].pullRequest.url, not as a top-level field
+function extractPrUrl(session: Session): Session {
+  if (!session.submittedPr && session.outputs && session.outputs.length > 0) {
+    // Find the first output that contains a pull request URL
+    for (const output of session.outputs) {
+      const prUrl = output?.pullRequest?.url;
+      if (prUrl) {
+        return { ...session, submittedPr: prUrl };
+      }
+    }
+  }
+  return session;
+}
+
 export default function SessionsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -44,7 +59,8 @@ export default function SessionsScreen() {
 
   const loadSessions = useCallback(async () => {
     const data = await fetchSessions();
-    setSessions(data);
+    const sessionsWithPr = data.map(extractPrUrl);
+    setSessions(sessionsWithPr);
   }, [fetchSessions]);
 
   const onRefresh = useCallback(async () => {
@@ -55,8 +71,12 @@ export default function SessionsScreen() {
 
   const openSession = (session: Session) => {
     router.push({
-      pathname: '/session/[id]',
-      params: { id: session.name, title: session.title || 'Session' },
+      pathname: '/session/id',
+      params: {
+        id: session.name,
+        title: session.title || 'Session',
+        submittedPr: session.submittedPr || '',
+      },
     });
   };
 
