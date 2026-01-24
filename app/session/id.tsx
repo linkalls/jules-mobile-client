@@ -37,7 +37,7 @@ export default function SessionDetailScreen() {
   const keyboardPadding = useRef(new Animated.Value(0)).current;
 
   const flatListRef = useRef<FlatList>(null);
-  const { isLoading, error, clearError, fetchActivities, approvePlan } = useJulesApi({ apiKey, t });
+  const { isLoading, error, clearError, fetchActivities, approvePlan, sendMessage } = useJulesApi({ apiKey, t });
 
   // キーボード表示時のアニメーション付きパディング調整
   useEffect(() => {
@@ -122,12 +122,20 @@ export default function SessionDetailScreen() {
     }
   };
 
-  // TODO: 実際の送信エンドポイントに合わせて実装
-  const handleSend = () => {
-    if (!messageInput.trim()) return;
-    // 現時点ではモック
-    console.log('Send message:', messageInput);
-    setMessageInput('');
+  const handleSend = async () => {
+    if (!messageInput.trim() || !id) return;
+
+    const messageToSend = messageInput;
+    setMessageInput(''); // Clear immediately for better UX
+
+    try {
+      await sendMessage(id, messageToSend);
+      // Reload activities to show the new message
+      await loadActivities();
+    } catch (e) {
+      console.error('Failed to send message:', e);
+      // Optionally show error or restore input
+    }
   };
 
   return (
