@@ -13,6 +13,7 @@ import {
   Linking,
   Image,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useHeaderHeight } from '@react-navigation/elements';
@@ -152,6 +153,7 @@ export default function SessionDetailScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
+      Alert.alert(t('error'), t('photoPermissionDenied') || 'Photo library permission is required');
       return;
     }
 
@@ -171,7 +173,7 @@ export default function SessionDetailScreen() {
       }));
       setPhotos((prev) => [...prev, ...newPhotos]);
     }
-  }, []);
+  }, [t]);
 
   const removePhoto = useCallback((index: number) => {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
