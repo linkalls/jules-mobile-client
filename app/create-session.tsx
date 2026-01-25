@@ -194,6 +194,13 @@ export default function CreateSessionScreen() {
     return sources.filter(s => !recentRepoNames.includes(s.name));
   }, [sources, recentRepoNames]);
 
+  // Helper function to get display name for a source
+  const getSourceDisplayName = useCallback((source: Source): string => {
+    return source.githubRepo
+      ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
+      : source.displayName || source.name;
+  }, []);
+
   // Background fetch more sources while dropdown is open
   useEffect(() => {
     if (!isDropdownOpen || !hasMoreSources || isLoadingMoreSources) return;
@@ -301,9 +308,7 @@ export default function CreateSessionScreen() {
                   {selectedSource
                     ? (() => {
                         const source = sources.find((s) => s.name === selectedSource);
-                        return source?.githubRepo
-                          ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
-                          : source?.displayName || selectedSource;
+                        return source ? getSourceDisplayName(source) : selectedSource;
                       })()
                     : t('selectPlaceholder')}
                 </Text>
@@ -329,9 +334,6 @@ export default function CreateSessionScreen() {
                         </Text>
                       </View>
                       {recentSources.map((source) => {
-                        const displayName = source.githubRepo
-                          ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
-                          : source.displayName || source.name;
                         return (
                           <TouchableOpacity
                             key={source.name}
@@ -358,7 +360,7 @@ export default function CreateSessionScreen() {
                               ]}
                               numberOfLines={1}
                             >
-                              {displayName}
+                              {getSourceDisplayName(source)}
                             </Text>
                           </TouchableOpacity>
                         );
@@ -378,9 +380,6 @@ export default function CreateSessionScreen() {
                         </View>
                       )}
                       {allSources.map((source) => {
-                        const displayName = source.githubRepo
-                          ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
-                          : source.displayName || source.name;
                         return (
                           <TouchableOpacity
                             key={source.name}
@@ -407,7 +406,7 @@ export default function CreateSessionScreen() {
                               ]}
                               numberOfLines={1}
                             >
-                              {displayName}
+                              {getSourceDisplayName(source)}
                             </Text>
                           </TouchableOpacity>
                         );
