@@ -54,10 +54,6 @@ const translations = {
     recentRepos: '最近使ったリポジトリ',
     allRepos: 'すべてのリポジトリ',
     repoHint: '💡 よく使うリポジトリは一番上に表示されるよ！',
-    photoAttachments: '写真 (準備中)',
-    addPhoto: '写真を追加',
-    photoPermissionDenied: '写真へのアクセス権限が必要です',
-    photoApiNote: '写真アップロード機能の準備完了。API対応をお待ちください。',
     
     // Session States
     stateActive: '処理中',
@@ -131,10 +127,6 @@ const translations = {
     recentRepos: 'Recent Repositories',
     allRepos: 'All Repositories',
     repoHint: '💡 Your frequently used repos will appear at the top!',
-    photoAttachments: 'Photos (Coming Soon)',
-    addPhoto: 'Add Photo',
-    photoPermissionDenied: 'Photo library permission is required',
-    photoApiNote: 'Photo upload UI is ready. API support coming soon.',
     
     // Session States
     stateActive: 'Processing',

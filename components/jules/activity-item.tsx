@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, Image } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -358,10 +358,14 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
     const artifacts = activity.artifacts || [];
     
     const bashArtifacts = artifacts.filter(a => a.bashOutput);
+    const mediaArtifacts = artifacts.filter(a => a.media);
     // CLI実行時(bashOutputあり)は、過去の変更履歴(changeSet)を表示しないようにする
     const changeSetArtifacts = bashArtifacts.length > 0
       ? []
       : artifacts.filter(a => a.changeSet?.gitPatch);
+    
+    const hasAnyContent = title || description || bashArtifacts.length > 0 || 
+                         changeSetArtifacts.length > 0 || mediaArtifacts.length > 0;
     
     return (
       <View style={styles.container}>
@@ -381,6 +385,49 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
             <Text style={[styles.description, isDark && styles.descriptionDark]}>
               {description}
             </Text>
+          )}
+          
+          {/* Media artifacts (images) */}
+          {mediaArtifacts.length > 0 && (
+            <View style={styles.mediaContainer}>
+              {mediaArtifacts.map((artifact, index) => {
+                if (!artifact.media) return null;
+                const { mimeType, data } = artifact.media;
+                // Check if it's an image
+                if (mimeType.startsWith('image/')) {
+                  // Validate base64 data format (basic check)
+                  const isValidBase64 = data && typeof data === 'string' && data.length > 0;
+                  if (!isValidBase64) {
+                    return (
+                      <View key={index} style={[styles.mediaPlaceholder, isDark && styles.mediaPlaceholderDark]}>
+                        <IconSymbol name="exclamationmark.triangle" size={24} color="#ef4444" />
+                        <Text style={[styles.mediaPlaceholderText, isDark && styles.mediaPlaceholderTextDark]}>
+                          Invalid image data
+                        </Text>
+                      </View>
+                    );
+                  }
+                  return (
+                    <View key={index} style={styles.mediaImageWrapper}>
+                      <Image
+                        source={{ uri: `data:${mimeType};base64,${data}` }}
+                        style={styles.mediaImage}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  );
+                }
+                // For non-image media, show a placeholder
+                return (
+                  <View key={index} style={[styles.mediaPlaceholder, isDark && styles.mediaPlaceholderDark]}>
+                    <IconSymbol name="doc" size={24} color={isDark ? '#94a3b8' : '#64748b'} />
+                    <Text style={[styles.mediaPlaceholderText, isDark && styles.mediaPlaceholderTextDark]}>
+                      {mimeType}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
           )}
           
           {/* bashOutput */}
@@ -449,7 +496,7 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
           ))}
           
           {/* 何もない場合 */}
-          {!title && !description && bashArtifacts.length === 0 && changeSetArtifacts.length === 0 && (
+          {!hasAnyContent && (
             <View style={styles.cardHeader}>
               <IconSymbol name="arrow.clockwise" size={16} color="#64748b" />
               <Text style={[styles.cardTitle, isDark && styles.cardTitleDark]}>Working...</Text>
@@ -689,5 +736,39 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
     fontWeight: '700',
+  },
+  
+  // Media artifacts
+  mediaContainer: {
+    marginTop: 8,
+    gap: 8,
+  },
+  mediaImageWrapper: {
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#f8fafc',
+    maxHeight: 300,
+  },
+  mediaImage: {
+    width: '100%',
+    height: 300,
+  },
+  mediaPlaceholder: {
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    gap: 8,
+  },
+  mediaPlaceholderDark: {
+    backgroundColor: '#0f172a',
+  },
+  mediaPlaceholderText: {
+    fontSize: 12,
+    color: '#64748b',
+    fontFamily: 'monospace',
+  },
+  mediaPlaceholderTextDark: {
+    color: '#94a3b8',
   },
 });
