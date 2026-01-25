@@ -86,7 +86,7 @@ export interface Artifact {
   };
   media?: {
     mimeType: string;
-    data: string; // base64 encoded
+    data: string; // base64-encoded string (API returns as 'format: byte' which is base64 in JSON)
   };
 }
 

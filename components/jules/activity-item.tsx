@@ -364,6 +364,9 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
       ? []
       : artifacts.filter(a => a.changeSet?.gitPatch);
     
+    const hasAnyContent = title || description || bashArtifacts.length > 0 || 
+                         changeSetArtifacts.length > 0 || mediaArtifacts.length > 0;
+    
     return (
       <View style={styles.container}>
         <View style={[styles.card, isDark && styles.cardDark]}>
@@ -392,6 +395,18 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
                 const { mimeType, data } = artifact.media;
                 // Check if it's an image
                 if (mimeType.startsWith('image/')) {
+                  // Validate base64 data format (basic check)
+                  const isValidBase64 = data && typeof data === 'string' && data.length > 0;
+                  if (!isValidBase64) {
+                    return (
+                      <View key={index} style={[styles.mediaPlaceholder, isDark && styles.mediaPlaceholderDark]}>
+                        <IconSymbol name="exclamationmark.triangle" size={24} color="#ef4444" />
+                        <Text style={[styles.mediaPlaceholderText, isDark && styles.mediaPlaceholderTextDark]}>
+                          Invalid image data
+                        </Text>
+                      </View>
+                    );
+                  }
                   return (
                     <View key={index} style={styles.mediaImageWrapper}>
                       <Image
@@ -481,7 +496,7 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
           ))}
           
           {/* 何もない場合 */}
-          {!title && !description && bashArtifacts.length === 0 && changeSetArtifacts.length === 0 && mediaArtifacts.length === 0 && (
+          {!hasAnyContent && (
             <View style={styles.cardHeader}>
               <IconSymbol name="arrow.clockwise" size={16} color="#64748b" />
               <Text style={[styles.cardTitle, isDark && styles.cardTitleDark]}>Working...</Text>
