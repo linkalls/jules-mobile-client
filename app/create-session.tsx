@@ -299,7 +299,12 @@ export default function CreateSessionScreen() {
                   numberOfLines={1}
                 >
                   {selectedSource
-                    ? sources.find((s) => s.name === selectedSource)?.displayName || selectedSource
+                    ? (() => {
+                        const source = sources.find((s) => s.name === selectedSource);
+                        return source?.githubRepo
+                          ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
+                          : source?.displayName || selectedSource;
+                      })()
                     : t('selectPlaceholder')}
                 </Text>
                 <IconSymbol name={isDropdownOpen ? 'chevron.up' : 'chevron.down'} size={16} color={isDark ? '#64748b' : '#94a3b8'} />
@@ -432,6 +437,13 @@ export default function CreateSessionScreen() {
               {sourcesLoaded && sources.length === 0 && isDropdownOpen && (
                 <Text style={[styles.hint, { color: '#f59e0b' }]}>
                   {t('noSourcesFound')}
+                </Text>
+              )}
+              
+              {/* Helper hint */}
+              {!isDropdownOpen && sourcesLoaded && sources.length > 0 && (
+                <Text style={[styles.hint, isDark && styles.hintDark]}>
+                  {t('repoHint')}
                 </Text>
               )}
             </View>
@@ -599,6 +611,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#94a3b8',
     marginTop: 4,
+  },
+  hintDark: {
+    color: '#64748b',
   },
   textArea: {
     backgroundColor: '#ffffff',

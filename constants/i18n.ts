@@ -53,6 +53,7 @@ const translations = {
     processing: '処理中...',
     recentRepos: '最近使ったリポジトリ',
     allRepos: 'すべてのリポジトリ',
+    repoHint: '💡 よく使うリポジトリは一番上に表示されるよ！',
     
     // Session States
     stateActive: '処理中',
@@ -125,6 +126,7 @@ const translations = {
     processing: 'Processing...',
     recentRepos: 'Recent Repositories',
     allRepos: 'All Repositories',
+    repoHint: '💡 Your frequently used repos will appear at the top!',
     
     // Session States
     stateActive: 'Processing',
