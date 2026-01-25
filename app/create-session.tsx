@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,8 @@ import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
+import { useSecureStorage } from '@/hooks/use-secure-storage';
+import type { Source } from '@/constants/types';
 
 /**
  * シマー効果付きスケルトン
@@ -150,10 +152,12 @@ export default function CreateSessionScreen() {
   const headerHeight = useHeaderHeight();
 
   const { apiKey } = useApiKey();
+  const { saveRecentRepo, getRecentRepos } = useSecureStorage();
   const [selectedSource, setSelectedSource] = useState('');
   const [prompt, setPrompt] = useState('');
   const [sourcesLoaded, setSourcesLoaded] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [recentRepoNames, setRecentRepoNames] = useState<string[]>([]);
 
   const { 
     isLoading, 
@@ -167,6 +171,11 @@ export default function CreateSessionScreen() {
     createSession 
   } = useJulesApi({ apiKey, t });
 
+  // Load recent repos on mount
+  useEffect(() => {
+    void getRecentRepos().then(setRecentRepoNames);
+  }, [getRecentRepos]);
+
   // Pre-fetch sources when screen loads
   useEffect(() => {
     if (apiKey && !sourcesLoaded) {
@@ -174,6 +183,23 @@ export default function CreateSessionScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
+
+  // Memoize recent sources for performance
+  const recentSources = useMemo(() => {
+    return sources.filter(s => recentRepoNames.includes(s.name));
+  }, [sources, recentRepoNames]);
+
+  // Memoize all sources excluding recent ones
+  const allSources = useMemo(() => {
+    return sources.filter(s => !recentRepoNames.includes(s.name));
+  }, [sources, recentRepoNames]);
+
+  // Helper function to get display name for a source
+  const getSourceDisplayName = useCallback((source: Source): string => {
+    return source.githubRepo
+      ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
+      : source.displayName || source.name;
+  }, []);
 
   // Background fetch more sources while dropdown is open
   useEffect(() => {
@@ -189,9 +215,9 @@ export default function CreateSessionScreen() {
   }, [isDropdownOpen, hasMoreSources, isLoadingMoreSources, sources.length]);
 
   // Toggle dropdown (sources already loaded)
-  const toggleSources = () => {
+  const toggleSources = useCallback(() => {
     setIsDropdownOpen(!isDropdownOpen);
-  };
+  }, [isDropdownOpen]);
 
   // Handle scroll to load more sources (manual trigger)
   const handleSourcesScroll = (event: { nativeEvent: { layoutMeasurement: { height: number }; contentOffset: { y: number }; contentSize: { height: number } } }) => {
@@ -203,8 +229,8 @@ export default function CreateSessionScreen() {
     }
   };
 
-  // Create session
-  const handleCreate = async () => {
+  // Create session and save to recent repos
+  const handleCreate = useCallback(async () => {
     if (!selectedSource || !prompt.trim()) {
       Alert.alert(t('error'), t('inputError'));
       return;
@@ -216,6 +242,8 @@ export default function CreateSessionScreen() {
 
     const session = await createSession(selectedSource, prompt, defaultBranch);
     if (session) {
+      // Save to recent repos
+      await saveRecentRepo(selectedSource);
       Alert.alert(t('createSuccess'), '', [
         {
           text: 'OK',
@@ -223,7 +251,7 @@ export default function CreateSessionScreen() {
         },
       ]);
     }
-  };
+  }, [selectedSource, prompt, sources, createSession, saveRecentRepo, t, router]);
 
   return (
     <>
@@ -278,7 +306,10 @@ export default function CreateSessionScreen() {
                   numberOfLines={1}
                 >
                   {selectedSource
-                    ? sources.find((s) => s.name === selectedSource)?.displayName || selectedSource
+                    ? (() => {
+                        const source = sources.find((s) => s.name === selectedSource);
+                        return source ? getSourceDisplayName(source) : selectedSource;
+                      })()
                     : t('selectPlaceholder')}
                 </Text>
                 <IconSymbol name={isDropdownOpen ? 'chevron.up' : 'chevron.down'} size={16} color={isDark ? '#64748b' : '#94a3b8'} />
@@ -293,41 +324,95 @@ export default function CreateSessionScreen() {
                   onScroll={handleSourcesScroll}
                   scrollEventThrottle={400}
                 >
-                  {sources.map((source) => {
-                    const displayName = source.githubRepo
-                      ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
-                      : source.displayName || source.name;
-                    return (
-                      <TouchableOpacity
-                        key={source.name}
-                        style={[
-                          styles.sourceItem,
-                          selectedSource === source.name && styles.sourceItemSelected,
-                          isDark && styles.sourceItemDark,
-                        ]}
-                        onPress={() => {
-                          setSelectedSource(source.name);
-                          setIsDropdownOpen(false);
-                        }}
-                      >
-                        <IconSymbol
-                          name="link"
-                          size={14}
-                          color={selectedSource === source.name ? '#2563eb' : isDark ? '#64748b' : '#94a3b8'}
-                        />
-                        <Text
-                          style={[
-                            styles.sourceItemText,
-                            isDark && styles.sourceItemTextDark,
-                            selectedSource === source.name && styles.sourceItemTextSelected,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {displayName}
+                  {/* Recent Repositories Section */}
+                  {recentSources.length > 0 && (
+                    <>
+                      <View style={[styles.sectionHeader, isDark && styles.sectionHeaderDark]}>
+                        <IconSymbol name="clock" size={14} color={isDark ? '#60a5fa' : '#2563eb'} />
+                        <Text style={[styles.sectionHeaderText, isDark && styles.sectionHeaderTextDark]}>
+                          {t('recentRepos')}
                         </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                      </View>
+                      {recentSources.map((source) => {
+                        return (
+                          <TouchableOpacity
+                            key={source.name}
+                            style={[
+                              styles.sourceItem,
+                              selectedSource === source.name && styles.sourceItemSelected,
+                              isDark && styles.sourceItemDark,
+                            ]}
+                            onPress={() => {
+                              setSelectedSource(source.name);
+                              setIsDropdownOpen(false);
+                            }}
+                          >
+                            <IconSymbol
+                              name="clock.fill"
+                              size={14}
+                              color={selectedSource === source.name ? '#2563eb' : isDark ? '#60a5fa' : '#3b82f6'}
+                            />
+                            <Text
+                              style={[
+                                styles.sourceItemText,
+                                isDark && styles.sourceItemTextDark,
+                                selectedSource === source.name && styles.sourceItemTextSelected,
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {getSourceDisplayName(source)}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </>
+                  )}
+                  
+                  {/* All Repositories Section */}
+                  {allSources.length > 0 && (
+                    <>
+                      {recentSources.length > 0 && (
+                        <View style={[styles.sectionHeader, isDark && styles.sectionHeaderDark, { marginTop: 8 }]}>
+                          <IconSymbol name="folder" size={14} color={isDark ? '#94a3b8' : '#64748b'} />
+                          <Text style={[styles.sectionHeaderText, isDark && styles.sectionHeaderTextDark]}>
+                            {t('allRepos')}
+                          </Text>
+                        </View>
+                      )}
+                      {allSources.map((source) => {
+                        return (
+                          <TouchableOpacity
+                            key={source.name}
+                            style={[
+                              styles.sourceItem,
+                              selectedSource === source.name && styles.sourceItemSelected,
+                              isDark && styles.sourceItemDark,
+                            ]}
+                            onPress={() => {
+                              setSelectedSource(source.name);
+                              setIsDropdownOpen(false);
+                            }}
+                          >
+                            <IconSymbol
+                              name="link"
+                              size={14}
+                              color={selectedSource === source.name ? '#2563eb' : isDark ? '#64748b' : '#94a3b8'}
+                            />
+                            <Text
+                              style={[
+                                styles.sourceItemText,
+                                isDark && styles.sourceItemTextDark,
+                                selectedSource === source.name && styles.sourceItemTextSelected,
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {getSourceDisplayName(source)}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </>
+                  )}
                   {/* Loading indicator for more sources */}
                   {isLoadingMoreSources && (
                     <View style={styles.loadingMore}>
@@ -353,11 +438,23 @@ export default function CreateSessionScreen() {
                   {t('noSourcesFound')}
                 </Text>
               )}
+              
+              {/* Helper hint */}
+              {!isDropdownOpen && sourcesLoaded && sources.length > 0 && (
+                <Text style={[styles.hint, isDark && styles.hintDark]}>
+                  {t('repoHint')}
+                </Text>
+              )}
             </View>
 
             {/* プロンプト入力 */}
             <View style={[styles.section, { marginTop: 24 }]}>
-              <Text style={[styles.label, isDark && styles.labelDark]}>{t('promptLabel')}</Text>
+              <View style={styles.labelRow}>
+                <Text style={[styles.label, isDark && styles.labelDark]}>{t('promptLabel')}</Text>
+                <Text style={[styles.charCounter, isDark && styles.charCounterDark]}>
+                  {prompt.length} / 500
+                </Text>
+              </View>
               <TextInput
                 style={[styles.textArea, isDark && styles.textAreaDark]}
                 value={prompt}
@@ -366,6 +463,7 @@ export default function CreateSessionScreen() {
                 placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
                 multiline
                 textAlignVertical="top"
+                maxLength={500}
               />
             </View>
 
@@ -430,6 +528,19 @@ const styles = StyleSheet.create({
   },
   labelDark: {
     color: '#cbd5e1',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  charCounter: {
+    fontSize: 12,
+    color: '#94a3b8',
+  },
+  charCounterDark: {
+    color: '#64748b',
   },
   selectButton: {
     backgroundColor: '#ffffff',
@@ -500,6 +611,9 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     marginTop: 4,
   },
+  hintDark: {
+    color: '#64748b',
+  },
   textArea: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
@@ -563,5 +677,29 @@ const styles = StyleSheet.create({
   },
   endOfListTextDark: {
     color: '#64748b',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#f8fafc',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  sectionHeaderDark: {
+    backgroundColor: '#0f172a',
+    borderBottomColor: '#334155',
+  },
+  sectionHeaderText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  sectionHeaderTextDark: {
+    color: '#94a3b8',
   },
 });

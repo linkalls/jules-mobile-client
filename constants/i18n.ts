@@ -51,6 +51,9 @@ const translations = {
     inputError: 'リポジトリを選んで、依頼内容を書いてね！',
     createSuccess: 'セッションを作成したよ！',
     processing: '処理中...',
+    recentRepos: '最近使ったリポジトリ',
+    allRepos: 'すべてのリポジトリ',
+    repoHint: '💡 よく使うリポジトリは一番上に表示されるよ！',
     
     // Session States
     stateActive: '処理中',
@@ -121,6 +124,9 @@ const translations = {
     inputError: 'Please select a repository and enter your request!',
     createSuccess: 'Session created!',
     processing: 'Processing...',
+    recentRepos: 'Recent Repositories',
+    allRepos: 'All Repositories',
+    repoHint: '💡 Your frequently used repos will appear at the top!',
     
     // Session States
     stateActive: 'Processing',

@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 const API_KEY_STORAGE_KEY = 'jules_api_key';
 const THEME_STORAGE_KEY = 'jules_theme';
 const LANGUAGE_STORAGE_KEY = 'jules_language';
+const RECENT_REPOS_STORAGE_KEY = 'jules_recent_repos';
 
 /**
  * SecureStoreを使用したセキュアストレージフック
@@ -77,6 +78,35 @@ export function useSecureStorage() {
     }
   }, []);
 
+  // 最近使用したリポジトリの保存
+  const saveRecentRepo = useCallback(async (repoName: string): Promise<void> => {
+    try {
+      const stored = await SecureStore.getItemAsync(RECENT_REPOS_STORAGE_KEY);
+      let recent: string[] = stored ? JSON.parse(stored) : [];
+      
+      // 既存のものを削除して先頭に追加
+      recent = recent.filter(r => r !== repoName);
+      recent.unshift(repoName);
+      
+      // 最大5個まで保持
+      recent = recent.slice(0, 5);
+      
+      await SecureStore.setItemAsync(RECENT_REPOS_STORAGE_KEY, JSON.stringify(recent));
+    } catch {
+      // 無視
+    }
+  }, []);
+
+  // 最近使用したリポジトリの取得
+  const getRecentRepos = useCallback(async (): Promise<string[]> => {
+    try {
+      const stored = await SecureStore.getItemAsync(RECENT_REPOS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }, []);
+
   return {
     isLoading,
     saveApiKey,
@@ -86,5 +116,7 @@ export function useSecureStorage() {
     getTheme,
     saveLanguage,
     getLanguage,
+    saveRecentRepo,
+    getRecentRepos,
   };
 }
