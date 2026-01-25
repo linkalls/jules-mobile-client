@@ -156,8 +156,8 @@ export interface ListActivitiesResponse {
 export interface PhotoAttachment {
   uri: string;
   mimeType: string;
-  fileName?: string;
-  base64?: string;
+  fileName?: string | null;
+  base64?: string | null;
 }
 
 // アプリのビュー状態
