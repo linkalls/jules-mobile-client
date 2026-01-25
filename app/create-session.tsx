@@ -251,7 +251,7 @@ export default function CreateSessionScreen() {
         },
       ]);
     }
-  }, [selectedSource, prompt, sources, createSession, saveRecentRepo, t]);
+  }, [selectedSource, prompt, sources, createSession, saveRecentRepo, t, router]);
 
   return (
     <>
