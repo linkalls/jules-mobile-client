@@ -2,8 +2,6 @@
  * 多言語対応 (i18n) - 日本語 / 英語
  */
 
-type TranslationKey = keyof typeof translations.ja;
-
 const translations = {
   ja: {
     // Common
@@ -72,6 +70,7 @@ const translations = {
     fetchActivitiesFailed: 'チャット履歴が見れなかったよ...',
     approvePlanFailed: 'プランの承認に失敗したよ',
     createSessionFailed: 'セッションが作れなかったよ',
+    sendMessageFailed: 'メッセージの送信に失敗したよ',
     loadingMore: 'さらに読み込み中...',
   },
   en: {
@@ -141,10 +140,12 @@ const translations = {
     fetchActivitiesFailed: 'Failed to fetch chat history...',
     approvePlanFailed: 'Failed to approve plan',
     createSessionFailed: 'Failed to create session',
+    sendMessageFailed: 'Failed to send message',
     loadingMore: 'Loading more...',
   },
 };
 
+export type TranslationKey = keyof typeof translations.ja;
 export type Language = 'ja' | 'en';
 
 let currentLanguage: Language = 'ja';

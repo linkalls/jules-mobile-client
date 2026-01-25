@@ -1,5 +1,5 @@
 {
-  "name": "jules-mobile-clcient",
+  "name": "jules-mobile-client",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {

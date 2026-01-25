@@ -8,11 +8,12 @@ import type {
   ListActivitiesResponse,
   ApiError,
 } from '@/constants/types';
+import type { TranslationKey } from '@/constants/i18n';
 
 const BASE_URL = 'https://jules.googleapis.com/v1alpha';
 
  
-type TranslatorFn = (key: any) => string;
+type TranslatorFn = (key: TranslationKey) => string;
 
 interface UseJulesApiOptions {
   apiKey: string;
@@ -33,7 +34,7 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
   const sourcesPageTokenRef = useRef<string | undefined>(undefined);
 
   // Translation helper
-  const translate = useCallback((key: string, fallback: string) => {
+  const translate = useCallback((key: TranslationKey, fallback: string) => {
     return t ? t(key) : fallback;
   }, [t]);
 
@@ -221,6 +222,31 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
     [julesFetch, translate]
   );
 
+  // Send message (create user activity)
+  const sendMessage = useCallback(
+    async (sessionName: string, message: string): Promise<void> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const body = {
+          prompt: message,
+        };
+
+        await julesFetch(`/${sessionName}:sendMessage`, {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : translate('sendMessageFailed', 'Failed to send message');
+        setError(msg);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [julesFetch, translate]
+  );
+
   // Clear error
   const clearError = useCallback(() => {
     setError(null);
@@ -241,5 +267,6 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
     fetchActivities,
     createSession,
     approvePlan,
+    sendMessage,
   };
 }
