@@ -152,5 +152,13 @@ export interface ListActivitiesResponse {
   nextPageToken?: string;
 }
 
+// Photo/Image attachment (for future API support)
+export interface PhotoAttachment {
+  uri: string;
+  mimeType: string;
+  fileName?: string;
+  base64?: string;
+}
+
 // アプリのビュー状態
 export type ViewState = 'SESSIONS' | 'SETTINGS' | 'CREATE_SESSION' | 'SESSION_DETAIL';
