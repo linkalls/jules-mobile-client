@@ -179,7 +179,7 @@ function DiffHighlighter({ code }: { code: string }) {
  * - Markdown表示対応
  * - コード詳細表示（折りたたみ式）
  */
-export function ActivityItem({ activity, onApprovePlan }: ActivityItemProps) {
+export const ActivityItem = React.memo(function ActivityItem({ activity, onApprovePlan }: ActivityItemProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [expanded, setExpanded] = useState(false);
@@ -461,7 +461,7 @@ export function ActivityItem({ activity, onApprovePlan }: ActivityItemProps) {
   }
 
   return null;
-}
+});
 
 const styles = StyleSheet.create({
   container: {

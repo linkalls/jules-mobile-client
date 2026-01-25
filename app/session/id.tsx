@@ -116,7 +116,7 @@ export default function SessionDetailScreen() {
   }, [id, fetchActivities]);
 
   // プラン承認ハンドラ
-  const handleApprovePlan = async (planId: string) => {
+  const handleApprovePlan = useCallback(async (planId: string) => {
     try {
       await approvePlan(planId);
       // リストを更新
@@ -124,7 +124,11 @@ export default function SessionDetailScreen() {
     } catch (e) {
       console.error(e);
     }
-  };
+  }, [approvePlan, loadActivities]);
+
+  const renderActivityItem = useCallback(({ item }: { item: Activity }) => (
+    <ActivityItem activity={item} onApprovePlan={handleApprovePlan} />
+  ), [handleApprovePlan]);
 
   const handleSend = async () => {
     if (!messageInput.trim() || !id) return;
@@ -218,10 +222,14 @@ export default function SessionDetailScreen() {
             ref={flatListRef}
             data={activities}
             keyExtractor={(item) => item.name}
-            renderItem={({ item }) => <ActivityItem activity={item} onApprovePlan={handleApprovePlan} />}
+            renderItem={renderActivityItem}
             contentContainerStyle={styles.chatContent}
             style={styles.chatList}
             keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={true}
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
+            windowSize={10}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <IconSymbol name="bubble.left.and.bubble.right" size={48} color={isDark ? '#475569' : '#94a3b8'} />

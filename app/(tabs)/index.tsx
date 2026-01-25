@@ -69,7 +69,7 @@ export default function SessionsScreen() {
     setRefreshing(false);
   }, [loadSessions]);
 
-  const openSession = (session: Session) => {
+  const openSession = useCallback((session: Session) => {
     router.push({
       pathname: '/session/id',
       params: {
@@ -78,11 +78,15 @@ export default function SessionsScreen() {
         submittedPr: session.submittedPr || '',
       },
     });
-  };
+  }, []);
 
-  const openCreateSession = () => {
+  const openCreateSession = useCallback(() => {
     router.push('/create-session');
-  };
+  }, []);
+
+  const renderSessionItem = useCallback(({ item }: { item: Session }) => (
+    <MemoizedSessionCard session={item} onPress={() => openSession(item)} />
+  ), [openSession]);
 
   return (
     <SafeAreaView style={[styles.container, isDark && styles.containerDark]} edges={['top']}>
@@ -128,9 +132,7 @@ export default function SessionsScreen() {
         <FlatList
           data={sessions}
           keyExtractor={(item) => item.name}
-          renderItem={({ item }) => (
-            <MemoizedSessionCard session={item} onPress={() => openSession(item)} />
-          )}
+          renderItem={renderSessionItem}
           contentContainerStyle={styles.listContent}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           refreshControl={

@@ -88,7 +88,7 @@ export function SessionCardSkeleton() {
 /**
  * セッション一覧のカードコンポーネント
  */
-export function SessionCard({ session, onPress }: SessionCardProps) {
+export const SessionCard = React.memo(function SessionCard({ session, onPress }: SessionCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { t } = useI18n();
@@ -154,7 +154,7 @@ export function SessionCard({ session, onPress }: SessionCardProps) {
       </Text>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
