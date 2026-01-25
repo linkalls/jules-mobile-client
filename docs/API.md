@@ -2,6 +2,10 @@
 
 This document describes the Jules API integration used in this mobile client.
 
+## Photo Upload Support
+
+**Status:** The mobile client UI is prepared for photo uploads with `expo-image-picker`, but the Jules API (v1alpha) does not currently support image/photo attachments in session creation or sendMessage requests. The client is ready for future API support.
+
 ## Base URL
 
 ```

@@ -11,17 +11,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  Image,
 } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
+import * as ImagePicker from 'expo-image-picker';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
 import { useSecureStorage } from '@/hooks/use-secure-storage';
-import type { Source } from '@/constants/types';
+import type { Source, PhotoAttachment } from '@/constants/types';
 
 /**
  * シマー効果付きスケルトン
@@ -158,6 +160,7 @@ export default function CreateSessionScreen() {
   const [sourcesLoaded, setSourcesLoaded] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [recentRepoNames, setRecentRepoNames] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<PhotoAttachment[]>([]);
 
   const { 
     isLoading, 
@@ -199,6 +202,40 @@ export default function CreateSessionScreen() {
     return source.githubRepo
       ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
       : source.displayName || source.name;
+  }, []);
+
+  // Photo picker handler
+  const pickImage = useCallback(async () => {
+    // Request permissions
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert(t('error'), t('photoPermissionDenied') || 'Photo library permission denied');
+      return;
+    }
+
+    // Launch image picker
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.8,
+      base64: true, // Get base64 for future API integration
+    });
+
+    if (!result.canceled && result.assets) {
+      const newPhotos: PhotoAttachment[] = result.assets.map((asset) => ({
+        uri: asset.uri,
+        mimeType: asset.mimeType || 'image/jpeg',
+        fileName: asset.fileName,
+        base64: asset.base64,
+      }));
+      setPhotos((prev) => [...prev, ...newPhotos]);
+    }
+  }, [t]);
+
+  // Remove photo handler
+  const removePhoto = useCallback((index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   // Background fetch more sources while dropdown is open
@@ -445,6 +482,54 @@ export default function CreateSessionScreen() {
                   {t('repoHint')}
                 </Text>
               )}
+            </View>
+
+            {/* Photo attachments section */}
+            <View style={[styles.section, { marginTop: 24 }]}>
+              <View style={styles.labelRow}>
+                <Text style={[styles.label, isDark && styles.labelDark]}>
+                  {t('photoAttachments') || 'Photos (Coming Soon)'}
+                </Text>
+                <TouchableOpacity
+                  style={[styles.photoButton, isDark && styles.photoButtonDark]}
+                  onPress={pickImage}
+                >
+                  <IconSymbol name="photo" size={16} color={isDark ? '#60a5fa' : '#2563eb'} />
+                  <Text style={[styles.photoButtonText, isDark && styles.photoButtonTextDark]}>
+                    {t('addPhoto') || 'Add Photo'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Photo grid */}
+              {photos.length > 0 && (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.photoGrid}
+                  contentContainerStyle={styles.photoGridContent}
+                >
+                  {photos.map((photo, index) => (
+                    <View key={index} style={[styles.photoItem, isDark && styles.photoItemDark]}>
+                      <Image source={{ uri: photo.uri }} style={styles.photoImage} />
+                      <TouchableOpacity
+                        style={styles.photoRemove}
+                        onPress={() => removePhoto(index)}
+                      >
+                        <IconSymbol name="xmark.circle.fill" size={24} color="#ef4444" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </ScrollView>
+              )}
+              
+              {/* Info hint */}
+              <View style={[styles.infoBox, isDark && styles.infoBoxDark]}>
+                <IconSymbol name="info.circle" size={14} color={isDark ? '#60a5fa' : '#2563eb'} />
+                <Text style={[styles.infoText, isDark && styles.infoTextDark]}>
+                  {t('photoApiNote') || 'Photo upload UI is ready. API support coming soon.'}
+                </Text>
+              </View>
             </View>
 
             {/* プロンプト入力 */}
@@ -700,6 +785,84 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   sectionHeaderTextDark: {
+    color: '#94a3b8',
+  },
+  photoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#2563eb',
+  },
+  photoButtonDark: {
+    backgroundColor: 'rgba(96, 165, 250, 0.1)',
+    borderColor: '#60a5fa',
+  },
+  photoButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2563eb',
+  },
+  photoButtonTextDark: {
+    color: '#60a5fa',
+  },
+  photoGrid: {
+    marginTop: 12,
+  },
+  photoGridContent: {
+    gap: 12,
+  },
+  photoItem: {
+    position: 'relative',
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  photoItemDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
+  },
+  photoRemove: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: 'rgba(37, 99, 235, 0.05)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.2)',
+  },
+  infoBoxDark: {
+    backgroundColor: 'rgba(96, 165, 250, 0.1)',
+    borderColor: 'rgba(96, 165, 250, 0.2)',
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 16,
+  },
+  infoTextDark: {
     color: '#94a3b8',
   },
 });

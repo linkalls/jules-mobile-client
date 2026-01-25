@@ -11,15 +11,19 @@ import {
   Platform,
   Animated,
   Linking,
+  Image,
+  ScrollView,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ActivityItem, ActivityItemSkeleton } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import type { Activity } from '@/constants/types';
+import type { Activity, PhotoAttachment } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
 
@@ -34,6 +38,7 @@ export default function SessionDetailScreen() {
   const { apiKey } = useApiKey();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [messageInput, setMessageInput] = useState('');
+  const [photos, setPhotos] = useState<PhotoAttachment[]>([]);
   const keyboardPadding = useRef(new Animated.Value(0)).current;
 
   const flatListRef = useRef<FlatList>(null);
@@ -112,7 +117,7 @@ export default function SessionDetailScreen() {
   }, [id, fetchActivities]);
 
   // プラン承認ハンドラ
-  const handleApprovePlan = async (planId: string) => {
+  const handleApprovePlan = useCallback(async (planId: string) => {
     try {
       await approvePlan(planId);
       // リストを更新
@@ -120,13 +125,18 @@ export default function SessionDetailScreen() {
     } catch (e) {
       console.error(e);
     }
-  };
+  }, [approvePlan, loadActivities]);
+
+  const renderActivityItem = useCallback(({ item }: { item: Activity }) => (
+    <ActivityItem activity={item} onApprovePlan={handleApprovePlan} />
+  ), [handleApprovePlan]);
 
   const handleSend = async () => {
     if (!messageInput.trim() || !id) return;
 
     const messageToSend = messageInput;
     setMessageInput(''); // Clear immediately for better UX
+    setPhotos([]); // Clear photos after sending
 
     try {
       await sendMessage(id, messageToSend);
@@ -137,6 +147,37 @@ export default function SessionDetailScreen() {
       // Optionally show error or restore input
     }
   };
+
+  // Photo picker handler
+  const pickImage = useCallback(async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert(t('error'), t('photoPermissionDenied') || 'Photo library permission is required');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets) {
+      const newPhotos: PhotoAttachment[] = result.assets.map((asset) => ({
+        uri: asset.uri,
+        mimeType: asset.mimeType || 'image/jpeg',
+        fileName: asset.fileName,
+        base64: asset.base64,
+      }));
+      setPhotos((prev) => [...prev, ...newPhotos]);
+    }
+  }, [t]);
+
+  const removePhoto = useCallback((index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  }, []);
 
   return (
     <>
@@ -183,10 +224,14 @@ export default function SessionDetailScreen() {
             ref={flatListRef}
             data={activities}
             keyExtractor={(item) => item.name}
-            renderItem={({ item }) => <ActivityItem activity={item} onApprovePlan={handleApprovePlan} />}
+            renderItem={renderActivityItem}
             contentContainerStyle={styles.chatContent}
             style={styles.chatList}
             keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={true}
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
+            windowSize={10}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <IconSymbol name="bubble.left.and.bubble.right" size={48} color={isDark ? '#475569' : '#94a3b8'} />
@@ -225,20 +270,53 @@ export default function SessionDetailScreen() {
             Platform.OS === 'android' && { marginBottom: keyboardPadding },
           ]}
         >
-          <TextInput
-            style={[styles.input, isDark && styles.inputDark]}
-            value={messageInput}
-            onChangeText={setMessageInput}
-            placeholder={t('replyPlaceholder')}
-            placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
-          />
-          <TouchableOpacity
-            style={[styles.sendButton, !messageInput.trim() && styles.sendButtonDisabled]}
-            onPress={handleSend}
-            disabled={!messageInput.trim()}
-          >
-            <IconSymbol name="paperplane.fill" size={18} color="#ffffff" />
-          </TouchableOpacity>
+          <View style={styles.inputWrapper}>
+            {/* Photo preview strip */}
+            {photos.length > 0 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.photoPreview}
+                contentContainerStyle={styles.photoPreviewContent}
+              >
+                {photos.map((photo, index) => (
+                  <View key={index} style={[styles.photoThumb, isDark && styles.photoThumbDark]}>
+                    <Image source={{ uri: photo.uri }} style={styles.photoThumbImage} />
+                    <TouchableOpacity
+                      style={styles.photoThumbRemove}
+                      onPress={() => removePhoto(index)}
+                    >
+                      <IconSymbol name="xmark.circle.fill" size={18} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+            
+            {/* Input row */}
+            <View style={styles.inputRow}>
+              <TouchableOpacity
+                style={styles.photoPickerButton}
+                onPress={pickImage}
+              >
+                <IconSymbol name="photo" size={22} color={isDark ? '#60a5fa' : '#2563eb'} />
+              </TouchableOpacity>
+              <TextInput
+                style={[styles.input, isDark && styles.inputDark]}
+                value={messageInput}
+                onChangeText={setMessageInput}
+                placeholder={t('replyPlaceholder')}
+                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+              />
+              <TouchableOpacity
+                style={[styles.sendButton, !messageInput.trim() && styles.sendButtonDisabled]}
+                onPress={handleSend}
+                disabled={!messageInput.trim()}
+              >
+                <IconSymbol name="paperplane.fill" size={18} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+          </View>
         </Animated.View>
       </KeyboardAvoidingView>
     </>
@@ -296,9 +374,6 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
     padding: 12,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
@@ -307,6 +382,22 @@ const styles = StyleSheet.create({
   inputContainerDark: {
     backgroundColor: '#1e293b',
     borderTopColor: '#334155',
+  },
+  inputWrapper: {
+    gap: 8,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  photoPickerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   input: {
     flex: 1,
@@ -320,6 +411,38 @@ const styles = StyleSheet.create({
   inputDark: {
     backgroundColor: '#0f172a',
     color: '#f8fafc',
+  },
+  photoPreview: {
+    maxHeight: 80,
+  },
+  photoPreviewContent: {
+    gap: 8,
+    paddingVertical: 4,
+  },
+  photoThumb: {
+    position: 'relative',
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: '#f1f5f9',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  photoThumbDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
+  photoThumbImage: {
+    width: '100%',
+    height: '100%',
+  },
+  photoThumbRemove: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 9,
   },
   sendButton: {
     width: 44,

@@ -26,6 +26,7 @@
 - 💬 **Real-time Chat** - View and interact with Jules sessions
 - 📝 **Markdown Support** - Rich text rendering with syntax highlighting
 - ⚡ **Optimized Performance** - Memoized components and efficient list rendering
+- 📸 **Photo Upload Ready** - UI prepared for photo attachments (API support pending)
 
 ## 📸 Screenshots
 
