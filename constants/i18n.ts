@@ -54,6 +54,8 @@ const translations = {
     recentRepos: '最近使ったリポジトリ',
     allRepos: 'すべてのリポジトリ',
     repoHint: '💡 よく使うリポジトリは一番上に表示されるよ！',
+    attachImages: '3. 画像を添付 (Images)',
+    addImage: '画像を追加',
     
     // Session States
     stateActive: '処理中',
@@ -127,6 +129,8 @@ const translations = {
     recentRepos: 'Recent Repositories',
     allRepos: 'All Repositories',
     repoHint: '💡 Your frequently used repos will appear at the top!',
+    attachImages: '3. Attach Images',
+    addImage: 'Add Image',
     
     // Session States
     stateActive: 'Processing',

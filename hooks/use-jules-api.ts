@@ -175,7 +175,12 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
 
   // Create session
   const createSession = useCallback(
-    async (sourceName: string, prompt: string, defaultBranch?: string): Promise<Session | null> => {
+    async (
+      sourceName: string,
+      prompt: string,
+      defaultBranch?: string,
+      images?: { mimeType: string; data: string }[]
+    ): Promise<Session | null> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -188,6 +193,7 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
             };
           };
           title: string;
+          images?: { mimeType: string; data: string }[];
         } = {
           prompt: prompt.trim(),
           sourceContext: {
@@ -201,6 +207,11 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
           body.sourceContext.githubRepoContext = {
             startingBranch: defaultBranch,
           };
+        }
+
+        // Add images if provided
+        if (images && images.length > 0) {
+          body.images = images;
         }
 
         console.log('Creating session with body:', JSON.stringify(body, null, 2));
