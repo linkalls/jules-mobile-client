@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import type { Source } from '@/constants/types';
 
 const API_KEY_STORAGE_KEY = 'jules_api_key';
 const THEME_STORAGE_KEY = 'jules_theme';
@@ -79,14 +80,14 @@ export function useSecureStorage() {
   }, []);
 
   // 最近使用したリポジトリの保存
-  const saveRecentRepo = useCallback(async (repoName: string): Promise<void> => {
+  const saveRecentRepo = useCallback(async (repo: Source): Promise<void> => {
     try {
       const stored = await SecureStore.getItemAsync(RECENT_REPOS_STORAGE_KEY);
-      let recent: string[] = stored ? JSON.parse(stored) : [];
+      let recent: Source[] = stored ? JSON.parse(stored) : [];
       
       // 既存のものを削除して先頭に追加
-      recent = recent.filter(r => r !== repoName);
-      recent.unshift(repoName);
+      recent = recent.filter(r => r.name !== repo.name);
+      recent.unshift(repo);
       
       // 最大5個まで保持
       recent = recent.slice(0, 5);
@@ -98,7 +99,7 @@ export function useSecureStorage() {
   }, []);
 
   // 最近使用したリポジトリの取得
-  const getRecentRepos = useCallback(async (): Promise<string[]> => {
+  const getRecentRepos = useCallback(async (): Promise<Source[]> => {
     try {
       const stored = await SecureStore.getItemAsync(RECENT_REPOS_STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];

@@ -11,8 +11,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  Image,
 } from 'react-native';
 import { router, Stack } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -157,7 +159,8 @@ export default function CreateSessionScreen() {
   const [prompt, setPrompt] = useState('');
   const [sourcesLoaded, setSourcesLoaded] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [recentRepoNames, setRecentRepoNames] = useState<string[]>([]);
+  const [recentRepos, setRecentRepos] = useState<Source[]>([]);
+  const [selectedImages, setSelectedImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
   const { 
     isLoading, 
@@ -173,7 +176,7 @@ export default function CreateSessionScreen() {
 
   // Load recent repos on mount
   useEffect(() => {
-    void getRecentRepos().then(setRecentRepoNames);
+    void getRecentRepos().then(setRecentRepos);
   }, [getRecentRepos]);
 
   // Pre-fetch sources when screen loads
@@ -184,15 +187,11 @@ export default function CreateSessionScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
 
-  // Memoize recent sources for performance
-  const recentSources = useMemo(() => {
-    return sources.filter(s => recentRepoNames.includes(s.name));
-  }, [sources, recentRepoNames]);
-
   // Memoize all sources excluding recent ones
   const allSources = useMemo(() => {
-    return sources.filter(s => !recentRepoNames.includes(s.name));
-  }, [sources, recentRepoNames]);
+    const recentNames = recentRepos.map(r => r.name);
+    return sources.filter(s => !recentNames.includes(s.name));
+  }, [sources, recentRepos]);
 
   // Helper function to get display name for a source
   const getSourceDisplayName = useCallback((source: Source): string => {
@@ -229,6 +228,29 @@ export default function CreateSessionScreen() {
     }
   };
 
+  // Pick images
+  const pickImage = useCallback(async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (!result.canceled) {
+        setSelectedImages((prev) => [...prev, ...result.assets]);
+      }
+    } catch (_) {
+      Alert.alert(t('error'), 'Failed to pick image');
+    }
+  }, [t]);
+
+  // Remove image
+  const removeImage = useCallback((index: number) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
   // Create session and save to recent repos
   const handleCreate = useCallback(async () => {
     if (!selectedSource || !prompt.trim()) {
@@ -236,14 +258,22 @@ export default function CreateSessionScreen() {
       return;
     }
 
-    // Get default branch from selected source
-    const source = sources.find((s) => s.name === selectedSource);
+    // Get source object from either recent or fetched sources
+    const source = sources.find((s) => s.name === selectedSource) || recentRepos.find((s) => s.name === selectedSource);
     const defaultBranch = source?.githubRepo?.defaultBranch?.displayName || 'main';
 
-    const session = await createSession(selectedSource, prompt, defaultBranch);
-    if (session) {
+    // Prepare images
+    const imagesPayload = selectedImages
+      .filter((img) => img.base64)
+      .map((img) => ({
+        mimeType: img.mimeType || 'image/jpeg',
+        data: img.base64 as string,
+      }));
+
+    const session = await createSession(selectedSource, prompt, defaultBranch, imagesPayload);
+    if (session && source) {
       // Save to recent repos
-      await saveRecentRepo(selectedSource);
+      await saveRecentRepo(source);
       Alert.alert(t('createSuccess'), '', [
         {
           text: 'OK',
@@ -251,7 +281,7 @@ export default function CreateSessionScreen() {
         },
       ]);
     }
-  }, [selectedSource, prompt, sources, createSession, saveRecentRepo, t, router]);
+  }, [selectedSource, prompt, sources, recentRepos, createSession, saveRecentRepo, t, router, selectedImages]);
 
   return (
     <>
@@ -325,7 +355,7 @@ export default function CreateSessionScreen() {
                   scrollEventThrottle={400}
                 >
                   {/* Recent Repositories Section */}
-                  {recentSources.length > 0 && (
+                  {recentRepos.length > 0 && (
                     <>
                       <View style={[styles.sectionHeader, isDark && styles.sectionHeaderDark]}>
                         <IconSymbol name="clock" size={14} color={isDark ? '#60a5fa' : '#2563eb'} />
@@ -333,7 +363,7 @@ export default function CreateSessionScreen() {
                           {t('recentRepos')}
                         </Text>
                       </View>
-                      {recentSources.map((source) => {
+                      {recentRepos.map((source) => {
                         return (
                           <TouchableOpacity
                             key={source.name}
@@ -371,7 +401,7 @@ export default function CreateSessionScreen() {
                   {/* All Repositories Section */}
                   {allSources.length > 0 && (
                     <>
-                      {recentSources.length > 0 && (
+                      {recentRepos.length > 0 && (
                         <View style={[styles.sectionHeader, isDark && styles.sectionHeaderDark, { marginTop: 8 }]}>
                           <IconSymbol name="folder" size={14} color={isDark ? '#94a3b8' : '#64748b'} />
                           <Text style={[styles.sectionHeaderText, isDark && styles.sectionHeaderTextDark]}>
@@ -465,6 +495,37 @@ export default function CreateSessionScreen() {
                 textAlignVertical="top"
                 maxLength={500}
               />
+            </View>
+
+            {/* Images Section */}
+            <View style={[styles.section, { marginTop: 16 }]}>
+              <View style={styles.labelRow}>
+                <Text style={[styles.label, isDark && styles.labelDark]}>
+                  {t('attachImages')}
+                </Text>
+                <TouchableOpacity onPress={pickImage} style={styles.addImageButton}>
+                  <IconSymbol name="photo.on.rectangle" size={16} color={isDark ? '#60a5fa' : '#2563eb'} />
+                  <Text style={[styles.addImageText, isDark && styles.addImageTextDark]}>
+                    {t('addImage')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {selectedImages.length > 0 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageList}>
+                  {selectedImages.map((img, index) => (
+                    <View key={index} style={styles.imageContainer}>
+                      <Image source={{ uri: img.uri }} style={styles.thumbnail} />
+                      <TouchableOpacity
+                        style={styles.removeImageButton}
+                        onPress={() => removeImage(index)}
+                      >
+                        <IconSymbol name="xmark.circle.fill" size={20} color="#ef4444" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </ScrollView>
+              )}
             </View>
 
             {/* 作成ボタン */}
@@ -701,5 +762,40 @@ const styles = StyleSheet.create({
   },
   sectionHeaderTextDark: {
     color: '#94a3b8',
+  },
+  addImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  addImageText: {
+    fontSize: 13,
+    color: '#2563eb',
+    fontWeight: '500',
+  },
+  addImageTextDark: {
+    color: '#60a5fa',
+  },
+  imageList: {
+    flexDirection: 'row',
+    marginTop: 8,
+  },
+  imageContainer: {
+    marginRight: 12,
+    position: 'relative',
+  },
+  thumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: 'white',
+    borderRadius: 12,
   },
 });
