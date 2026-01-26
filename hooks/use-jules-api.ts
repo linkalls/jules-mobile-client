@@ -210,9 +210,13 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
         }
 
         // Add images if provided
+        // NOTE: Temporarily disabled as the API (v1alpha) does not currently support images in the payload,
+        // causing an "Invalid JSON payload" error.
+        /*
         if (images && images.length > 0) {
           body.images = images;
         }
+        */
 
         console.log('Creating session with body:', JSON.stringify(body, null, 2));
 
