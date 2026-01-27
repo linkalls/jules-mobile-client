@@ -6,9 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SessionCard, SessionCardSkeleton } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
@@ -16,6 +19,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
+import { Colors } from '@/constants/theme';
 
 // Memoized SessionCard wrapper for performance
 const MemoizedSessionCard = memo(({ session, onPress }: { session: Session; onPress: () => void }) => (
@@ -42,12 +46,26 @@ export default function SessionsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { t } = useI18n();
+  const colors = isDark ? Colors.dark : Colors.light;
 
   const { apiKey } = useApiKey();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const fabScale = React.useRef(new Animated.Value(0)).current;
 
   const { isLoading, error, clearError, fetchSessions } = useJulesApi({ apiKey, t });
+
+  // Animate FAB on mount
+  useEffect(() => {
+    if (apiKey) {
+      Animated.spring(fabScale, {
+        toValue: 1,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [apiKey, fabScale]);
 
   // APIキーが設定されたらセッションを取得
   useEffect(() => {
@@ -64,12 +82,14 @@ export default function SessionsScreen() {
   }, [fetchSessions]);
 
   const onRefresh = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setRefreshing(true);
     await loadSessions();
     setRefreshing(false);
   }, [loadSessions]);
 
   const openSession = useCallback((session: Session) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push({
       pathname: '/session/id',
       params: {
@@ -81,6 +101,7 @@ export default function SessionsScreen() {
   }, []);
 
   const openCreateSession = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push('/create-session');
   }, []);
 
@@ -89,22 +110,45 @@ export default function SessionsScreen() {
   ), [openSession]);
 
   return (
-    <SafeAreaView style={[styles.container, isDark && styles.containerDark]} edges={['top']}>
-      {/* ヘッダー */}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      {/* Modern Header with Gradient */}
       <View style={[styles.header, isDark && styles.headerDark]}>
-        <View style={styles.headerLeft}>
-          <View style={styles.logoContainer}>
-            <IconSymbol name="terminal" size={20} color="#ffffff" />
+        <LinearGradient
+          colors={isDark 
+            ? [colors.surface, colors.surfaceSecondary]
+            : [colors.surface, colors.surfaceSecondary]
+          }
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <LinearGradient
+              colors={[colors.primary, colors.primaryLight]}
+              style={styles.logoContainer}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <IconSymbol name="terminal" size={20} color="#ffffff" />
+            </LinearGradient>
+            <View>
+              <Text style={[styles.headerTitle, { color: colors.text }]}>Jules Client</Text>
+              <Text style={[styles.headerSubtitle, { color: colors.icon }]}>
+                {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'}
+              </Text>
+            </View>
           </View>
-          <Text style={[styles.headerTitle, isDark && styles.headerTitleDark]}>Jules Client</Text>
+          <TouchableOpacity 
+            onPress={onRefresh} 
+            disabled={isLoading}
+            style={styles.refreshButton}
+          >
+            <IconSymbol
+              name="arrow.clockwise"
+              size={22}
+              color={colors.primary}
+            />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={onRefresh} disabled={isLoading}>
-          <IconSymbol
-            name="arrow.clockwise"
-            size={20}
-            color={isDark ? '#94a3b8' : '#64748b'}
-          />
-        </TouchableOpacity>
       </View>
 
       {/* エラー表示 */}
@@ -169,11 +213,24 @@ export default function SessionsScreen() {
         />
       )}
 
-      {/* FAB (新規作成ボタン) */}
+      {/* FAB (新規作成ボタン) with modern design */}
       {apiKey && (
-        <TouchableOpacity style={styles.fab} onPress={openCreateSession} activeOpacity={0.8}>
-          <IconSymbol name="plus" size={28} color="#ffffff" />
-        </TouchableOpacity>
+        <Animated.View style={[styles.fabContainer, { transform: [{ scale: fabScale }] }]}>
+          <TouchableOpacity 
+            style={styles.fab} 
+            onPress={openCreateSession} 
+            activeOpacity={0.9}
+          >
+            <LinearGradient
+              colors={[colors.primary, colors.primaryLight]}
+              style={styles.fabGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <IconSymbol name="plus" size={28} color="#ffffff" />
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
       )}
     </SafeAreaView>
   );
@@ -182,51 +239,67 @@ export default function SessionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   containerDark: {
     backgroundColor: '#020617',
   },
   header: {
-    height: 60,
-    paddingHorizontal: 16,
+    height: 70,
+    position: 'relative',
+    overflow: 'hidden',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(226, 232, 240, 0.5)',
+  },
+  headerDark: {
+    borderBottomColor: 'rgba(51, 65, 85, 0.5)',
+  },
+  headerContent: {
+    flex: 1,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  headerDark: {
-    backgroundColor: '#0f172a',
-    borderBottomColor: '#1e293b',
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   logoContainer: {
-    backgroundColor: '#2563eb',
-    padding: 6,
-    borderRadius: 8,
+    padding: 8,
+    borderRadius: 12,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   headerTitleDark: {
     color: '#f8fafc',
   },
+  headerSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  refreshButton: {
+    padding: 8,
+  },
   errorBanner: {
     margin: 16,
-    padding: 12,
+    padding: 14,
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 8,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderLeftWidth: 3,
+    borderLeftColor: '#ef4444',
   },
   errorBannerDark: {
     backgroundColor: 'rgba(239, 68, 68, 0.2)',
@@ -235,10 +308,11 @@ const styles = StyleSheet.create({
     color: '#dc2626',
     fontSize: 13,
     flex: 1,
+    fontWeight: '500',
   },
   errorClose: {
     color: '#dc2626',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     paddingLeft: 12,
   },
@@ -248,38 +322,47 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 80,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '600',
     color: '#64748b',
-    marginTop: 16,
+    marginTop: 20,
   },
   emptyTextDark: {
     color: '#94a3b8',
   },
   emptySubtext: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#94a3b8',
-    marginTop: 4,
+    marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 40,
   },
   emptySubtextDark: {
     color: '#64748b',
   },
-  fab: {
+  fabContainer: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 28,
     right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#2563eb',
+  },
+  fab: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  fabGradient: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
 });
