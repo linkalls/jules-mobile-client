@@ -24,6 +24,13 @@ import type { TranslationKey } from '@/constants/i18n';
 import { useApiKey } from '@/constants/api-key-context';
 import { Colors } from '@/constants/theme';
 
+// Sort and filter options
+const SORT_OPTIONS = ['newest', 'oldest', 'title'] as const;
+type SortOption = typeof SORT_OPTIONS[number];
+
+const FILTER_STATUS_OPTIONS = ['all', 'ACTIVE', 'COMPLETED', 'FAILED'] as const;
+type FilterStatus = typeof FILTER_STATUS_OPTIONS[number];
+
 // Memoized SessionCard wrapper for performance
 const MemoizedSessionCard = memo(({ session, onPress }: { session: Session; onPress: () => void }) => (
   <SessionCard session={session} onPress={onPress} />
@@ -55,12 +62,20 @@ export default function SessionsScreen() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title'>('newest');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'ACTIVE' | 'COMPLETED' | 'FAILED'>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const fabScale = React.useRef(new Animated.Value(0)).current;
 
   const { isLoading, error, clearError, fetchSessions } = useJulesApi({ apiKey, t });
+
+  // Filter options with labels
+  const filterOptions = useMemo(() => [
+    { key: 'all' as FilterStatus, label: t('filterAll') },
+    { key: 'ACTIVE' as FilterStatus, label: t('filterActive') },
+    { key: 'COMPLETED' as FilterStatus, label: t('filterCompleted') },
+    { key: 'FAILED' as FilterStatus, label: t('filterFailed') },
+  ], [t]);
 
   // Filter and sort sessions
   const filteredAndSortedSessions = useMemo(() => {
@@ -339,7 +354,7 @@ export default function SessionsScreen() {
             {/* Sort Options */}
             <View style={styles.filterSection}>
               <Text style={[styles.filterSectionTitle, { color: colors.icon }]}>{t('sortBy')}</Text>
-              {(['newest', 'oldest', 'title'] as const).map((option) => (
+              {SORT_OPTIONS.map((option) => (
                 <TouchableOpacity
                   key={option}
                   style={[styles.filterOption, isDark && styles.filterOptionDark]}
@@ -361,12 +376,7 @@ export default function SessionsScreen() {
             {/* Filter Options */}
             <View style={styles.filterSection}>
               <Text style={[styles.filterSectionTitle, { color: colors.icon }]}>{t('filterByStatus')}</Text>
-              {([
-                { key: 'all', label: t('filterAll') },
-                { key: 'ACTIVE', label: t('filterActive') },
-                { key: 'COMPLETED', label: t('filterCompleted') },
-                { key: 'FAILED', label: t('filterFailed') },
-              ] as const).map((option) => (
+              {filterOptions.map((option) => (
                 <TouchableOpacity
                   key={option.key}
                   style={[styles.filterOption, isDark && styles.filterOptionDark]}
