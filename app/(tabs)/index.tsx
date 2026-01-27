@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   StyleSheet,
   RefreshControl,
   Animated,
+  TextInput,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -18,6 +20,7 @@ import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
+import type { TranslationKey } from '@/constants/i18n';
 import { useApiKey } from '@/constants/api-key-context';
 import { Colors } from '@/constants/theme';
 
@@ -51,9 +54,48 @@ export default function SessionsScreen() {
   const { apiKey } = useApiKey();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title'>('newest');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'ACTIVE' | 'COMPLETED' | 'FAILED'>('all');
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const fabScale = React.useRef(new Animated.Value(0)).current;
 
   const { isLoading, error, clearError, fetchSessions } = useJulesApi({ apiKey, t });
+
+  // Filter and sort sessions
+  const filteredAndSortedSessions = useMemo(() => {
+    let result = [...sessions];
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(session => 
+        (session.title?.toLowerCase() || '').includes(query) ||
+        session.name.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by status
+    if (filterStatus !== 'all') {
+      result = result.filter(session => session.state === filterStatus);
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortBy === 'newest') {
+        return new Date(b.updateTime).getTime() - new Date(a.updateTime).getTime();
+      } else if (sortBy === 'oldest') {
+        return new Date(a.updateTime).getTime() - new Date(b.updateTime).getTime();
+      } else {
+        // Sort by title
+        const titleA = a.title?.toLowerCase() || '';
+        const titleB = b.title?.toLowerCase() || '';
+        return titleA.localeCompare(titleB);
+      }
+    });
+
+    return result;
+  }, [sessions, searchQuery, sortBy, filterStatus]);
 
   // Animate FAB on mount
   useEffect(() => {
@@ -109,6 +151,11 @@ export default function SessionsScreen() {
     <MemoizedSessionCard session={item} onPress={() => openSession(item)} />
   ), [openSession]);
 
+  const clearSearch = useCallback(() => {
+    setSearchQuery('');
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, []);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Modern Header with Gradient */}
@@ -161,6 +208,39 @@ export default function SessionsScreen() {
         </View>
       )}
 
+      {/* Search and Filter Bar */}
+      {apiKey && sessions.length > 0 && (
+        <View style={styles.searchContainer}>
+          <View style={[styles.searchBar, isDark && styles.searchBarDark]}>
+            <IconSymbol name="magnifyingglass" size={18} color={colors.icon} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.text }]}
+              placeholder={t('searchSessions')}
+              placeholderTextColor={colors.icon}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={clearSearch}>
+                <IconSymbol name="xmark.circle.fill" size={18} color={colors.icon} />
+              </TouchableOpacity>
+            )}
+          </View>
+          <TouchableOpacity 
+            style={[styles.filterButton, isDark && styles.filterButtonDark]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setShowFilterModal(true);
+            }}
+            accessibilityLabel={t('filterByStatus')}
+          >
+            <IconSymbol name="line.3.horizontal.decrease.circle" size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* セッション一覧 */}
       {isLoading && sessions.length === 0 ? (
         <View style={styles.listContent}>
@@ -174,7 +254,7 @@ export default function SessionsScreen() {
         </View>
       ) : (
         <FlatList
-          data={sessions}
+          data={filteredAndSortedSessions}
           keyExtractor={(item) => item.name}
           renderItem={renderSessionItem}
           contentContainerStyle={styles.listContent}
@@ -198,6 +278,13 @@ export default function SessionsScreen() {
                   {t('noApiKeyHint')}
                 </Text>
               </View>
+            ) : searchQuery.trim() || filterStatus !== 'all' ? (
+              <View style={styles.emptyContainer}>
+                <IconSymbol name="magnifyingglass" size={48} color={isDark ? '#475569' : '#94a3b8'} />
+                <Text style={[styles.emptyText, isDark && styles.emptyTextDark]}>
+                  {t('noResultsFound')}
+                </Text>
+              </View>
             ) : (
               <View style={styles.emptyContainer}>
                 <IconSymbol name="terminal" size={48} color={isDark ? '#475569' : '#94a3b8'} />
@@ -212,6 +299,78 @@ export default function SessionsScreen() {
           }
         />
       )}
+
+      {/* Filter Modal */}
+      <Modal
+        visible={showFilterModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowFilterModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowFilterModal(false)}
+        >
+          <View style={[styles.modalContent, isDark && styles.modalContentDark]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>{t('filterByStatus')}</Text>
+              <TouchableOpacity onPress={() => setShowFilterModal(false)}>
+                <IconSymbol name="xmark.circle.fill" size={24} color={colors.icon} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Sort Options */}
+            <View style={styles.filterSection}>
+              <Text style={[styles.filterSectionTitle, { color: colors.icon }]}>{t('sortBy')}</Text>
+              {(['newest', 'oldest', 'title'] as const).map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[styles.filterOption, isDark && styles.filterOptionDark]}
+                  onPress={() => {
+                    setSortBy(option);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                >
+                  <Text style={[styles.filterOptionText, { color: colors.text }]}>
+                    {t(`sortBy${option.charAt(0).toUpperCase() + option.slice(1)}` as TranslationKey)}
+                  </Text>
+                  {sortBy === option && (
+                    <IconSymbol name="checkmark.circle.fill" size={20} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Filter Options */}
+            <View style={styles.filterSection}>
+              <Text style={[styles.filterSectionTitle, { color: colors.icon }]}>{t('filterByStatus')}</Text>
+              {([
+                { key: 'all', label: t('filterAll') },
+                { key: 'ACTIVE', label: t('filterActive') },
+                { key: 'COMPLETED', label: t('filterCompleted') },
+                { key: 'FAILED', label: t('filterFailed') },
+              ] as const).map((option) => (
+                <TouchableOpacity
+                  key={option.key}
+                  style={[styles.filterOption, isDark && styles.filterOptionDark]}
+                  onPress={() => {
+                    setFilterStatus(option.key);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                >
+                  <Text style={[styles.filterOptionText, { color: colors.text }]}>
+                    {option.label}
+                  </Text>
+                  {filterStatus === option.key && (
+                    <IconSymbol name="checkmark.circle.fill" size={20} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {/* FAB (新規作成ボタン) with modern design */}
       {apiKey && (
@@ -342,6 +501,101 @@ const styles = StyleSheet.create({
   },
   emptySubtextDark: {
     color: '#64748b',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 10,
+    alignItems: 'center',
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+  },
+  searchBarDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    padding: 0,
+  },
+  filterButton: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+  },
+  filterButtonDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 40,
+    paddingTop: 20,
+    maxHeight: '70%',
+  },
+  modalContentDark: {
+    backgroundColor: '#1e293b',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  filterSection: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  filterSectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  filterOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8fafc',
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  filterOptionDark: {
+    backgroundColor: '#0f172a',
+  },
+  filterOptionText: {
+    fontSize: 16,
+    fontWeight: '500',
   },
   fabContainer: {
     position: 'absolute',

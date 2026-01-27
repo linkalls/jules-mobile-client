@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import Constants from 'expo-constants';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSecureStorage } from '@/hooks/use-secure-storage';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -178,6 +179,21 @@ export default function SettingsScreen() {
             </View>
             <IconSymbol name="chevron.right" size={16} color={isDark ? '#475569' : '#94a3b8'} />
           </TouchableOpacity>
+        </View>
+
+        {/* About/Version */}
+        <View style={styles.section}>
+          <View style={[styles.switchRow, isDark && styles.switchRowDark]}>
+            <View style={styles.switchLabel}>
+              <IconSymbol name="info.circle" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('appVersion')}
+              </Text>
+            </View>
+            <Text style={[styles.langValue, isDark && styles.langValueDark]}>
+              v{Constants.expoConfig?.version || '1.0.0'}
+            </Text>
+          </View>
         </View>
 
         {/* ヒント */}
