@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, Image } from 'react-native';
 import Markdown from 'react-native-markdown-display';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Activity } from '@/constants/types';
+import { Colors } from '@/constants/theme';
 
 interface ActivityItemProps {
   activity: Activity;
@@ -182,6 +185,7 @@ function DiffHighlighter({ code }: { code: string }) {
 export const ActivityItem = React.memo(function ActivityItem({ activity, onApprovePlan }: ActivityItemProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const colors = isDark ? Colors.dark : Colors.light;
   const [expanded, setExpanded] = useState(false);
   const [showCode, setShowCode] = useState(false);
   
@@ -221,7 +225,7 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
     },
     code_inline: {
       backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
-      color: isDark ? '#22d3ee' : '#0891b2',
+      color: colors.accent,
       paddingHorizontal: 4,
       borderRadius: 4,
       fontFamily: 'monospace',
@@ -240,63 +244,91 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
       marginVertical: 2,
     },
     link: {
-      color: '#2563eb',
+      color: colors.primary,
     },
   };
 
-  // === エージェントメッセージ (Markdown対応) ===
+  // === エージェントメッセージ (Markdown対応) with modern design ===
   if (activity.agentMessaged?.agentMessage) {
     return (
       <View style={styles.container}>
         <View style={[styles.bubble, styles.bubbleAgent, isDark && styles.bubbleAgentDark]}>
-          <View style={styles.header}>
-            <View style={styles.senderRow}>
-              <IconSymbol name="message.fill" size={14} color="#2563eb" />
-              <Text style={styles.sender}>Jules</Text>
-            </View>
-            <Text style={styles.time}>{formatTime(activity.createTime)}</Text>
+          <View style={styles.avatarContainer}>
+            <LinearGradient
+              colors={[colors.primary, colors.primaryLight]}
+              style={styles.avatar}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <IconSymbol name="sparkles" size={14} color="#ffffff" />
+            </LinearGradient>
           </View>
-          <Markdown style={markdownStyles}>
-            {activity.agentMessaged.agentMessage}
-          </Markdown>
+          <View style={styles.bubbleContent}>
+            <View style={styles.header}>
+              <Text style={[styles.sender, { color: colors.primary }]}>Jules</Text>
+              <Text style={[styles.time, { color: colors.icon }]}>{formatTime(activity.createTime)}</Text>
+            </View>
+            <Markdown style={markdownStyles}>
+              {activity.agentMessaged.agentMessage}
+            </Markdown>
+          </View>
         </View>
       </View>
     );
   }
 
-  // === ユーザーメッセージ ===
+  // === ユーザーメッセージ with modern design ===
   if (activity.userMessaged?.userMessage) {
     return (
       <View style={[styles.container, styles.containerUser]}>
-        <View style={[styles.bubble, styles.bubbleUser]}>
-          <View style={styles.header}>
-            <Text style={styles.senderUser}>You</Text>
-            <Text style={styles.timeUser}>{formatTime(activity.createTime)}</Text>
+        <View style={styles.bubble}>
+          <LinearGradient
+            colors={[colors.primary, colors.primaryLight]}
+            style={[styles.bubbleUser]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <View style={styles.header}>
+              <Text style={styles.senderUser}>You</Text>
+              <Text style={styles.timeUser}>{formatTime(activity.createTime)}</Text>
+            </View>
+            <Text style={styles.messageUser} selectable>
+              {activity.userMessaged.userMessage}
+            </Text>
+          </LinearGradient>
+          <View style={styles.avatarContainer}>
+            <View style={[styles.avatar, styles.avatarUser]}>
+              <IconSymbol name="person.fill" size={14} color={colors.primary} />
+            </View>
           </View>
-          <Text style={styles.messageUser} selectable>
-            {activity.userMessaged.userMessage}
-          </Text>
         </View>
       </View>
     );
   }
 
-  // === プラン生成 ===
+  // === プラン生成 with modern design ===
   if (activity.planGenerated?.plan) {
     const plan = activity.planGenerated.plan;
     return (
       <View style={styles.container}>
         <View style={[styles.card, isDark && styles.cardDark]}>
           <View style={styles.cardHeader}>
-            <IconSymbol name="doc.text" size={16} color="#10b981" />
-            <Text style={[styles.cardTitle, isDark && styles.cardTitleDark]}>Plan Generated</Text>
+            <LinearGradient
+              colors={[colors.success, '#34d399']}
+              style={styles.cardIconContainer}
+            >
+              <IconSymbol name="doc.text" size={16} color="#ffffff" />
+            </LinearGradient>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Plan Generated</Text>
           </View>
           {plan.steps?.map((step, index) => (
             <View key={step.id || index} style={styles.planStep}>
-              <Text style={[styles.stepNumber, isDark && styles.stepNumberDark]}>
-                {index + 1}.
-              </Text>
-              <Text style={[styles.stepTitle, isDark && styles.stepTitleDark]}>
+              <View style={[styles.stepBadge, { backgroundColor: `${colors.success}20` }]}>
+                <Text style={[styles.stepNumber, { color: colors.success }]}>
+                  {index + 1}
+                </Text>
+              </View>
+              <Text style={[styles.stepTitle, { color: colors.text }]}>
                 {step.title}
               </Text>
             </View>
@@ -306,27 +338,49 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
     );
   }
 
-  // === プラン承認リクエスト ===
+  // === プラン承認リクエスト with modern design ===
   if (activity.planApprovalRequested) {
     const planId = activity.planApprovalRequested.planId;
     return (
       <View style={styles.container}>
         <View style={[styles.card, styles.approvalCard, isDark && styles.cardDark]}>
+          <LinearGradient
+            colors={isDark 
+              ? ['rgba(251, 191, 36, 0.1)', 'rgba(251, 191, 36, 0.05)']
+              : ['rgba(245, 158, 11, 0.08)', 'rgba(245, 158, 11, 0.03)']
+            }
+            style={StyleSheet.absoluteFill}
+          />
           <View style={styles.cardHeader}>
-            <IconSymbol name="hand.raised" size={16} color="#f59e0b" />
-            <Text style={[styles.cardTitle, isDark && styles.cardTitleDark]}>Approval Required</Text>
+            <LinearGradient
+              colors={[colors.warning, '#fbbf24']}
+              style={styles.cardIconContainer}
+            >
+              <IconSymbol name="hand.raised" size={16} color="#ffffff" />
+            </LinearGradient>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Approval Required</Text>
           </View>
-          <Text style={[styles.description, isDark && styles.descriptionDark]}>
+          <Text style={[styles.description, { color: colors.icon }]}>
             Jules is waiting for your approval to proceed with the plan.
           </Text>
           {onApprovePlan && (
             <TouchableOpacity
               style={styles.approveButton}
-              onPress={() => onApprovePlan(planId)}
-              activeOpacity={0.8}
+              onPress={() => {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                onApprovePlan(planId);
+              }}
+              activeOpacity={0.9}
             >
-              <IconSymbol name="checkmark.circle.fill" size={18} color="#ffffff" />
-              <Text style={styles.approveButtonText}>Approve Plan</Text>
+              <LinearGradient
+                colors={[colors.success, '#34d399']}
+                style={styles.approveButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <IconSymbol name="checkmark.circle.fill" size={20} color="#ffffff" />
+                <Text style={styles.approveButtonText}>Approve Plan</Text>
+              </LinearGradient>
             </TouchableOpacity>
           )}
         </View>
@@ -512,27 +566,44 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 6,
-    paddingHorizontal: 12,
+    marginVertical: 8,
+    paddingHorizontal: 16,
   },
   containerUser: {
     alignItems: 'flex-end',
   },
   
-  // チャットバブル
+  // Modern chat bubbles
   bubble: {
-    maxWidth: '85%',
-    padding: 12,
-    borderRadius: 16,
+    maxWidth: '82%',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  bubbleContent: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 18,
+    borderBottomLeftRadius: 4,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
   bubbleUser: {
-    backgroundColor: '#2563eb',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 18,
     borderBottomRightRadius: 4,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   bubbleAgent: {
     backgroundColor: '#ffffff',
-    borderBottomLeftRadius: 4,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#e2e8f0',
   },
   bubbleAgentDark: {
@@ -540,12 +611,32 @@ const styles = StyleSheet.create({
     borderColor: '#334155',
   },
   
-  // ヘッダー
+  // Avatar styles
+  avatarContainer: {
+    marginTop: 4,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  avatarUser: {
+    backgroundColor: '#ffffff',
+  },
+  
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   senderRow: {
     flexDirection: 'row',
@@ -553,38 +644,47 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sender: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   senderUser: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: 13,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.9)',
+    letterSpacing: 0.2,
   },
   time: {
     fontSize: 10,
-    color: '#94a3b8',
+    fontWeight: '500',
   },
   timeUser: {
     fontSize: 10,
-    color: 'rgba(255,255,255,0.6)',
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.7)',
   },
   
-  // メッセージ
+  // Message
   messageUser: {
     fontSize: 14,
     lineHeight: 20,
     color: '#ffffff',
   },
   
-  // カード
+  // Card with modern design
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
     borderColor: '#e2e8f0',
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    overflow: 'hidden',
+    position: 'relative',
   },
   cardDark: {
     backgroundColor: '#1e293b',
@@ -593,55 +693,93 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    gap: 10,
+    marginBottom: 12,
+  },
+  cardIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e293b',
+    fontSize: 15,
+    fontWeight: '700',
     flex: 1,
+    letterSpacing: -0.2,
   },
   cardTitleDark: {
     color: '#e2e8f0',
   },
   
-  // プランステップ
+  // Plan steps with modern badges
   planStep: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 6,
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 8,
+  },
+  stepBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   stepNumber: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#10b981',
-    width: 20,
-  },
-  stepNumberDark: {
-    color: '#34d399',
+    fontSize: 13,
+    fontWeight: '700',
   },
   stepTitle: {
     flex: 1,
-    fontSize: 13,
-    color: '#475569',
+    fontSize: 14,
+    lineHeight: 20,
   },
   stepTitleDark: {
     color: '#94a3b8',
   },
   
-  // 承認
+  // Approval
   approvalRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
+  approvalCard: {
+    borderWidth: 2,
+    borderColor: '#f59e0b',
+  },
+  approveButton: {
+    marginTop: 14,
+    borderRadius: 12,
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+    overflow: 'hidden',
+  },
+  approveButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+  },
+  approveButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
   
-  // 進捗説明
+  // Description
   description: {
     fontSize: 13,
-    color: '#475569',
-    marginBottom: 8,
+    lineHeight: 19,
+    marginBottom: 4,
   },
   descriptionDark: {
     color: '#94a3b8',
