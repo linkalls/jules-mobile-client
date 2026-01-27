@@ -90,6 +90,9 @@ const translations = {
     createSessionFailed: 'セッションが作れなかったよ',
     sendMessageFailed: 'メッセージの送信に失敗したよ',
     loadingMore: 'さらに読み込み中...',
+    networkError: 'ネットワークエラー。接続を確認してね。',
+    retryHint: 'もう一度お試しください',
+    tapToRetry: 'タップして再試行',
   },
   en: {
     // Common
@@ -178,6 +181,9 @@ const translations = {
     createSessionFailed: 'Failed to create session',
     sendMessageFailed: 'Failed to send message',
     loadingMore: 'Loading more...',
+    networkError: 'Network error. Please check your connection.',
+    retryHint: 'Please try again',
+    tapToRetry: 'Tap to retry',
   },
 };
 

@@ -188,6 +188,9 @@ export default function SessionsScreen() {
             onPress={onRefresh} 
             disabled={isLoading}
             style={styles.refreshButton}
+            accessibilityLabel={t('refresh')}
+            accessibilityRole="button"
+            accessibilityHint="Refresh the list of sessions"
           >
             <IconSymbol
               name="arrow.clockwise"
@@ -201,8 +204,21 @@ export default function SessionsScreen() {
       {/* エラー表示 */}
       {error && (
         <View style={[styles.errorBanner, isDark && styles.errorBannerDark]}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity onPress={clearError}>
+          <View style={styles.errorContent}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity 
+              style={styles.retryButton}
+              onPress={() => {
+                clearError();
+                void onRefresh();
+              }}
+              accessibilityLabel={t('tapToRetry')}
+              accessibilityRole="button"
+            >
+              <Text style={styles.retryButtonText}>{t('tapToRetry')}</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity onPress={clearError} accessibilityLabel="Close error" accessibilityRole="button">
             <Text style={styles.errorClose}>×</Text>
           </TouchableOpacity>
         </View>
@@ -379,6 +395,9 @@ export default function SessionsScreen() {
             style={styles.fab} 
             onPress={openCreateSession} 
             activeOpacity={0.9}
+            accessibilityLabel={t('newTask')}
+            accessibilityRole="button"
+            accessibilityHint="Create a new coding task session"
           >
             <LinearGradient
               colors={[colors.primary, colors.primaryLight]}
@@ -455,7 +474,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderRadius: 12,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     borderLeftWidth: 3,
     borderLeftColor: '#ef4444',
@@ -463,11 +482,26 @@ const styles = StyleSheet.create({
   errorBannerDark: {
     backgroundColor: 'rgba(239, 68, 68, 0.2)',
   },
+  errorContent: {
+    flex: 1,
+    gap: 8,
+  },
   errorText: {
     color: '#dc2626',
     fontSize: 13,
-    flex: 1,
     fontWeight: '500',
+  },
+  retryButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(220, 38, 38, 0.15)',
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  retryButtonText: {
+    color: '#dc2626',
+    fontSize: 12,
+    fontWeight: '700',
   },
   errorClose: {
     color: '#dc2626',
