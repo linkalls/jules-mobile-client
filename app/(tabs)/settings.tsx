@@ -12,16 +12,20 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSecureStorage } from '@/hooks/use-secure-storage';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
+import { Colors } from '@/constants/theme';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const router = useRouter();
+  const colors = isDark ? Colors.dark : Colors.light;
 
   const { apiKey, setApiKey: saveApiKeyToContext } = useApiKey();
   const [localApiKey, setLocalApiKey] = useState(apiKey);
@@ -47,6 +51,7 @@ export default function SettingsScreen() {
   }, [getTheme]);
 
   const handleSave = async () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     try {
       await saveApiKeyToContext(localApiKey);
       Alert.alert(t('savedSuccess'));
@@ -56,6 +61,7 @@ export default function SettingsScreen() {
   };
 
   const toggleDarkMode = async (value: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setManualDarkMode(value);
     const theme = value ? 'dark' : 'light';
     await saveTheme(theme);
@@ -63,15 +69,25 @@ export default function SettingsScreen() {
   };
 
   const toggleLanguage = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const newLang = language === 'ja' ? 'en' : 'ja';
     setLanguage(newLang);
   };
 
   return (
-    <SafeAreaView style={[styles.container, isDark && styles.containerDark]} edges={['top']}>
-      {/* ヘッダー */}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      {/* Modern Header with Gradient */}
       <View style={[styles.header, isDark && styles.headerDark]}>
-        <Text style={[styles.headerTitle, isDark && styles.headerTitleDark]}>{t('settings')}</Text>
+        <LinearGradient
+          colors={isDark 
+            ? [colors.surface, colors.surfaceSecondary]
+            : [colors.surface, colors.surfaceSecondary]
+          }
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.headerContent}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('settings')}</Text>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -93,9 +109,21 @@ export default function SettingsScreen() {
           </Text>
         </View>
 
-        {/* 保存ボタン */}
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
-          <Text style={styles.saveButtonText}>{t('save')}</Text>
+        {/* 保存ボタン with gradient */}
+        <TouchableOpacity 
+          style={styles.saveButton} 
+          onPress={handleSave} 
+          activeOpacity={0.9}
+        >
+          <LinearGradient
+            colors={[colors.primary, colors.primaryLight]}
+            style={styles.saveButtonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <IconSymbol name="checkmark.circle.fill" size={20} color="#ffffff" />
+            <Text style={styles.saveButtonText}>{t('save')}</Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         {/* テーマ切り替え */}
@@ -170,58 +198,66 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   containerDark: {
     backgroundColor: '#020617',
   },
   header: {
-    height: 60,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
+    height: 70,
+    position: 'relative',
+    overflow: 'hidden',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: 'rgba(226, 232, 240, 0.5)',
   },
   headerDark: {
-    backgroundColor: '#0f172a',
-    borderBottomColor: '#1e293b',
+    borderBottomColor: 'rgba(51, 65, 85, 0.5)',
+  },
+  headerContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   headerTitleDark: {
     color: '#f8fafc',
   },
   content: {
-    padding: 16,
+    padding: 20,
     paddingBottom: 40,
-    gap: 16,
+    gap: 20,
   },
   section: {
-    gap: 8,
+    gap: 10,
   },
   sectionMargin: {
-    marginTop: 16,
+    marginTop: 20,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     color: '#475569',
+    marginBottom: 2,
   },
   labelDark: {
     color: '#94a3b8',
   },
   input: {
     backgroundColor: '#ffffff',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#e2e8f0',
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 14,
+    padding: 16,
     fontSize: 15,
     color: '#0f172a',
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   inputDark: {
     backgroundColor: '#1e293b',
@@ -231,72 +267,87 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: 12,
     color: '#94a3b8',
+    marginTop: 4,
   },
   hintDark: {
     color: '#64748b',
   },
   saveButton: {
-    backgroundColor: '#2563eb',
-    paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
+    marginTop: 20,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+    overflow: 'hidden',
+  },
+  saveButtonGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 16,
   },
   saveButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
+    letterSpacing: 0.3,
   },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#ffffff',
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1.5,
     borderColor: '#e2e8f0',
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   switchLabel: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   hintBox: {
-    backgroundColor: 'rgba(37, 99, 235, 0.1)',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 16,
+    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+    padding: 18,
+    borderRadius: 14,
+    marginTop: 20,
+    borderLeftWidth: 3,
+    borderLeftColor: '#6366f1',
   },
   hintBoxDark: {
-    backgroundColor: 'rgba(37, 99, 235, 0.2)',
+    backgroundColor: 'rgba(129, 140, 248, 0.15)',
+    borderLeftColor: '#818cf8',
   },
   hintHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
+    gap: 8,
+    marginBottom: 10,
   },
   hintBoxTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#2563eb',
+    color: '#6366f1',
   },
   hintBoxTitleDark: {
-    color: '#60a5fa',
+    color: '#818cf8',
   },
   hintBoxText: {
     fontSize: 13,
-    color: '#1d4ed8',
-    lineHeight: 18,
+    color: '#4f46e5',
+    lineHeight: 20,
   },
   hintBoxTextDark: {
-    color: '#93c5fd',
+    color: '#a5b4fc',
   },
   switchRowDark: {
     backgroundColor: '#1e293b',
@@ -304,10 +355,10 @@ const styles = StyleSheet.create({
   },
   langValue: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontWeight: '700',
+    color: '#6366f1',
   },
   langValueDark: {
-    color: '#60a5fa',
+    color: '#818cf8',
   },
 });

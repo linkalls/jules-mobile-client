@@ -1,8 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
 import type { Session } from '@/constants/types';
+import { Colors } from '@/constants/theme';
 
 interface SessionCardProps {
   session: Session;
@@ -86,34 +89,74 @@ export function SessionCardSkeleton() {
 }
 
 /**
- * セッション一覧のカードコンポーネント
+ * セッション一覧のカードコンポーネント - Modern Enhanced Version
  */
 export const SessionCard = React.memo(function SessionCard({ session, onPress }: SessionCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { t } = useI18n();
+  const colors = isDark ? Colors.dark : Colors.light;
+  
+  // Animation for press effect
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  
+  useEffect(() => {
+    // Subtle glow animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [glowAnim]);
+
+  const handlePressIn = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const getStateColor = () => {
     switch (session.state) {
       case 'ACTIVE':
-        return isDark ? '#34d399' : '#059669';
+        return colors.success;
       case 'COMPLETED':
-        return isDark ? '#60a5fa' : '#2563eb';
+        return colors.primary;
       case 'FAILED':
-        return isDark ? '#f87171' : '#dc2626';
+        return colors.error;
       default:
-        return isDark ? '#94a3b8' : '#64748b';
+        return colors.icon;
     }
   };
 
   const getStateBgColor = () => {
     switch (session.state) {
       case 'ACTIVE':
-        return isDark ? 'rgba(52, 211, 153, 0.15)' : 'rgba(5, 150, 105, 0.1)';
+        return isDark ? 'rgba(52, 211, 153, 0.15)' : 'rgba(16, 185, 129, 0.1)';
       case 'COMPLETED':
-        return isDark ? 'rgba(96, 165, 250, 0.15)' : 'rgba(37, 99, 235, 0.1)';
+        return isDark ? 'rgba(129, 140, 248, 0.15)' : 'rgba(99, 102, 241, 0.1)';
       case 'FAILED':
-        return isDark ? 'rgba(248, 113, 113, 0.15)' : 'rgba(220, 38, 38, 0.1)';
+        return isDark ? 'rgba(248, 113, 113, 0.15)' : 'rgba(239, 68, 68, 0.1)';
       default:
         return isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(100, 116, 139, 0.1)';
     }
@@ -132,76 +175,137 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress }:
     }
   };
 
-  return (
-    <TouchableOpacity
-      style={[styles.card, isDark && styles.cardDark]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <View style={styles.headerRow}>
-        <Text style={[styles.title, isDark && styles.titleDark]} numberOfLines={1}>
-          {session.title || 'Untitled Session'}
-        </Text>
-        <View style={[styles.badge, { backgroundColor: getStateBgColor() }]}>
-          <Text style={[styles.badgeText, { color: getStateColor() }]}>
-            {getStateLabel()}
-          </Text>
-        </View>
-      </View>
+  const glowOpacity = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: session.state === 'ACTIVE' ? [0.3, 0.7] : [0, 0],
+  });
 
-      <Text style={[styles.nameText, isDark && styles.nameTextDark]} numberOfLines={1}>
-        {session.name}
-      </Text>
-    </TouchableOpacity>
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        style={[styles.card, isDark && styles.cardDark]}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.95}
+      >
+        {/* Active session glow effect */}
+        {session.state === 'ACTIVE' && (
+          <Animated.View 
+            style={[
+              styles.glowBorder,
+              { 
+                opacity: glowOpacity,
+                borderColor: getStateColor(),
+              }
+            ]} 
+          />
+        )}
+        
+        {/* Gradient accent for active sessions */}
+        {session.state === 'ACTIVE' && (
+          <LinearGradient
+            colors={isDark 
+              ? ['rgba(129, 140, 248, 0.1)', 'rgba(52, 211, 153, 0.1)']
+              : ['rgba(99, 102, 241, 0.05)', 'rgba(16, 185, 129, 0.05)']
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradientOverlay}
+          />
+        )}
+        
+        <View style={styles.headerRow}>
+          <Text style={[styles.title, isDark && styles.titleDark]} numberOfLines={1}>
+            {session.title || 'Untitled Session'}
+          </Text>
+          <View style={[styles.badge, { backgroundColor: getStateBgColor() }]}>
+            <Text style={[styles.badgeText, { color: getStateColor() }]}>
+              {getStateLabel()}
+            </Text>
+          </View>
+        </View>
+
+        <Text style={[styles.nameText, isDark && styles.nameTextDark]} numberOfLines={1}>
+          {session.name}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
   );
 });
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
+    padding: 18,
+    borderRadius: 16,
+    borderWidth: 1.5,
     borderColor: '#f1f5f9',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+    overflow: 'hidden',
+    position: 'relative',
   },
   cardDark: {
     backgroundColor: '#1e293b',
     borderColor: '#334155',
+    shadowColor: '#818cf8',
+    shadowOpacity: 0.15,
+  },
+  glowBorder: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    borderRadius: 18,
+    borderWidth: 2,
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 16,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
-    gap: 8,
+    marginBottom: 10,
+    gap: 10,
+    zIndex: 1,
   },
   title: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     color: '#0f172a',
     flex: 1,
+    letterSpacing: -0.3,
   },
   titleDark: {
     color: '#f8fafc',
   },
   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 14,
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   nameText: {
     fontSize: 11,
     fontFamily: 'monospace',
     color: '#94a3b8',
+    zIndex: 1,
   },
   nameTextDark: {
     color: '#64748b',
