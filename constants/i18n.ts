@@ -19,6 +19,17 @@ const translations = {
     noSessionsHint: '右下のボタンから新しいタスクを作ろう！',
     noApiKey: 'APIキーが設定されていないよ',
     noApiKeyHint: 'Settingsタブでキーを入力してね！',
+    searchSessions: 'セッションを検索...',
+    sortBy: '並び替え',
+    sortByNewest: '新しい順',
+    sortByOldest: '古い順',
+    sortByTitle: 'タイトル順',
+    filterByStatus: 'ステータスで絞り込み',
+    filterAll: 'すべて',
+    filterActive: '処理中のみ',
+    filterCompleted: '完了のみ',
+    filterFailed: '失敗のみ',
+    noResultsFound: '該当するセッションが見つかりませんでした',
     
     // Session Detail
     noActivities: 'アクティビティがないよ',
@@ -39,6 +50,8 @@ const translations = {
     savedError: '保存に失敗しちゃった...',
     securityHint: 'APIキーはexpo-secure-storeでセキュアに保存されるよ。でも、他人と共有するデバイスでは気をつけてね！',
     hint: 'ヒント',
+    appVersion: 'アプリバージョン',
+    about: 'アプリについて',
     
     // Create Session
     newTask: '新規タスク',
@@ -77,6 +90,9 @@ const translations = {
     createSessionFailed: 'セッションが作れなかったよ',
     sendMessageFailed: 'メッセージの送信に失敗したよ',
     loadingMore: 'さらに読み込み中...',
+    networkError: 'ネットワークエラー。接続を確認してね。',
+    retryHint: 'もう一度お試しください',
+    tapToRetry: 'タップして再試行',
   },
   en: {
     // Common
@@ -94,6 +110,17 @@ const translations = {
     noSessionsHint: 'Tap the button below to create a new task!',
     noApiKey: 'API key not set',
     noApiKeyHint: 'Enter your key in Settings tab!',
+    searchSessions: 'Search sessions...',
+    sortBy: 'Sort by',
+    sortByNewest: 'Newest first',
+    sortByOldest: 'Oldest first',
+    sortByTitle: 'Title',
+    filterByStatus: 'Filter by status',
+    filterAll: 'All',
+    filterActive: 'Active only',
+    filterCompleted: 'Completed only',
+    filterFailed: 'Failed only',
+    noResultsFound: 'No matching sessions found',
     
     // Session Detail
     noActivities: 'No activities',
@@ -114,6 +141,8 @@ const translations = {
     savedError: 'Failed to save...',
     securityHint: 'API key is stored securely with expo-secure-store. Be careful on shared devices!',
     hint: 'Hint',
+    appVersion: 'App Version',
+    about: 'About',
     
     // Create Session
     newTask: 'New Task',
@@ -152,6 +181,9 @@ const translations = {
     createSessionFailed: 'Failed to create session',
     sendMessageFailed: 'Failed to send message',
     loadingMore: 'Loading more...',
+    networkError: 'Network error. Please check your connection.',
+    retryHint: 'Please try again',
+    tapToRetry: 'Tap to retry',
   },
 };
 
