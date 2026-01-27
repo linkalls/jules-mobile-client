@@ -15,6 +15,8 @@ import {
 } from 'react-native';
 import { router, Stack } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -24,6 +26,7 @@ import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
 import { useSecureStorage } from '@/hooks/use-secure-storage';
 import type { Source } from '@/constants/types';
+import { Colors } from '@/constants/theme';
 
 /**
  * シマー効果付きスケルトン
@@ -149,6 +152,7 @@ const skeletonStyles = StyleSheet.create({
 export default function CreateSessionScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const colors = isDark ? Colors.dark : Colors.light;
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
@@ -528,15 +532,37 @@ export default function CreateSessionScreen() {
               )}
             </View>
 
-            {/* 作成ボタン */}
+            {/* 作成ボタン with gradient */}
             <TouchableOpacity
-              style={[styles.createButton, (!selectedSource || !prompt.trim()) && styles.createButtonDisabled]}
-              onPress={handleCreate}
+              style={[
+                styles.createButton, 
+                (!selectedSource || !prompt.trim()) && styles.createButtonDisabled
+              ]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                handleCreate();
+              }}
               disabled={!selectedSource || !prompt.trim() || isLoading}
-              activeOpacity={0.8}
+              activeOpacity={0.9}
             >
-              <IconSymbol name="plus" size={20} color="#ffffff" />
-              <Text style={styles.createButtonText}>{t('startSession')}</Text>
+              {(!selectedSource || !prompt.trim()) ? (
+                <View style={styles.createButtonContent}>
+                  <IconSymbol name="plus" size={20} color="#94a3b8" />
+                  <Text style={[styles.createButtonText, styles.createButtonTextDisabled]}>
+                    {t('startSession')}
+                  </Text>
+                </View>
+              ) : (
+                <LinearGradient
+                  colors={[colors.primary, colors.primaryLight]}
+                  style={styles.createButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <IconSymbol name="plus" size={20} color="#ffffff" />
+                  <Text style={styles.createButtonText}>{t('startSession')}</Text>
+                </LinearGradient>
+              )}
             </TouchableOpacity>
           </ScrollView>
         )}
@@ -691,28 +717,41 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
   },
   createButton: {
-    backgroundColor: '#2563eb',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
+    borderRadius: 14,
     marginTop: 24,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+    overflow: 'hidden',
+  },
+  createButtonContent: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    gap: 10,
+    paddingVertical: 16,
+    backgroundColor: '#e2e8f0',
+  },
+  createButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 16,
   },
   createButtonDisabled: {
-    backgroundColor: '#94a3b8',
     shadowOpacity: 0,
   },
   createButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  createButtonTextDisabled: {
+    color: '#94a3b8',
   },
   loadingMore: {
     flexDirection: 'row',
