@@ -118,7 +118,7 @@ export default function SessionDetailScreen() {
       // リストを更新
       await loadActivities();
     } catch (e) {
-      console.error(e);
+      // Error is already handled by the API hook
     }
   }, [approvePlan, loadActivities]);
 
@@ -137,7 +137,7 @@ export default function SessionDetailScreen() {
       // Reload activities to show the new message
       await loadActivities();
     } catch (e) {
-      console.error('Failed to send message:', e);
+      // Error is already handled by the API hook
       // Optionally show error or restore input
     }
   };

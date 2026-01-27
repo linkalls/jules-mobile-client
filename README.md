@@ -19,8 +19,9 @@
 
 ## ✨ Features
 
+### Core Functionality
 - 📱 **Cross-Platform** - Works on iOS and Android via Expo
-- 🌙 **Dark Mode** - Full dark/light theme support
+- 🌙 **Dark Mode** - Full dark/light theme support with auto-detection
 - 🌐 **i18n** - Japanese and English localization
 - 🔐 **Secure Storage** - API keys stored securely with expo-secure-store
 - 💬 **Real-time Chat** - View and interact with Jules sessions
@@ -28,17 +29,38 @@
 - ⚡ **Optimized Performance** - Memoized components and efficient list rendering
 - 📸 **Photo Upload Ready** - UI prepared for photo attachments (API support pending)
 
+### Enhanced User Experience
+- 🔍 **Search Sessions** - Quickly find sessions by title or name
+- 🔄 **Sort & Filter** - Sort by date or title, filter by status (Active/Completed/Failed)
+- 📊 **Smart Session Management** - Recent repos tracking and intelligent UI
+- ✨ **Modern UI** - Gradient-based design with haptic feedback
+- ♿ **Accessibility** - Screen reader support and semantic labels
+- ℹ️ **Version Info** - App version display in settings
+
 ## 📸 Screenshots
 
+### Light Theme
 <p align="center">
-  <img src="assets/screenshots/sessions.png" alt="Sessions List" width="200" />
-  <img src="assets/screenshots/new-task.png" alt="New Task" width="200" />
-  <img src="assets/screenshots/settings.png" alt="Settings" width="200" />
+  <img src="assets/screenshots/sessions.png" alt="Sessions List - Light" width="200" />
+  <img src="assets/screenshots/new-task.png" alt="New Task - Light" width="200" />
+  <img src="assets/screenshots/settings.png" alt="Settings - Light" width="200" />
 </p>
 
 | Sessions | New Task | Settings |
 |:--------:|:--------:|:--------:|
 | View all active sessions | Create new coding tasks | Configure API key & preferences |
+
+### Dark Theme
+The app features a beautiful dark theme that can be toggled in Settings or automatically follows your system preferences.
+
+> **Note**: Dark theme screenshots will be added soon. The app fully supports dark mode with a modern gradient-based design optimized for OLED displays.
+
+**New Features in Latest Update:**
+- 🔍 **Search & Filter** - Quickly find sessions with search and filter by status
+- 📊 **Sort Options** - Sort sessions by date (newest/oldest) or title
+- ℹ️ **App Version Display** - View current version in Settings
+- ♿ **Accessibility Improvements** - Better screen reader support
+- 🔒 **Security Enhancement** - Removed debug logging in production
 
 ## 🚀 Getting Started
 

@@ -57,7 +57,11 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
 
       if (!response.ok) {
         const errorData = (await response.json()) as ApiError;
-        console.log('API Error Response:', JSON.stringify(errorData, null, 2));
+        // Only log errors in development mode
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.error('API Error Response:', errorData);
+        }
         throw new Error(errorData.error?.message || `${translate('apiError', 'API Error')}: ${response.status}`);
       }
 
@@ -218,7 +222,10 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
         }
         */
 
-        console.log('Creating session with body:', JSON.stringify(body, null, 2));
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.log('Creating session with body:', body);
+        }
 
         const session = await julesFetch<Session>('/sessions', {
           method: 'POST',
