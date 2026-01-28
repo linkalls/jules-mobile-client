@@ -29,7 +29,7 @@ import { Colors } from '@/constants/theme';
 const SORT_OPTIONS = ['newest', 'oldest', 'title'] as const;
 type SortOption = typeof SORT_OPTIONS[number];
 
-const FILTER_STATUS_OPTIONS = ['all', 'ACTIVE', 'COMPLETED', 'FAILED'] as const;
+const FILTER_STATUS_OPTIONS = ['all', 'ACTIVE', 'IN_PROGRESS', 'AWAITING_PLAN_APPROVAL', 'COMPLETED', 'FAILED'] as const;
 type FilterStatus = typeof FILTER_STATUS_OPTIONS[number];
 
 // Memoized SessionCard wrapper for performance
@@ -82,6 +82,8 @@ export default function SessionsScreen() {
   const filterOptions = useMemo(() => [
     { key: 'all' as FilterStatus, label: t('filterAll') },
     { key: 'ACTIVE' as FilterStatus, label: t('filterActive') },
+    { key: 'IN_PROGRESS' as FilterStatus, label: t('filterInProgress') },
+    { key: 'AWAITING_PLAN_APPROVAL' as FilterStatus, label: t('filterAwaitingPlanApproval') },
     { key: 'COMPLETED' as FilterStatus, label: t('filterCompleted') },
     { key: 'FAILED' as FilterStatus, label: t('filterFailed') },
   ], [t]);
