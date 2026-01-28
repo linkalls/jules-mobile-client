@@ -12,6 +12,7 @@
   <a href="README.ja.md">🇯🇵 日本語</a> •
   <a href="docs/ARCHITECTURE.md">📐 Architecture</a> •
   <a href="docs/API.md">🔌 API Reference</a> •
+  <a href="docs/MODE_SELECTION.md">🎯 Mode Selection</a> •
   <a href="docs/Agent.md">🤖 Agent Guide</a>
 </p>
 
@@ -36,6 +37,9 @@
 - ✨ **Modern UI** - Gradient-based design with haptic feedback
 - ♿ **Accessibility** - Screen reader support and semantic labels
 - ℹ️ **Version Info** - App version display in settings
+- 🎯 **Mode Selection** - Choose between Start (auto-execute) or Review (manual approval) modes
+- 📋 **Plan Approval Flow** - Review and approve AI-generated plans before execution
+- 🔄 **Session State Tracking** - Real-time state badges showing current session status
 
 ## 📸 Screenshots
 
@@ -56,6 +60,9 @@ The app features a beautiful dark theme that can be toggled in Settings or autom
 > **Note**: Dark theme screenshots will be added soon. The app fully supports dark mode with a modern gradient-based design optimized for OLED displays.
 
 **New Features in Latest Update:**
+- 🎯 **Mode Selection** - Choose Start (auto-execute) or Review (manual approval) mode when creating sessions
+- 📋 **Plan Approval Flow** - Review AI-generated plans before execution in Review mode
+- 🔄 **Session State Tracking** - Real-time color-coded state badges (Queued, Planning, In Progress, etc.)
 - 🔍 **Search & Filter** - Quickly find sessions with search and filter by status
 - 📊 **Sort Options** - Sort sessions by date (newest/oldest) or title
 - ℹ️ **App Version Display** - View current version in Settings

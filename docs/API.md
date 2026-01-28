@@ -52,9 +52,15 @@ GET /sessions?pageSize=20
 | State | Description | App Display (ja/en) |
 |-------|-------------|---------------------|
 | `STATE_UNSPECIFIED` | Unknown/Creating state | 作成中 / Creating |
-| `ACTIVE` | Session is in progress | 処理中 / Processing |
-| `COMPLETED` | Session finished successfully | 完了 / Completed |
+| `QUEUED` | Session is queued | 待機中 / Queued |
+| `PLANNING` | Agent is planning (deprecated) | 計画中 / Planning |
+| `AWAITING_PLAN_APPROVAL` | Waiting for plan approval | 承認待ち / Awaiting Plan Approval |
+| `AWAITING_USER_FEEDBACK` | Waiting for user feedback | フィードバック待ち / Awaiting Feedback |
+| `IN_PROGRESS` | Session is executing | 実行中 / In Progress |
+| `PAUSED` | Session is paused | 一時停止 / Paused |
 | `FAILED` | Session encountered an error | 失敗 / Failed |
+| `COMPLETED` | Session finished successfully | 完了 / Completed |
+| `ACTIVE` | Legacy state (backward compat) | 処理中 / Processing |
 
 #### Create Session
 
@@ -70,9 +76,29 @@ Content-Type: application/json
       "startingBranch": "main"
     }
   },
-  "title": "Fix the login bug..."
+  "title": "Fix the login bug...",
+  "requirePlanApproval": false
 }
 ```
+
+**Request Body:**
+
+- `prompt` (required): The task description for Jules
+- `sourceContext` (optional): Source repository context
+  - `source`: Resource name of the source (e.g., `sources/github/owner/repo`)
+  - `githubRepoContext`: GitHub-specific context
+    - `startingBranch`: Branch to start from (e.g., `"main"`)
+- `title` (optional): Session title (auto-generated if omitted)
+- **`requirePlanApproval`** (optional, boolean): **NEW**
+  - `false` or omitted: **Start/Run mode** - Auto-approve plan and execute
+  - `true`: **Review mode** - Wait for user approval via `:approvePlan`
+
+**Execution Modes:**
+
+| Mode | `requirePlanApproval` | Behavior |
+|------|----------------------|----------|
+| **Start / Run** | `false` or omitted | Plan is auto-approved after generation, execution starts immediately |
+| **Review** | `true` | Plan generation pauses execution. User must call `:approvePlan` to proceed |
 
 **Response:**
 
@@ -114,6 +140,34 @@ GET /sources?pageSize=20&pageToken=...
   ],
   "nextPageToken": "..."
 }
+```
+
+#### Approve Plan
+
+**NEW**: Approves a plan in a session. Used in Review mode when `requirePlanApproval: true`.
+
+```http
+POST /sessions/{sessionId}:approvePlan
+Content-Type: application/json
+
+{}
+```
+
+**Path Parameters:**
+- `sessionId`: The session ID (e.g., `sessions/abc123`)
+
+**Request Body:** Empty object `{}`
+
+**Response:** `ApprovePlanResponse` (typically empty on success)
+
+**Usage:**
+- Only applicable when session is in `AWAITING_PLAN_APPROVAL` state
+- Approves the most recently generated plan
+- After approval, session proceeds to `IN_PROGRESS` state
+
+**Example:**
+```typescript
+await approvePlan('sessions/abc123');
 ```
 
 ### Activities
@@ -171,21 +225,9 @@ GET /sessions/{sessionId}/activities?pageSize=50
 | Plan Approval Request | `planApprovalRequested.planId` | Waiting for user approval |
 | Plan Approved | `planApproved.planId` | User approved the plan |
 | Progress Update | `progressUpdated.title/description` | Task progress info |
+| **Session Completed** | `sessionCompleted` | **NEW**: Session finished successfully |
+| **Session Failed** | `sessionFailed.reason` | **NEW**: Session failed with reason |
 | Artifacts | `artifacts[]` | Bash output, code changes, etc. |
-
-### Plans
-
-#### Approve Plan
-
-```http
-POST /{planId}:approve
-```
-
-**Response:**
-
-```json
-{}
-```
 
 ## Error Handling
 
@@ -242,7 +284,17 @@ interface Source {
 interface Session {
   name: string;
   title?: string;
-  state: 'STATE_UNSPECIFIED' | 'ACTIVE' | 'COMPLETED' | 'FAILED';
+  state: 
+    | 'STATE_UNSPECIFIED'
+    | 'QUEUED'
+    | 'PLANNING'
+    | 'AWAITING_PLAN_APPROVAL'
+    | 'AWAITING_USER_FEEDBACK'
+    | 'IN_PROGRESS'
+    | 'PAUSED'
+    | 'FAILED'
+    | 'COMPLETED'
+    | 'ACTIVE'; // Legacy
   createTime: string;
   updateTime: string;
 }
@@ -259,6 +311,8 @@ interface Activity {
   planGenerated?: { plan: Plan };
   planApproved?: { planId: string };
   planApprovalRequested?: { planId: string };
+  sessionCompleted?: {}; // NEW
+  sessionFailed?: { reason?: string }; // NEW
   artifacts?: Artifact[];
 }
 

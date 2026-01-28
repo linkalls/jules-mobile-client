@@ -159,6 +159,7 @@ export default function CreateSessionScreen() {
   const { saveRecentRepo, getRecentRepos } = useSecureStorage();
   const [selectedSource, setSelectedSource] = useState('');
   const [prompt, setPrompt] = useState('');
+  const [requirePlanApproval, setRequirePlanApproval] = useState(false); // false = Start/Run, true = Review
   const [sourcesLoaded, setSourcesLoaded] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [recentRepos, setRecentRepos] = useState<Source[]>([]);
@@ -246,7 +247,7 @@ export default function CreateSessionScreen() {
     const source = sources.find((s) => s.name === selectedSource);
     const defaultBranch = source?.githubRepo?.defaultBranch?.displayName || 'main';
 
-    const session = await createSession(selectedSource, prompt, defaultBranch, []);
+    const session = await createSession(selectedSource, prompt, defaultBranch, [], requirePlanApproval);
     if (session && source) {
       // Save to recent repos
       await saveRecentRepo(source);
@@ -257,7 +258,7 @@ export default function CreateSessionScreen() {
         },
       ]);
     }
-  }, [selectedSource, prompt, sources, createSession, saveRecentRepo, t, router]);
+  }, [selectedSource, prompt, requirePlanApproval, sources, createSession, saveRecentRepo, t, router]);
 
   return (
     <>
@@ -471,6 +472,86 @@ export default function CreateSessionScreen() {
                 textAlignVertical="top"
                 maxLength={500}
               />
+            </View>
+
+            {/* 実行モード選択 */}
+            <View style={[styles.section, { marginTop: 24 }]}>
+              <Text style={[styles.label, isDark && styles.labelDark]}>{t('executionMode')}</Text>
+              <View style={styles.modeContainer}>
+                {/* Start Mode */}
+                <TouchableOpacity
+                  style={[
+                    styles.modeButton,
+                    isDark && styles.modeButtonDark,
+                    !requirePlanApproval && styles.modeButtonSelected,
+                  ]}
+                  onPress={() => setRequirePlanApproval(false)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.modeHeader}>
+                    <IconSymbol
+                      name={!requirePlanApproval ? 'checkmark.circle.fill' : 'circle'}
+                      size={20}
+                      color={!requirePlanApproval ? '#2563eb' : isDark ? '#64748b' : '#94a3b8'}
+                    />
+                    <Text
+                      style={[
+                        styles.modeTitle,
+                        isDark && styles.modeTitleDark,
+                        !requirePlanApproval && styles.modeTitleSelected,
+                      ]}
+                    >
+                      {t('modeStart')}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.modeDesc,
+                      isDark && styles.modeDescDark,
+                      !requirePlanApproval && styles.modeDescSelected,
+                    ]}
+                  >
+                    {t('modeStartDesc')}
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Review Mode */}
+                <TouchableOpacity
+                  style={[
+                    styles.modeButton,
+                    isDark && styles.modeButtonDark,
+                    requirePlanApproval && styles.modeButtonSelected,
+                  ]}
+                  onPress={() => setRequirePlanApproval(true)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.modeHeader}>
+                    <IconSymbol
+                      name={requirePlanApproval ? 'checkmark.circle.fill' : 'circle'}
+                      size={20}
+                      color={requirePlanApproval ? '#2563eb' : isDark ? '#64748b' : '#94a3b8'}
+                    />
+                    <Text
+                      style={[
+                        styles.modeTitle,
+                        isDark && styles.modeTitleDark,
+                        requirePlanApproval && styles.modeTitleSelected,
+                      ]}
+                    >
+                      {t('modeReview')}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.modeDesc,
+                      isDark && styles.modeDescDark,
+                      requirePlanApproval && styles.modeDescSelected,
+                    ]}
+                  >
+                    {t('modeReviewDesc')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* 作成ボタン with gradient */}
@@ -742,5 +823,53 @@ const styles = StyleSheet.create({
   },
   sectionHeaderTextDark: {
     color: '#94a3b8',
+  },
+  modeContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modeButton: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    padding: 14,
+    gap: 8,
+  },
+  modeButtonDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
+  modeButtonSelected: {
+    borderColor: '#2563eb',
+    backgroundColor: 'rgba(37, 99, 235, 0.05)',
+  },
+  modeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  modeTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  modeTitleDark: {
+    color: '#cbd5e1',
+  },
+  modeTitleSelected: {
+    color: '#2563eb',
+  },
+  modeDesc: {
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 16,
+  },
+  modeDescDark: {
+    color: '#94a3b8',
+  },
+  modeDescSelected: {
+    color: '#3b82f6',
   },
 });
