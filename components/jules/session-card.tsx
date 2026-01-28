@@ -139,11 +139,20 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress }:
   const getStateColor = () => {
     switch (session.state) {
       case 'ACTIVE':
+      case 'IN_PROGRESS':
         return colors.success;
       case 'COMPLETED':
         return colors.primary;
       case 'FAILED':
         return colors.error;
+      case 'AWAITING_PLAN_APPROVAL':
+      case 'AWAITING_USER_FEEDBACK':
+        return colors.warning;
+      case 'QUEUED':
+      case 'PLANNING':
+      case 'PAUSED':
+      case 'STATE_UNSPECIFIED':
+        return colors.icon;
       default:
         return colors.icon;
     }
@@ -152,11 +161,20 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress }:
   const getStateBgColor = () => {
     switch (session.state) {
       case 'ACTIVE':
+      case 'IN_PROGRESS':
         return isDark ? 'rgba(52, 211, 153, 0.15)' : 'rgba(16, 185, 129, 0.1)';
       case 'COMPLETED':
         return isDark ? 'rgba(129, 140, 248, 0.15)' : 'rgba(99, 102, 241, 0.1)';
       case 'FAILED':
         return isDark ? 'rgba(248, 113, 113, 0.15)' : 'rgba(239, 68, 68, 0.1)';
+      case 'AWAITING_PLAN_APPROVAL':
+      case 'AWAITING_USER_FEEDBACK':
+        return isDark ? 'rgba(251, 191, 36, 0.15)' : 'rgba(245, 158, 11, 0.1)';
+      case 'QUEUED':
+      case 'PLANNING':
+      case 'PAUSED':
+      case 'STATE_UNSPECIFIED':
+        return isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(100, 116, 139, 0.1)';
       default:
         return isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(100, 116, 139, 0.1)';
     }
@@ -170,14 +188,29 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress }:
         return t('stateCompleted');
       case 'FAILED':
         return t('stateFailed');
+      case 'QUEUED':
+        return t('stateQueued');
+      case 'PLANNING':
+        return t('statePlanning');
+      case 'AWAITING_PLAN_APPROVAL':
+        return t('stateAwaitingPlanApproval');
+      case 'AWAITING_USER_FEEDBACK':
+        return t('stateAwaitingUserFeedback');
+      case 'IN_PROGRESS':
+        return t('stateInProgress');
+      case 'PAUSED':
+        return t('statePaused');
+      case 'STATE_UNSPECIFIED':
       default:
         return t('stateUnknown');
     }
   };
 
+  const isActiveState = session.state === 'ACTIVE' || session.state === 'IN_PROGRESS';
+  
   const glowOpacity = glowAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: session.state === 'ACTIVE' ? [0.3, 0.7] : [0, 0],
+    outputRange: isActiveState ? [0.3, 0.7] : [0, 0],
   });
 
   return (
@@ -190,7 +223,7 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress }:
         activeOpacity={0.95}
       >
         {/* Active session glow effect */}
-        {session.state === 'ACTIVE' && (
+        {isActiveState && (
           <Animated.View 
             style={[
               styles.glowBorder,
@@ -203,7 +236,7 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress }:
         )}
         
         {/* Gradient accent for active sessions */}
-        {session.state === 'ACTIVE' && (
+        {isActiveState && (
           <LinearGradient
             colors={isDark 
               ? ['rgba(129, 140, 248, 0.1)', 'rgba(52, 211, 153, 0.1)']
