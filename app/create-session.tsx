@@ -242,8 +242,8 @@ export default function CreateSessionScreen() {
       return;
     }
 
-    // Get source object from either recent or fetched sources
-    const source = sources.find((s) => s.name === selectedSource) || recentRepos.find((s) => s.name === selectedSource);
+    // Get source object from sources (validRecentRepos are already included in sources)
+    const source = sources.find((s) => s.name === selectedSource);
     const defaultBranch = source?.githubRepo?.defaultBranch?.displayName || 'main';
 
     const session = await createSession(selectedSource, prompt, defaultBranch, []);
@@ -257,7 +257,7 @@ export default function CreateSessionScreen() {
         },
       ]);
     }
-  }, [selectedSource, prompt, sources, recentRepos, createSession, saveRecentRepo, t, router]);
+  }, [selectedSource, prompt, sources, createSession, saveRecentRepo, t, router]);
 
   return (
     <>
