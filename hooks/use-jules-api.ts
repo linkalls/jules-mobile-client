@@ -133,6 +133,22 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
     }
   }, [julesFetch, translate]);
 
+  // Fetch single session
+  const fetchSession = useCallback(async (sessionName: string, silent: boolean = false): Promise<Session | null> => {
+    if (!silent) setIsLoading(true);
+    setError(null);
+    try {
+      const session = await julesFetch<Session>(`/${sessionName}`);
+      return session;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : translate('fetchSessionFailed', 'Failed to fetch session');
+      setError(message);
+      return null;
+    } finally {
+      if (!silent) setIsLoading(false);
+    }
+  }, [julesFetch, translate]);
+
   // Fetch activities
   const fetchActivities = useCallback(
     async (sessionName: string, silent: boolean = false): Promise<Activity[]> => {
@@ -159,12 +175,13 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
 
   // Approve plan
   const approvePlan = useCallback(
-    async (planId: string): Promise<void> => {
+    async (sessionName: string): Promise<void> => {
       setIsLoading(true);
       setError(null);
       try {
-        await julesFetch(`/${planId}:approve`, {
+        await julesFetch(`/${sessionName}:approvePlan`, {
           method: 'POST',
+          body: JSON.stringify({}),
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : translate('approvePlanFailed', 'Failed to approve plan');
@@ -183,7 +200,8 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
       sourceName: string,
       prompt: string,
       defaultBranch?: string,
-      images?: { mimeType: string; data: string }[]
+      images?: { mimeType: string; data: string }[],
+      requirePlanApproval?: boolean
     ): Promise<Session | null> => {
       setIsLoading(true);
       setError(null);
@@ -198,6 +216,7 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
           };
           title: string;
           images?: { mimeType: string; data: string }[];
+          requirePlanApproval?: boolean;
         } = {
           prompt: prompt.trim(),
           sourceContext: {
@@ -211,6 +230,11 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
           body.sourceContext.githubRepoContext = {
             startingBranch: defaultBranch,
           };
+        }
+
+        // Add requirePlanApproval if provided
+        if (requirePlanApproval !== undefined) {
+          body.requirePlanApproval = requirePlanApproval;
         }
 
         // Add images if provided
@@ -286,6 +310,7 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
     fetchMoreSources,
     // Other APIs
     fetchSessions,
+    fetchSession,
     fetchActivities,
     createSession,
     approvePlan,

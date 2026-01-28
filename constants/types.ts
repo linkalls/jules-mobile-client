@@ -51,7 +51,18 @@ export interface SessionOutput {
 export interface Session {
   name: string; // "sessions/..."
   title?: string;
-  state: 'STATE_UNSPECIFIED' | 'ACTIVE' | 'COMPLETED' | 'FAILED';
+  state: 
+    | 'STATE_UNSPECIFIED'
+    | 'QUEUED'
+    | 'PLANNING'
+    | 'AWAITING_PLAN_APPROVAL'
+    | 'AWAITING_USER_FEEDBACK'
+    | 'IN_PROGRESS'
+    | 'PAUSED'
+    | 'FAILED'
+    | 'COMPLETED'
+    // Legacy states for backward compatibility
+    | 'ACTIVE';
   createTime: string;
   updateTime: string;
   outputs?: SessionOutput[];
@@ -131,6 +142,14 @@ export interface Activity {
   // プラン承認リクエスト
   planApprovalRequested?: {
     planId: string;
+  };
+  
+  // セッション完了
+  sessionCompleted?: Record<string, never>; // Empty object
+  
+  // セッション失敗
+  sessionFailed?: {
+    reason?: string;
   };
   
   // アーティファクト（bashOutput等）

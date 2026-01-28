@@ -34,10 +34,11 @@ export default function SessionDetailScreen() {
   const { apiKey } = useApiKey();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [messageInput, setMessageInput] = useState('');
+  const [sessionState, setSessionState] = useState<string | null>(null);
   const keyboardPadding = useRef(new Animated.Value(0)).current;
 
   const flatListRef = useRef<FlatList>(null);
-  const { isLoading, error, clearError, fetchActivities, approvePlan, sendMessage } = useJulesApi({ apiKey, t });
+  const { isLoading, error, clearError, fetchActivities, fetchSession, approvePlan, sendMessage } = useJulesApi({ apiKey, t });
 
   // キーボード表示時のアニメーション付きパディング調整
   useEffect(() => {
@@ -81,6 +82,7 @@ export default function SessionDetailScreen() {
   useEffect(() => {
     if (apiKey && id) {
       void loadActivities();
+      void loadSessionState();
 
       // ポーリング設定 (5秒ごと)
       const interval = setInterval(() => {
@@ -92,6 +94,12 @@ export default function SessionDetailScreen() {
             }
             return prev;
           });
+        });
+        // Also poll session state to detect state changes
+        void fetchSession(id, true).then((session) => {
+          if (session) {
+            setSessionState(session.state);
+          }
         });
       }, 5000);
 
@@ -111,16 +119,26 @@ export default function SessionDetailScreen() {
     }, 300);
   }, [id, fetchActivities]);
 
+  const loadSessionState = useCallback(async () => {
+    if (!id) return;
+    const session = await fetchSession(id, true);
+    if (session) {
+      setSessionState(session.state);
+    }
+  }, [id, fetchSession]);
+
   // プラン承認ハンドラ
-  const handleApprovePlan = useCallback(async (planId: string) => {
+  const handleApprovePlan = useCallback(async (_planId: string) => {
+    if (!id) return;
     try {
-      await approvePlan(planId);
+      await approvePlan(id); // Pass session name, not planId
       // リストを更新
       await loadActivities();
+      await loadSessionState();
     } catch (e) {
       // Error is already handled by the API hook
     }
-  }, [approvePlan, loadActivities]);
+  }, [id, approvePlan, loadActivities, loadSessionState]);
 
   const renderActivityItem = useCallback(({ item }: { item: Activity }) => (
     <ActivityItem activity={item} onApprovePlan={handleApprovePlan} />
