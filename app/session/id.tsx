@@ -160,6 +160,23 @@ export default function SessionDetailScreen() {
     }
   };
 
+  // Get session state display text
+  const getSessionStateText = useCallback((state: string | null): string => {
+    if (!state) return '';
+    switch (state) {
+      case 'QUEUED': return t('stateQueued');
+      case 'PLANNING': return t('statePlanning');
+      case 'AWAITING_PLAN_APPROVAL': return t('stateAwaitingPlanApproval');
+      case 'AWAITING_USER_FEEDBACK': return t('stateAwaitingUserFeedback');
+      case 'IN_PROGRESS': return t('stateInProgress');
+      case 'PAUSED': return t('statePaused');
+      case 'FAILED': return t('stateFailed');
+      case 'COMPLETED': return t('stateCompleted');
+      case 'ACTIVE': return t('stateActive');
+      default: return t('stateUnknown');
+    }
+  }, [t]);
+
   return (
     <>
       <Stack.Screen
@@ -170,9 +187,29 @@ export default function SessionDetailScreen() {
           },
           headerTintColor: isDark ? '#f8fafc' : '#0f172a',
           headerRight: () => (
-            <TouchableOpacity onPress={loadActivities} style={{ marginRight: 8 }}>
-              <IconSymbol name="arrow.clockwise" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginRight: 8 }}>
+              {sessionState && (
+                <View style={[
+                  styles.stateBadge,
+                  sessionState === 'AWAITING_PLAN_APPROVAL' && styles.stateBadgeWarning,
+                  sessionState === 'COMPLETED' && styles.stateBadgeSuccess,
+                  sessionState === 'FAILED' && styles.stateBadgeError,
+                  isDark && styles.stateBadgeDark,
+                ]}>
+                  <Text style={[
+                    styles.stateBadgeText,
+                    sessionState === 'AWAITING_PLAN_APPROVAL' && styles.stateBadgeTextWarning,
+                    sessionState === 'COMPLETED' && styles.stateBadgeTextSuccess,
+                    sessionState === 'FAILED' && styles.stateBadgeTextError,
+                  ]}>
+                    {getSessionStateText(sessionState)}
+                  </Text>
+                </View>
+              )}
+              <TouchableOpacity onPress={loadActivities}>
+                <IconSymbol name="arrow.clockwise" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />
@@ -413,5 +450,37 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
     fontWeight: '700',
+  },
+  stateBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#e2e8f0',
+  },
+  stateBadgeDark: {
+    backgroundColor: '#334155',
+  },
+  stateBadgeWarning: {
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
+  },
+  stateBadgeSuccess: {
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+  },
+  stateBadgeError: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+  },
+  stateBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  stateBadgeTextWarning: {
+    color: '#f59e0b',
+  },
+  stateBadgeTextSuccess: {
+    color: '#22c55e',
+  },
+  stateBadgeTextError: {
+    color: '#ef4444',
   },
 });
