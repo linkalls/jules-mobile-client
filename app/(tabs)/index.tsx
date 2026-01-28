@@ -9,6 +9,7 @@ import {
   Animated,
   TextInput,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -59,7 +60,6 @@ export default function SessionsScreen() {
   const colors = isDark ? Colors.dark : Colors.light;
 
   const { apiKey } = useApiKey();
-  const [sessions, setSessions] = useState<Session[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -67,7 +67,16 @@ export default function SessionsScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const fabScale = React.useRef(new Animated.Value(0)).current;
 
-  const { isLoading, error, clearError, fetchSessions } = useJulesApi({ apiKey, t });
+  const { 
+    isLoading, 
+    error, 
+    clearError, 
+    sessions,
+    fetchSessions, 
+    fetchMoreSessions,
+    hasMoreSessions,
+    isLoadingMoreSessions 
+  } = useJulesApi({ apiKey, t });
 
   // Filter options with labels
   const filterOptions = useMemo(() => [
@@ -77,9 +86,14 @@ export default function SessionsScreen() {
     { key: 'FAILED' as FilterStatus, label: t('filterFailed') },
   ], [t]);
 
+  // Extract PR URLs from sessions
+  const sessionsWithPr = useMemo(() => {
+    return sessions.map(extractPrUrl);
+  }, [sessions]);
+
   // Filter and sort sessions
   const filteredAndSortedSessions = useMemo(() => {
-    let result = [...sessions];
+    let result = [...sessionsWithPr];
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -110,7 +124,7 @@ export default function SessionsScreen() {
     });
 
     return result;
-  }, [sessions, searchQuery, sortBy, filterStatus]);
+  }, [sessionsWithPr, searchQuery, sortBy, filterStatus]);
 
   // Animate FAB on mount
   useEffect(() => {
@@ -133,9 +147,7 @@ export default function SessionsScreen() {
   }, [apiKey]);
 
   const loadSessions = useCallback(async () => {
-    const data = await fetchSessions();
-    const sessionsWithPr = data.map(extractPrUrl);
-    setSessions(sessionsWithPr);
+    await fetchSessions();
   }, [fetchSessions]);
 
   const onRefresh = useCallback(async () => {
@@ -171,6 +183,10 @@ export default function SessionsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
 
+  const handleLoadMore = useCallback(() => {
+    void fetchMoreSessions();
+  }, [fetchMoreSessions]);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Modern Header with Gradient */}
@@ -196,6 +212,7 @@ export default function SessionsScreen() {
               <Text style={[styles.headerTitle, { color: colors.text }]}>Jules Client</Text>
               <Text style={[styles.headerSubtitle, { color: colors.icon }]}>
                 {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'}
+                {hasMoreSessions && ' loaded'}
               </Text>
             </View>
           </View>
@@ -265,6 +282,20 @@ export default function SessionsScreen() {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setShowFilterModal(true);
             }}
+            accessibilityLabel={`${t('sortBy')}: ${t(`sortBy${sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}` as TranslationKey)}`}
+          >
+            <IconSymbol 
+              name={sortBy === 'newest' ? 'arrow.down.circle' : sortBy === 'oldest' ? 'arrow.up.circle' : 'textformat.abc'} 
+              size={20} 
+              color={colors.primary} 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.filterButton, isDark && styles.filterButtonDark]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setShowFilterModal(true);
+            }}
             accessibilityLabel={t('filterByStatus')}
           >
             <IconSymbol name="line.3.horizontal.decrease.circle" size={20} color={colors.primary} />
@@ -293,11 +324,23 @@ export default function SessionsScreen() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={isDark ? '#60a5fa' : '#2563eb'} />
           }
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
           removeClippedSubviews={true}
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={5}
           getItemLayout={(_, index) => ({ length: 100, offset: 112 * index, index })}
+          ListFooterComponent={
+            isLoadingMoreSessions && sessions.length > 0 ? (
+              <View style={styles.loadingMoreContainer}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={[styles.loadingMoreText, { color: colors.icon }]}>
+                  {t('loadingMore')}
+                </Text>
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             !apiKey ? (
               <View style={styles.emptyContainer}>
@@ -639,6 +682,17 @@ const styles = StyleSheet.create({
   },
   filterOptionText: {
     fontSize: 16,
+    fontWeight: '500',
+  },
+  loadingMoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  loadingMoreText: {
+    fontSize: 13,
     fontWeight: '500',
   },
   fabContainer: {
