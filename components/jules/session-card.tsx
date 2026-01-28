@@ -151,6 +151,7 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress }:
       case 'QUEUED':
       case 'PLANNING':
       case 'PAUSED':
+      case 'STATE_UNSPECIFIED':
         return colors.icon;
       default:
         return colors.icon;
@@ -172,6 +173,7 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress }:
       case 'QUEUED':
       case 'PLANNING':
       case 'PAUSED':
+      case 'STATE_UNSPECIFIED':
         return isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(100, 116, 139, 0.1)';
       default:
         return isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(100, 116, 139, 0.1)';
@@ -198,6 +200,7 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress }:
         return t('stateInProgress');
       case 'PAUSED':
         return t('statePaused');
+      case 'STATE_UNSPECIFIED':
       default:
         return t('stateUnknown');
     }
