@@ -60,7 +60,6 @@ export default function SessionsScreen() {
   const colors = isDark ? Colors.dark : Colors.light;
 
   const { apiKey } = useApiKey();
-  const [sessions, setSessions] = useState<Session[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -72,6 +71,7 @@ export default function SessionsScreen() {
     isLoading, 
     error, 
     clearError, 
+    sessions,
     fetchSessions, 
     fetchMoreSessions,
     hasMoreSessions,
@@ -86,9 +86,14 @@ export default function SessionsScreen() {
     { key: 'FAILED' as FilterStatus, label: t('filterFailed') },
   ], [t]);
 
+  // Extract PR URLs from sessions
+  const sessionsWithPr = useMemo(() => {
+    return sessions.map(extractPrUrl);
+  }, [sessions]);
+
   // Filter and sort sessions
   const filteredAndSortedSessions = useMemo(() => {
-    let result = [...sessions];
+    let result = [...sessionsWithPr];
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -119,7 +124,7 @@ export default function SessionsScreen() {
     });
 
     return result;
-  }, [sessions, searchQuery, sortBy, filterStatus]);
+  }, [sessionsWithPr, searchQuery, sortBy, filterStatus]);
 
   // Animate FAB on mount
   useEffect(() => {
@@ -142,9 +147,7 @@ export default function SessionsScreen() {
   }, [apiKey]);
 
   const loadSessions = useCallback(async () => {
-    const data = await fetchSessions();
-    const sessionsWithPr = data.map(extractPrUrl);
-    setSessions(sessionsWithPr);
+    await fetchSessions();
   }, [fetchSessions]);
 
   const onRefresh = useCallback(async () => {
@@ -180,12 +183,9 @@ export default function SessionsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
 
-  const handleLoadMore = useCallback(async () => {
-    if (!hasMoreSessions || isLoadingMoreSessions) return;
-    const moreSessions = await fetchMoreSessions(sessions);
-    const sessionsWithPr = moreSessions.map(extractPrUrl);
-    setSessions(sessionsWithPr);
-  }, [hasMoreSessions, isLoadingMoreSessions, fetchMoreSessions, sessions]);
+  const handleLoadMore = useCallback(() => {
+    void fetchMoreSessions();
+  }, [fetchMoreSessions]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -212,6 +212,7 @@ export default function SessionsScreen() {
               <Text style={[styles.headerTitle, { color: colors.text }]}>Jules Client</Text>
               <Text style={[styles.headerSubtitle, { color: colors.icon }]}>
                 {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'}
+                {hasMoreSessions && ' loaded'}
               </Text>
             </View>
           </View>
@@ -281,7 +282,7 @@ export default function SessionsScreen() {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setShowFilterModal(true);
             }}
-            accessibilityLabel={t('sortBy')}
+            accessibilityLabel={`${t('sortBy')}: ${t(`sortBy${sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}` as TranslationKey)}`}
           >
             <IconSymbol 
               name={sortBy === 'newest' ? 'arrow.down.circle' : sortBy === 'oldest' ? 'arrow.up.circle' : 'textformat.abc'} 

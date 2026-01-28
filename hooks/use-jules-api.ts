@@ -34,6 +34,7 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
   const sourcesPageTokenRef = useRef<string | undefined>(undefined);
 
   // Sessions pagination state
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [hasMoreSessions, setHasMoreSessions] = useState(true);
   const [isLoadingMoreSessions, setIsLoadingMoreSessions] = useState(false);
   const sessionsPageTokenRef = useRef<string | undefined>(undefined);
@@ -130,9 +131,11 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
     
     try {
       const data = await julesFetch<ListSessionsResponse>('/sessions?pageSize=20');
+      const fetchedSessions = data.sessions || [];
+      setSessions(fetchedSessions);
       sessionsPageTokenRef.current = data.nextPageToken;
       setHasMoreSessions(!!data.nextPageToken);
-      return data.sessions || [];
+      return fetchedSessions;
     } catch (err) {
       const message = err instanceof Error ? err.message : translate('fetchSessionsFailed', 'Failed to fetch sessions');
       setError(message);
@@ -143,9 +146,9 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
   }, [julesFetch, translate]);
 
   // Fetch more sessions (pagination on scroll)
-  const fetchMoreSessions = useCallback(async (currentSessions: Session[]): Promise<Session[]> => {
+  const fetchMoreSessions = useCallback(async (): Promise<Session[]> => {
     if (!hasMoreSessions || isLoadingMoreSessions || !sessionsPageTokenRef.current) {
-      return currentSessions;
+      return sessions;
     }
     
     setIsLoadingMoreSessions(true);
@@ -153,18 +156,19 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
       const endpoint = `/sessions?pageSize=20&pageToken=${sessionsPageTokenRef.current}`;
       const data: ListSessionsResponse = await julesFetch<ListSessionsResponse>(endpoint);
       const newSessions = data.sessions || [];
-      const allSessions = [...currentSessions, ...newSessions];
+      const allSessions = [...sessions, ...newSessions];
+      setSessions(allSessions);
       sessionsPageTokenRef.current = data.nextPageToken;
       setHasMoreSessions(!!data.nextPageToken);
       return allSessions;
     } catch (err) {
       const message = err instanceof Error ? err.message : translate('fetchSessionsFailed', 'Failed to fetch sessions');
       setError(message);
-      return currentSessions;
+      return sessions;
     } finally {
       setIsLoadingMoreSessions(false);
     }
-  }, [julesFetch, hasMoreSessions, isLoadingMoreSessions, translate]);
+  }, [julesFetch, sessions, hasMoreSessions, isLoadingMoreSessions, translate]);
 
   // Fetch single session
   const fetchSession = useCallback(async (sessionName: string, silent: boolean = false): Promise<Session | null> => {
@@ -342,6 +346,7 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
     fetchSources,
     fetchMoreSources,
     // Sessions with lazy loading
+    sessions,
     hasMoreSessions,
     isLoadingMoreSessions,
     fetchSessions,
