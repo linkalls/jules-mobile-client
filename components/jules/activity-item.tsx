@@ -131,11 +131,6 @@ const skeletonStyles = StyleSheet.create({
   },
 });
 
-interface ActivityItemProps {
-  activity: Activity;
-  onApprovePlan?: (planId: string) => void;
-}
-
 // Custom diff highlighter component
 function DiffHighlighter({ code }: { code: string }) {
   const lines = code.split('\n');
@@ -847,33 +842,6 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     fontSize: 10,
     color: '#94a3b8',
-  },
-  
-  // 承認カード
-  approvalCard: {
-    borderWidth: 2,
-    borderColor: '#f59e0b',
-  },
-  approveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#10b981',
-    borderRadius: 10,
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  approveButtonText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '700',
   },
   
   // Media artifacts

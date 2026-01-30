@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -10,6 +10,8 @@ import { Colors } from '@/constants/theme';
 interface SessionCardProps {
   session: Session;
   onPress: () => void;
+  onApprove?: () => void;
+  isApproving?: boolean;
 }
 
 interface SkeletonProps {
@@ -91,7 +93,7 @@ export function SessionCardSkeleton() {
 /**
  * セッション一覧のカードコンポーネント - Modern Enhanced Version
  */
-export const SessionCard = React.memo(function SessionCard({ session, onPress }: SessionCardProps) {
+export const SessionCard = React.memo(function SessionCard({ session, onPress, onApprove, isApproving }: SessionCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { t } = useI18n();
@@ -262,6 +264,24 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress }:
         <Text style={[styles.nameText, isDark && styles.nameTextDark]} numberOfLines={1}>
           {session.name}
         </Text>
+
+        {session.state === 'AWAITING_PLAN_APPROVAL' && onApprove && (
+          <View style={styles.actionContainer}>
+            <TouchableOpacity
+              style={[styles.approveButton, isApproving && styles.approveButtonDisabled]}
+              onPress={() => {
+                if (!isApproving) onApprove();
+              }}
+              disabled={isApproving}
+            >
+              {isApproving ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text style={styles.approveButtonText}>Approve Plan</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -355,5 +375,24 @@ const styles = StyleSheet.create({
   },
   footerTextDark: {
     color: '#94a3b8',
+  },
+  actionContainer: {
+    marginTop: 12,
+  },
+  approveButton: {
+    backgroundColor: '#10b981', // emerald-500 matches success color
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  approveButtonDisabled: {
+    opacity: 0.7,
+  },
+  approveButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
