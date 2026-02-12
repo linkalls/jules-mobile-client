@@ -181,6 +181,22 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Statistics */}
+        <View style={[styles.section, styles.sectionMargin]}>
+          <TouchableOpacity 
+            style={[styles.switchRow, isDark && styles.switchRowDark]} 
+            onPress={() => router.push('/statistics')}
+          >
+            <View style={styles.switchLabel}>
+              <IconSymbol name="info.circle" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('statistics')}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
+          </TouchableOpacity>
+        </View>
+
         {/* Help & Resources Section */}
         <View style={[styles.section, styles.sectionMargin]}>
           <Text style={[styles.label, isDark && styles.labelDark, { marginBottom: 8, fontSize: 13, fontWeight: '600' }]}>

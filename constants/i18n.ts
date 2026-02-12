@@ -124,6 +124,7 @@ const translations = {
     activeSessions: 'アクティブなセッション',
     completedSessions: '完了したセッション',
     failedSessions: '失敗したセッション',
+    statisticsHint: 'これらの統計は、現在読み込まれているセッションに基づいています。',
   },
   en: {
     // Common
@@ -246,6 +247,7 @@ const translations = {
     activeSessions: 'Active Sessions',
     completedSessions: 'Completed Sessions',
     failedSessions: 'Failed Sessions',
+    statisticsHint: 'These statistics are based on your currently loaded sessions.',
   },
 };
 
