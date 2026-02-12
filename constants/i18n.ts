@@ -117,6 +117,7 @@ const translations = {
     reportIssue: '問題を報告',
     contribute: '貢献する',
     viewOnGitHub: 'GitHubで見る',
+    unableToOpenLink: 'リンクを開けませんでした。デバイスの設定を確認してください。',
     
     // Statistics
     statistics: '統計情報',
@@ -240,6 +241,7 @@ const translations = {
     reportIssue: 'Report Issue',
     contribute: 'Contribute',
     viewOnGitHub: 'View on GitHub',
+    unableToOpenLink: 'Unable to open this link. Please check your device settings.',
     
     // Statistics
     statistics: 'Statistics',

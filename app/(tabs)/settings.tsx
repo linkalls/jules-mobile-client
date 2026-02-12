@@ -82,10 +82,13 @@ export default function SettingsScreen() {
       if (supported) {
         await Linking.openURL(url);
       } else {
-        Alert.alert(t('error'), `Cannot open URL: ${url}`);
+        Alert.alert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please check your device settings.');
       }
     } catch (error) {
-      Alert.alert(t('error'), `Failed to open URL: ${url}`);
+      if (__DEV__) {
+        console.error('Failed to open URL:', url, error);
+      }
+      Alert.alert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please try again later.');
     }
   };
 

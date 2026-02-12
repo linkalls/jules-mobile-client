@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 
 // Configuration
 const CONNECTIVITY_CHECK_URL = 'https://www.google.com';
-const CONNECTIVITY_TIMEOUT = 100; // ms
+const CONNECTIVITY_TIMEOUT = 5000; // 5 seconds - generous timeout for slower networks
 const CHECK_INTERVAL = 30000; // 30 seconds
 
 export function useNetworkStatus() {
