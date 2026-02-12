@@ -41,6 +41,9 @@ const MAPPING = {
   'lightbulb': 'lightbulb',
   'info.circle': 'info',
   'link': 'link',
+  'questionmark.circle': 'help',
+  'clock': 'history',
+  'clock.fill': 'schedule',
   
   // Theme
   'sun.max.fill': 'light-mode',

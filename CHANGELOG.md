@@ -5,6 +5,26 @@ All notable changes to Jules Mobile Client will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Documentation**: Comprehensive CONTRIBUTING.md guide for contributors
+- **Documentation**: TROUBLESHOOTING.md guide with common issues and solutions
+- **Documentation**: FAQ.md with frequently asked questions and answers
+- **GitHub Templates**: Issue templates for bug reports, feature requests, and questions
+- **GitHub Templates**: Pull request template with detailed checklist
+- **README Improvements**: Added badges (license, version, platform support)
+- **README Improvements**: Added troubleshooting section and quick fixes
+- **README Improvements**: Added comprehensive documentation table
+- **README Improvements**: Added roadmap section
+- **README Improvements**: Enhanced contributing section
+- **Settings Screen**: Help & Resources section with links to FAQ, Troubleshooting, and GitHub
+- **Icons**: Added questionmark.circle, clock, and clock.fill icons for better UX
+- **Internationalization**: Added new translation keys for help and documentation links
+
+### Changed
+- **README**: Restructured with improved organization and navigation
+- **README**: Added support information section
+- **Settings**: Enhanced layout with new help resources section
+
+### Documentation
 - **Search Functionality**: Real-time search of sessions by title or name
 - **Sort Options**: Sort sessions by newest, oldest, or title
 - **Filter by Status**: Filter sessions by Active, Completed, Failed, or All

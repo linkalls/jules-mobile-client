@@ -181,6 +181,55 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Help & Resources Section */}
+        <View style={[styles.section, styles.sectionMargin]}>
+          <Text style={[styles.label, isDark && styles.labelDark, { marginBottom: 8, fontSize: 13, fontWeight: '600' }]}>
+            {t('help')}
+          </Text>
+          
+          {/* FAQ */}
+          <TouchableOpacity 
+            style={[styles.switchRow, isDark && styles.switchRowDark, { marginBottom: 8 }]} 
+            onPress={() => router.push('https://github.com/linkalls/jules-mobile-client/blob/main/docs/FAQ.md')}
+          >
+            <View style={styles.switchLabel}>
+              <IconSymbol name="questionmark.circle" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('faq')}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
+          </TouchableOpacity>
+
+          {/* Troubleshooting */}
+          <TouchableOpacity 
+            style={[styles.switchRow, isDark && styles.switchRowDark, { marginBottom: 8 }]} 
+            onPress={() => router.push('https://github.com/linkalls/jules-mobile-client/blob/main/docs/TROUBLESHOOTING.md')}
+          >
+            <View style={styles.switchLabel}>
+              <IconSymbol name="wrench" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('troubleshooting')}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
+          </TouchableOpacity>
+
+          {/* GitHub */}
+          <TouchableOpacity 
+            style={[styles.switchRow, isDark && styles.switchRowDark]} 
+            onPress={() => router.push('https://github.com/linkalls/jules-mobile-client')}
+          >
+            <View style={styles.switchLabel}>
+              <IconSymbol name="link" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('viewOnGitHub')}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
+          </TouchableOpacity>
+        </View>
+
         {/* About/Version */}
         <View style={styles.section}>
           <View style={[styles.switchRow, isDark && styles.switchRowDark]}>

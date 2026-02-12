@@ -9,11 +9,31 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/linkalls/jules-mobile-client/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-BSD--2--Clause-blue.svg" alt="License" />
+  </a>
+  <a href="https://github.com/linkalls/jules-mobile-client/releases">
+    <img src="https://img.shields.io/badge/version-1.0.0-green.svg" alt="Version" />
+  </a>
+  <a href="https://expo.dev/">
+    <img src="https://img.shields.io/badge/expo-~54.0-000020.svg?logo=expo" alt="Expo SDK" />
+  </a>
+  <a href="https://reactnative.dev/">
+    <img src="https://img.shields.io/badge/react--native-0.81-61dafb.svg?logo=react" alt="React Native" />
+  </a>
+  <a href="https://www.typescriptlang.org/">
+    <img src="https://img.shields.io/badge/typescript-5.9-3178c6.svg?logo=typescript" alt="TypeScript" />
+  </a>
+</p>
+
+<p align="center">
   <a href="README.ja.md">🇯🇵 日本語</a> •
   <a href="docs/ARCHITECTURE.md">📐 Architecture</a> •
   <a href="docs/API.md">🔌 API Reference</a> •
   <a href="docs/MODE_SELECTION.md">🎯 Mode Selection</a> •
-  <a href="docs/Agent.md">🤖 Agent Guide</a>
+  <a href="docs/Agent.md">🤖 Agent Guide</a> •
+  <a href="docs/FAQ.md">❓ FAQ</a> •
+  <a href="CONTRIBUTING.md">🤝 Contributing</a>
 </p>
 
 ---
@@ -214,15 +234,78 @@ eas build --platform ios --profile production
 | `preview` | Internal distribution APK |
 | `production` | Production-ready build |
 
+## 🐛 Troubleshooting
+
+Having issues? Check our comprehensive troubleshooting guide:
+
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[FAQ](docs/FAQ.md)** - Frequently asked questions
+
+### Quick Fixes
+
+```bash
+# Clear cache and restart
+bun start --clear
+
+# Reinstall dependencies
+rm -rf node_modules && bun install
+
+# Reset project
+bun run reset-project
+```
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [FAQ](docs/FAQ.md) | Frequently asked questions |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and solutions |
+| [Architecture](docs/ARCHITECTURE.md) | App architecture overview |
+| [API Reference](docs/API.md) | Jules API integration details |
+| [Components](docs/COMPONENTS.md) | Component documentation |
+| [Development](docs/DEVELOPMENT.md) | Development setup guide |
+| [Mode Selection](docs/MODE_SELECTION.md) | Start vs Review modes |
+| [Agent Guide](docs/Agent.md) | Guide for AI agents |
+| [Contributing](CONTRIBUTING.md) | How to contribute |
+
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our contributing guidelines before submitting a PR.
+We welcome contributions! Whether it's bug reports, feature requests, documentation improvements, or code contributions, we appreciate your help.
+
+Please read our [Contributing Guide](CONTRIBUTING.md) before submitting a PR.
+
+### Quick Start
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+### Ways to Contribute
+
+- 🐛 **Report bugs** via GitHub Issues
+- 💡 **Suggest features** through feature requests
+- 📝 **Improve documentation** 
+- 🌍 **Add translations** for new languages
+- 💻 **Submit code** improvements
+
+## 🗺️ Roadmap
+
+Potential future features (community-driven):
+
+- [ ] Session export/sharing functionality
+- [ ] Statistics and analytics dashboard
+- [ ] Push notifications for session updates
+- [ ] Offline mode support
+- [ ] Multi-account management
+- [ ] Custom theme support
+- [ ] Additional language translations
+- [ ] Voice input for task descriptions
+- [ ] Session templates
+- [ ] Advanced filtering and search
+
+Want to help? Check out [open issues](https://github.com/linkalls/jules-mobile-client/issues) or suggest new features!
 
 ## 📄 License
 
@@ -233,6 +316,17 @@ This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICE
 - [Google Jules](https://jules.google/) - AI coding assistant
 - [Expo](https://expo.dev/) - Amazing React Native tooling
 - [React Native](https://reactnative.dev/) - Mobile framework
+- All our [contributors](https://github.com/linkalls/jules-mobile-client/graphs/contributors)
+
+## ⭐ Support
+
+If you find this project useful, please consider:
+
+- ⭐ **Starring** the repository
+- 🐛 **Reporting bugs** to help improve the app
+- 💡 **Suggesting features** you'd like to see
+- 🤝 **Contributing** code or documentation
+- 📢 **Sharing** with others who might benefit
 
 ---
 

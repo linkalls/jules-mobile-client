@@ -107,6 +107,23 @@ const translations = {
     networkError: 'ネットワークエラー。接続を確認してね。',
     retryHint: 'もう一度お試しください',
     tapToRetry: 'タップして再試行',
+    
+    // Help & Support
+    help: 'ヘルプ',
+    helpCenter: 'ヘルプセンター',
+    documentation: 'ドキュメント',
+    faq: 'よくある質問',
+    troubleshooting: 'トラブルシューティング',
+    reportIssue: '問題を報告',
+    contribute: '貢献する',
+    viewOnGitHub: 'GitHubで見る',
+    
+    // Statistics
+    statistics: '統計情報',
+    totalSessions: '総セッション数',
+    activeSessions: 'アクティブなセッション',
+    completedSessions: '完了したセッション',
+    failedSessions: '失敗したセッション',
   },
   en: {
     // Common
@@ -212,6 +229,23 @@ const translations = {
     networkError: 'Network error. Please check your connection.',
     retryHint: 'Please try again',
     tapToRetry: 'Tap to retry',
+    
+    // Help & Support
+    help: 'Help',
+    helpCenter: 'Help Center',
+    documentation: 'Documentation',
+    faq: 'FAQ',
+    troubleshooting: 'Troubleshooting',
+    reportIssue: 'Report Issue',
+    contribute: 'Contribute',
+    viewOnGitHub: 'View on GitHub',
+    
+    // Statistics
+    statistics: 'Statistics',
+    totalSessions: 'Total Sessions',
+    activeSessions: 'Active Sessions',
+    completedSessions: 'Completed Sessions',
+    failedSessions: 'Failed Sessions',
   },
 };
 
