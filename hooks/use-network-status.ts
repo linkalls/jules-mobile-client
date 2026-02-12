@@ -2,8 +2,14 @@ import { useEffect, useState } from 'react';
 
 /**
  * Simple network status hook
- * Returns online/offline status based on fetch availability
+ * Returns online/offline status based on network connectivity test
  */
+
+// Configuration
+const CONNECTIVITY_CHECK_URL = 'https://www.google.com';
+const CONNECTIVITY_TIMEOUT = 100; // ms
+const CHECK_INTERVAL = 30000; // 30 seconds
+
 export function useNetworkStatus() {
   const [isOnline, setIsOnline] = useState<boolean>(true);
 
@@ -11,11 +17,12 @@ export function useNetworkStatus() {
     // Check network status on mount
     const checkConnection = async () => {
       try {
-        // Simple fetch test - doesn't make actual request
+        // Make a quick HEAD request to test connectivity
+        // This makes an actual HTTP request but aborts it quickly
         const controller = new AbortController();
-        setTimeout(() => controller.abort(), 100);
+        setTimeout(() => controller.abort(), CONNECTIVITY_TIMEOUT);
         
-        await fetch('https://www.google.com', { 
+        await fetch(CONNECTIVITY_CHECK_URL, { 
           method: 'HEAD',
           signal: controller.signal 
         });
@@ -28,7 +35,7 @@ export function useNetworkStatus() {
     checkConnection();
 
     // Set up interval to check periodically
-    const interval = setInterval(checkConnection, 30000); // Check every 30s
+    const interval = setInterval(checkConnection, CHECK_INTERVAL);
 
     return () => clearInterval(interval);
   }, []);

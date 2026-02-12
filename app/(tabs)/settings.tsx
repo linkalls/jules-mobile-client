@@ -9,6 +9,7 @@ import {
   Alert,
   Switch,
   Appearance,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -73,6 +74,19 @@ export default function SettingsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const newLang = language === 'ja' ? 'en' : 'ja';
     setLanguage(newLang);
+  };
+
+  const openURL = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(t('error'), `Cannot open URL: ${url}`);
+      }
+    } catch (error) {
+      Alert.alert(t('error'), `Failed to open URL: ${url}`);
+    }
   };
 
   return (
@@ -206,7 +220,7 @@ export default function SettingsScreen() {
           {/* FAQ */}
           <TouchableOpacity 
             style={[styles.switchRow, isDark && styles.switchRowDark, { marginBottom: 8 }]} 
-            onPress={() => router.push('https://github.com/linkalls/jules-mobile-client/blob/main/docs/FAQ.md')}
+            onPress={() => openURL('https://github.com/linkalls/jules-mobile-client/blob/main/docs/FAQ.md')}
           >
             <View style={styles.switchLabel}>
               <IconSymbol name="questionmark.circle" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
@@ -220,7 +234,7 @@ export default function SettingsScreen() {
           {/* Troubleshooting */}
           <TouchableOpacity 
             style={[styles.switchRow, isDark && styles.switchRowDark, { marginBottom: 8 }]} 
-            onPress={() => router.push('https://github.com/linkalls/jules-mobile-client/blob/main/docs/TROUBLESHOOTING.md')}
+            onPress={() => openURL('https://github.com/linkalls/jules-mobile-client/blob/main/docs/TROUBLESHOOTING.md')}
           >
             <View style={styles.switchLabel}>
               <IconSymbol name="wrench" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
@@ -234,7 +248,7 @@ export default function SettingsScreen() {
           {/* GitHub */}
           <TouchableOpacity 
             style={[styles.switchRow, isDark && styles.switchRowDark]} 
-            onPress={() => router.push('https://github.com/linkalls/jules-mobile-client')}
+            onPress={() => openURL('https://github.com/linkalls/jules-mobile-client')}
           >
             <View style={styles.switchLabel}>
               <IconSymbol name="link" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
