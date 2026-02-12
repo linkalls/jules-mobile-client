@@ -5,7 +5,25 @@
 </p>
 
 <p align="center">
-  <strong>Google Jules AI コーディングアシスタントのReact Nativeモバイルクライアント</strong>
+  <strong>Google Jules AI コーディングアシスタント用 React Native モバイルクライアント</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/linkalls/jules-mobile-client/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-BSD--2--Clause-blue.svg" alt="License" />
+  </a>
+  <a href="https://github.com/linkalls/jules-mobile-client/releases">
+    <img src="https://img.shields.io/badge/version-1.0.0-green.svg" alt="Version" />
+  </a>
+  <a href="https://expo.dev/">
+    <img src="https://img.shields.io/badge/expo-~54.0-000020.svg?logo=expo" alt="Expo SDK" />
+  </a>
+  <a href="https://reactnative.dev/">
+    <img src="https://img.shields.io/badge/react--native-0.81-61dafb.svg?logo=react" alt="React Native" />
+  </a>
+  <a href="https://www.typescriptlang.org/">
+    <img src="https://img.shields.io/badge/typescript-5.9-3178c6.svg?logo=typescript" alt="TypeScript" />
+  </a>
 </p>
 
 <p align="center">
@@ -13,7 +31,9 @@
   <a href="docs/ARCHITECTURE.md">📐 アーキテクチャ</a> •
   <a href="docs/API.md">🔌 API リファレンス</a> •
   <a href="docs/MODE_SELECTION.md">🎯 モード選択</a> •
-  <a href="docs/Agent.md">🤖 エージェントガイド</a>
+  <a href="docs/Agent.md">🤖 エージェントガイド</a> •
+  <a href="docs/FAQ.md">❓ FAQ</a> •
+  <a href="CONTRIBUTING.md">🤝 貢献</a>
 </p>
 
 ---

@@ -380,3 +380,82 @@ const interval = setInterval(async () => {
   }
 }, 5000);
 ```
+
+---
+
+## Code Examples
+
+### Using the API Hook
+
+The `useJulesApi` hook provides a convenient interface for all API operations:
+
+```typescript
+import { useJulesApi } from '@/hooks/use-jules-api';
+import { useApiKey } from '@/constants/api-key-context';
+import { useI18n } from '@/constants/i18n-context';
+
+function MyComponent() {
+  const { apiKey } = useApiKey();
+  const { t } = useI18n();
+  
+  const {
+    isLoading,
+    error,
+    sessions,
+    sources,
+    fetchSessions,
+    fetchSources,
+    createSession,
+    fetchActivities,
+    approvePlan,
+  } = useJulesApi({ apiKey, t });
+
+  // Load sessions on mount
+  useEffect(() => {
+    if (apiKey) {
+      void fetchSessions();
+    }
+  }, [apiKey, fetchSessions]);
+
+  return (
+    // Your component JSX
+  );
+}
+```
+
+### Creating a Session
+
+```typescript
+const handleCreateSession = async () => {
+  const source = 'sources/github/owner/repo';
+  const prompt = 'Fix the login bug in the auth module';
+  const branch = 'main';
+  const requirePlanApproval = false; // Start mode
+
+  const session = await createSession(
+    source,
+    prompt,
+    branch,
+    [],
+    requirePlanApproval
+  );
+
+  if (session) {
+    console.log('Session created:', session.name);
+    router.push(`/session/${session.name}`);
+  }
+};
+```
+
+### Best Practices
+
+1. **Always Check for API Key**: Verify API key exists before making requests
+2. **Use Silent Refresh**: For background updates without showing loading state
+3. **Handle Network Errors Gracefully**: Provide retry mechanisms and clear error messages
+4. **Optimize Re-renders**: Use `useMemo` and `useCallback` to prevent unnecessary re-renders
+
+## Further Reading
+
+- [Official Jules Documentation](https://jules.google/)
+- [Google Cloud Console](https://console.cloud.google.com/)
+- [React Native Networking](https://reactnative.dev/docs/network)

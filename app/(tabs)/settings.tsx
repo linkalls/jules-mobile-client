@@ -9,6 +9,7 @@ import {
   Alert,
   Switch,
   Appearance,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -73,6 +74,22 @@ export default function SettingsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const newLang = language === 'ja' ? 'en' : 'ja';
     setLanguage(newLang);
+  };
+
+  const openURL = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please check your device settings.');
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.error('Failed to open URL:', url, error);
+      }
+      Alert.alert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please try again later.');
+    }
   };
 
   return (
@@ -178,6 +195,71 @@ export default function SettingsScreen() {
               </Text>
             </View>
             <IconSymbol name="chevron.right" size={16} color={isDark ? '#475569' : '#94a3b8'} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Statistics */}
+        <View style={[styles.section, styles.sectionMargin]}>
+          <TouchableOpacity 
+            style={[styles.switchRow, isDark && styles.switchRowDark]} 
+            onPress={() => router.push('/statistics')}
+          >
+            <View style={styles.switchLabel}>
+              <IconSymbol name="info.circle" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('statistics')}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Help & Resources Section */}
+        <View style={[styles.section, styles.sectionMargin]}>
+          <Text style={[styles.label, isDark && styles.labelDark, { marginBottom: 8, fontSize: 13, fontWeight: '600' }]}>
+            {t('help')}
+          </Text>
+          
+          {/* FAQ */}
+          <TouchableOpacity 
+            style={[styles.switchRow, isDark && styles.switchRowDark, { marginBottom: 8 }]} 
+            onPress={() => openURL('https://github.com/linkalls/jules-mobile-client/blob/main/docs/FAQ.md')}
+          >
+            <View style={styles.switchLabel}>
+              <IconSymbol name="questionmark.circle" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('faq')}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
+          </TouchableOpacity>
+
+          {/* Troubleshooting */}
+          <TouchableOpacity 
+            style={[styles.switchRow, isDark && styles.switchRowDark, { marginBottom: 8 }]} 
+            onPress={() => openURL('https://github.com/linkalls/jules-mobile-client/blob/main/docs/TROUBLESHOOTING.md')}
+          >
+            <View style={styles.switchLabel}>
+              <IconSymbol name="wrench" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('troubleshooting')}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
+          </TouchableOpacity>
+
+          {/* GitHub */}
+          <TouchableOpacity 
+            style={[styles.switchRow, isDark && styles.switchRowDark]} 
+            onPress={() => openURL('https://github.com/linkalls/jules-mobile-client')}
+          >
+            <View style={styles.switchLabel}>
+              <IconSymbol name="link" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
+              <Text style={[styles.label, isDark && styles.labelDark]}>
+                {t('viewOnGitHub')}
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
           </TouchableOpacity>
         </View>
 
