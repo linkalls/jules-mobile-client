@@ -29,11 +29,11 @@
 <p align="center">
   <a href="README.ja.md">🇯🇵 日本語</a> •
   <a href="docs/ARCHITECTURE.md">📐 Architecture</a> •
-  <a href="docs/API.md">🔌 API Reference</a> •
-  <a href="docs/MODE_SELECTION.md">🎯 Mode Selection</a> •
-  <a href="docs/Agent.md">🤖 Agent Guide</a> •
-  <a href="docs/FAQ.md">❓ FAQ</a> •
-  <a href="CONTRIBUTING.md">🤝 Contributing</a>
+  <a href="docs/API.md">🔌 API</a> •
+  <a href="docs/MODE_SELECTION.md">🎯 Modes</a> •
+  <a href="docs/SECURITY.md">🔐 Security</a> •
+  <a href="docs/PRODUCTION.md">🚀 Production</a> •
+  <a href="docs/FAQ.md">❓ FAQ</a>
 </p>
 
 ---
@@ -265,6 +265,8 @@ bun run reset-project
 | [Components](docs/COMPONENTS.md) | Component documentation |
 | [Development](docs/DEVELOPMENT.md) | Development setup guide |
 | [Mode Selection](docs/MODE_SELECTION.md) | Start vs Review modes |
+| [Security](docs/SECURITY.md) | Security best practices |
+| [Production Deployment](docs/PRODUCTION.md) | Production deployment guide |
 | [Agent Guide](docs/Agent.md) | Guide for AI agents |
 | [Contributing](CONTRIBUTING.md) | How to contribute |
 
@@ -307,9 +309,49 @@ Potential future features (community-driven):
 
 Want to help? Check out [open issues](https://github.com/linkalls/jules-mobile-client/issues) or suggest new features!
 
-## 📄 License
+## 🏢 Commercial Use & Legal
 
-This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICENSE) file for details.
+### License
+
+This project is licensed under the **BSD 2-Clause License** - see the [LICENSE](LICENSE) file for details.
+
+**What this means:**
+- ✅ **Commercial use allowed** - You can use this in commercial projects
+- ✅ **Modification allowed** - You can modify the code
+- ✅ **Distribution allowed** - You can distribute the app
+- ⚠️ **No warranty** - Software is provided "as is"
+- ⚠️ **Attribution required** - Keep the copyright notice
+
+### Important Disclaimers
+
+**This is an unofficial third-party client.** This app is not affiliated with, endorsed by, or sponsored by Google or the Jules team.
+
+**Use at your own risk:**
+- This app is provided for educational and development purposes
+- Users are responsible for compliance with Google's Terms of Service
+- API usage is subject to Google's quotas and pricing
+- No warranty or guarantees are provided
+
+### Data & Privacy
+
+**API Key Security:**
+- API keys are stored locally using `expo-secure-store`
+- Keys are never transmitted to third parties
+- Keys are only sent to Google's Jules API endpoints
+
+**Data Collection:**
+- This app does NOT collect any user data
+- All data stays on your device and Google's servers
+- No analytics, tracking, or telemetry by default
+
+**For Commercial Deployments:**
+- Review and comply with Google's Terms of Service
+- Implement your own privacy policy if required
+- Consider adding user consent mechanisms
+- Implement proper API key management for teams
+- Set up monitoring and rate limiting
+
+See [docs/SECURITY.md](docs/SECURITY.md) for security best practices.
 
 ## 🙏 Acknowledgments
 
