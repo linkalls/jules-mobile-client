@@ -60,6 +60,7 @@
 - 🎯 **Mode Selection** - Choose between Start (auto-execute) or Review (manual approval) modes
 - 📋 **Plan Approval Flow** - Review and approve AI-generated plans before execution
 - 🔄 **Session State Tracking** - Real-time state badges showing current session status
+- 📤 **Export & Share** - Export sessions to Markdown or JSON formats for sharing and archiving
 
 ## 📸 Screenshots
 
@@ -85,9 +86,11 @@ The app features a beautiful dark theme that can be toggled in Settings or autom
 - 🔄 **Session State Tracking** - Real-time color-coded state badges (Queued, Planning, In Progress, etc.)
 - 🔍 **Search & Filter** - Quickly find sessions with search and filter by status
 - 📊 **Sort Options** - Sort sessions by date (newest/oldest) or title
+- 📤 **Export & Share** - Export sessions to Markdown or JSON and share with others
 - ℹ️ **App Version Display** - View current version in Settings
 - ♿ **Accessibility Improvements** - Better screen reader support
 - 🔒 **Security Enhancement** - Removed debug logging in production
+- 📚 **Commercial Readiness** - Comprehensive documentation for production use
 
 ## 🚀 Getting Started
 
@@ -296,8 +299,8 @@ Please read our [Contributing Guide](CONTRIBUTING.md) before submitting a PR.
 
 Potential future features (community-driven):
 
-- [ ] Session export/sharing functionality
-- [ ] Statistics and analytics dashboard
+- [x] Session export/sharing functionality ✅ (v1.1.0)
+- [x] Statistics and analytics dashboard ✅
 - [ ] Push notifications for session updates
 - [ ] Offline mode support
 - [ ] Multi-account management
