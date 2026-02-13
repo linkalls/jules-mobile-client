@@ -11,15 +11,19 @@ import {
   Platform,
   Animated,
   Linking,
+  Alert,
+  ActionSheetIOS,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ActivityItem, ActivityItemSkeleton } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import type { Activity } from '@/constants/types';
+import { shareSession } from '@/hooks/use-export-session';
+import type { Activity, Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
 
@@ -35,6 +39,7 @@ export default function SessionDetailScreen() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [messageInput, setMessageInput] = useState('');
   const [sessionState, setSessionState] = useState<string | null>(null);
+  const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const keyboardPadding = useRef(new Animated.Value(0)).current;
 
   const flatListRef = useRef<FlatList>(null);
@@ -124,6 +129,7 @@ export default function SessionDetailScreen() {
     const session = await fetchSession(id, true);
     if (session) {
       setSessionState(session.state);
+      setCurrentSession(session);
     }
   }, [id, fetchSession]);
 
@@ -177,6 +183,60 @@ export default function SessionDetailScreen() {
     }
   }, [t]);
 
+  // Export session handler
+  const handleExportSession = useCallback(async (format: 'markdown' | 'json') => {
+    if (!currentSession || activities.length === 0) {
+      Alert.alert(t('error'), 'No session data to export');
+      return;
+    }
+
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await shareSession(currentSession, activities, format);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : t('exportFailed');
+      if (errorMessage.includes('not available')) {
+        Alert.alert(t('error'), t('sharingNotAvailable'));
+      } else {
+        Alert.alert(t('error'), errorMessage);
+      }
+    }
+  }, [currentSession, activities, t]);
+
+  // Show export menu
+  const showExportMenu = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [t('cancel'), t('exportAsMarkdown'), t('exportAsJSON')],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            void handleExportSession('markdown');
+          } else if (buttonIndex === 2) {
+            void handleExportSession('json');
+          }
+        }
+      );
+    } else {
+      // Android - show simple alert
+      Alert.alert(
+        t('exportSession'),
+        'Choose export format',
+        [
+          { text: t('cancel'), style: 'cancel' },
+          { text: t('exportAsMarkdown'), onPress: () => handleExportSession('markdown') },
+          { text: t('exportAsJSON'), onPress: () => handleExportSession('json') },
+        ]
+      );
+    }
+  }, [t, handleExportSession]);
+
+
   return (
     <>
       <Stack.Screen
@@ -206,6 +266,9 @@ export default function SessionDetailScreen() {
                   </Text>
                 </View>
               )}
+              <TouchableOpacity onPress={showExportMenu}>
+                <IconSymbol name="square.and.arrow.up" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
+              </TouchableOpacity>
               <TouchableOpacity onPress={loadActivities}>
                 <IconSymbol name="arrow.clockwise" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
               </TouchableOpacity>

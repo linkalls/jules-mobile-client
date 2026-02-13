@@ -349,23 +349,114 @@ interface Artifact {
 
 ## Rate Limits
 
-The API may apply rate limiting. If you receive a `429` error, implement exponential backoff:
+The Jules API may apply rate limiting. While specific limits are not publicly documented, implement best practices:
+
+### Client-Side Rate Limiting
 
 ```typescript
-async function fetchWithRetry(url: string, retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await fetch(url);
-    } catch (err) {
-      if (err.status === 429 && i < retries - 1) {
-        await sleep(Math.pow(2, i) * 1000);
-        continue;
-      }
-      throw err;
+class RateLimiter {
+  private requests: number[] = [];
+  private maxRequests = 100; // Adjust based on your needs
+  private windowMs = 60000; // 1 minute
+
+  async checkLimit(): Promise<boolean> {
+    const now = Date.now();
+    // Remove old requests outside the window
+    this.requests = this.requests.filter(time => now - time < this.windowMs);
+    
+    if (this.requests.length >= this.maxRequests) {
+      throw new Error('Rate limit exceeded. Please wait before making more requests.');
     }
+    
+    this.requests.push(now);
+    return true;
   }
 }
+
+// Usage in API hook
+const rateLimiter = new RateLimiter();
+
+async function fetchWithRateLimit(url: string) {
+  await rateLimiter.checkLimit();
+  return fetch(url);
+}
 ```
+
+### Exponential Backoff
+
+If you receive a `429` error, implement exponential backoff:
+
+```typescript
+async function fetchWithRetry(url: string, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fetch(url);
+      
+      if (response.status === 429) {
+        // Rate limited - wait and retry
+        const delay = Math.pow(2, i) * 1000; // 1s, 2s, 4s
+        console.log(`Rate limited. Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      return response;
+    } catch (err) {
+      if (i === maxRetries - 1) throw err;
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+```
+
+### Best Practices
+
+1. **Cache Responses**: Don't fetch the same data repeatedly
+   ```typescript
+   const cache = new Map<string, { data: any; timestamp: number }>();
+   const CACHE_TTL = 60000; // 1 minute
+
+   async function fetchWithCache(url: string) {
+     const cached = cache.get(url);
+     const now = Date.now();
+     
+     if (cached && now - cached.timestamp < CACHE_TTL) {
+       return cached.data;
+     }
+     
+     const data = await fetch(url).then(r => r.json());
+     cache.set(url, { data, timestamp: now });
+     return data;
+   }
+   ```
+
+2. **Batch Requests**: Combine multiple operations when possible
+3. **Use Pagination**: Don't fetch all data at once
+4. **Implement Debouncing**: For user-triggered actions
+5. **Monitor Usage**: Track API calls in Google Cloud Console
+
+### Google Cloud Quotas
+
+To manage your API usage:
+
+1. **Check Current Usage**:
+   - Open [Google Cloud Console](https://console.cloud.google.com/)
+   - Navigate to "APIs & Services" → "Dashboard"
+   - View Jules API usage
+
+2. **Set Budget Alerts**:
+   - Go to "Billing" → "Budgets & alerts"
+   - Create alert at 50%, 90%, 100% of expected usage
+   - Receive email notifications
+
+3. **Request Quota Increase**:
+   - If you need higher limits for production
+   - Contact Google Cloud support
+   - Explain your use case
 
 ## Polling Strategy
 
@@ -450,9 +541,114 @@ const handleCreateSession = async () => {
 ### Best Practices
 
 1. **Always Check for API Key**: Verify API key exists before making requests
+   ```typescript
+   if (!apiKey) {
+     Alert.alert('Error', 'Please set your API key in Settings');
+     return;
+   }
+   ```
+
 2. **Use Silent Refresh**: For background updates without showing loading state
+   ```typescript
+   // Silent refresh - no loading spinner
+   await fetchSessions(true); // silent = true
+   ```
+
 3. **Handle Network Errors Gracefully**: Provide retry mechanisms and clear error messages
+   ```typescript
+   try {
+     await createSession(source, prompt);
+   } catch (error) {
+     if (error.message.includes('network')) {
+       Alert.alert(
+         'Network Error',
+         'Please check your internet connection and try again.',
+         [{ text: 'Retry', onPress: () => handleRetry() }]
+       );
+     } else {
+       Alert.alert('Error', error.message);
+     }
+   }
+   ```
+
 4. **Optimize Re-renders**: Use `useMemo` and `useCallback` to prevent unnecessary re-renders
+   ```typescript
+   const memoizedSessions = useMemo(() => 
+     sessions.filter(s => s.state === 'ACTIVE'),
+     [sessions]
+   );
+
+   const handleRefresh = useCallback(async () => {
+     await fetchSessions();
+   }, [fetchSessions]);
+   ```
+
+5. **Implement Proper Loading States**: Show loading indicators for better UX
+   ```typescript
+   {isLoading && <ActivityIndicator />}
+   {error && <Text style={styles.error}>{error}</Text>}
+   {!isLoading && sessions.length === 0 && <EmptyState />}
+   ```
+
+6. **Use Polling Wisely**: Don't poll too frequently
+   ```typescript
+   // Good: 5-second interval
+   const interval = setInterval(() => {
+     fetchActivities(sessionId, true); // silent
+   }, 5000);
+
+   // Bad: 1-second interval (too frequent)
+   // const interval = setInterval(() => {
+   //   fetchActivities(sessionId);
+   // }, 1000);
+   ```
+
+7. **Clean Up Resources**: Always clear intervals and subscriptions
+   ```typescript
+   useEffect(() => {
+     const interval = setInterval(fetchData, 5000);
+     return () => clearInterval(interval); // Cleanup
+   }, [fetchData]);
+   ```
+
+8. **Validate User Input**: Before sending to API
+   ```typescript
+   if (!prompt.trim()) {
+     Alert.alert('Error', 'Please enter a task description');
+     return;
+   }
+
+   if (prompt.length > 5000) {
+     Alert.alert('Error', 'Description is too long (max 5000 characters)');
+     return;
+   }
+   ```
+
+9. **Handle API Errors Consistently**: Standardize error handling
+   ```typescript
+   // In useJulesApi hook
+   const handleApiError = (error: any): string => {
+     if (error.error?.message) {
+       return error.error.message;
+     }
+     if (error.message.includes('network')) {
+       return 'Network error. Please check your connection.';
+     }
+     return 'An unexpected error occurred';
+   };
+   ```
+
+10. **Monitor API Usage**: Track usage to avoid hitting limits
+    ```typescript
+    // Simple usage tracker
+    let apiCallCount = 0;
+    const trackApiCall = () => {
+      apiCallCount++;
+      if (apiCallCount > 1000) {
+        console.warn('High API usage detected');
+      }
+    };
+    ```
 
 ## Further Reading
 

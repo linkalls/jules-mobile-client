@@ -126,6 +126,15 @@ const translations = {
     completedSessions: '完了したセッション',
     failedSessions: '失敗したセッション',
     statisticsHint: 'これらの統計は、現在読み込まれているセッションに基づいています。',
+    
+    // Export & Share
+    exportSession: 'セッションをエクスポート',
+    exportAsMarkdown: 'Markdownでエクスポート',
+    exportAsJSON: 'JSONでエクスポート',
+    shareSession: 'セッションを共有',
+    exportSuccess: 'セッションをエクスポートしました！',
+    exportFailed: 'エクスポートに失敗しました',
+    sharingNotAvailable: 'この端末では共有機能が利用できません',
   },
   en: {
     // Common
@@ -250,6 +259,15 @@ const translations = {
     completedSessions: 'Completed Sessions',
     failedSessions: 'Failed Sessions',
     statisticsHint: 'These statistics are based on your currently loaded sessions.',
+    
+    // Export & Share
+    exportSession: 'Export Session',
+    exportAsMarkdown: 'Export as Markdown',
+    exportAsJSON: 'Export as JSON',
+    shareSession: 'Share Session',
+    exportSuccess: 'Session exported successfully!',
+    exportFailed: 'Failed to export session',
+    sharingNotAvailable: 'Sharing is not available on this platform',
   },
 };
 
