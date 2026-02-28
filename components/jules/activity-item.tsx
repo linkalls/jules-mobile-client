@@ -362,7 +362,7 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
             <TouchableOpacity
               style={styles.approveButton}
               onPress={() => {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 onApprovePlan(planId);
               }}
               activeOpacity={0.9}

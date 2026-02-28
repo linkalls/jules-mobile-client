@@ -18,8 +18,9 @@ export async function exportSessionAsMarkdown(
   markdown.push(`**Created:** ${new Date(session.createTime).toLocaleString()}\n`);
   markdown.push(`**Updated:** ${new Date(session.updateTime).toLocaleString()}\n`);
   
-  if (session.output?.pullRequest?.url) {
-    markdown.push(`**Pull Request:** ${session.output.pullRequest.url}\n`);
+  const pullRequestUrl = session.outputs?.find((output) => output.pullRequest?.url)?.pullRequest?.url;
+  if (pullRequestUrl) {
+    markdown.push(`**Pull Request:** ${pullRequestUrl}\n`);
   }
   
   markdown.push(`\n---\n\n`);

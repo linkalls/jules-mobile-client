@@ -141,7 +141,7 @@ export default function SessionDetailScreen() {
       // リストを更新
       await loadActivities();
       await loadSessionState();
-    } catch (e) {
+    } catch {
       // Error is already handled by the API hook
     }
   }, [id, approvePlan, loadActivities, loadSessionState]);
@@ -160,7 +160,7 @@ export default function SessionDetailScreen() {
       await sendMessage(id, messageToSend);
       // Reload activities to show the new message
       await loadActivities();
-    } catch (e) {
+    } catch {
       // Error is already handled by the API hook
       // Optionally show error or restore input
     }
@@ -191,9 +191,9 @@ export default function SessionDetailScreen() {
     }
 
     try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await shareSession(currentSession, activities, format);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : t('exportFailed');
       if (errorMessage.includes('not available')) {
@@ -206,7 +206,7 @@ export default function SessionDetailScreen() {
 
   // Show export menu
   const showExportMenu = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
@@ -229,8 +229,8 @@ export default function SessionDetailScreen() {
         'Choose export format',
         [
           { text: t('cancel'), style: 'cancel' },
-          { text: t('exportAsMarkdown'), onPress: () => handleExportSession('markdown') },
-          { text: t('exportAsJSON'), onPress: () => handleExportSession('json') },
+          { text: t('exportAsMarkdown'), onPress: () => void handleExportSession('markdown') },
+          { text: t('exportAsJSON'), onPress: () => void handleExportSession('json') },
         ]
       );
     }

@@ -122,7 +122,7 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress, o
   }, [glowAnim]);
 
   const handlePressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Animated.spring(scaleAnim, {
       toValue: 0.97,
       useNativeDriver: true,

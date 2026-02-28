@@ -20,7 +20,6 @@ import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
-import type { TranslationKey } from '@/constants/i18n';
 import { useApiKey } from '@/constants/api-key-context';
 import { Colors } from '@/constants/theme';
 
@@ -120,14 +119,14 @@ export default function SessionsScreen() {
   }, [fetchSessions]);
 
   const onRefresh = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setRefreshing(true);
     await loadSessions();
     setRefreshing(false);
   }, [loadSessions]);
 
   const openSession = useCallback((session: Session) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push({
       pathname: '/session/id',
       params: {
@@ -139,18 +138,18 @@ export default function SessionsScreen() {
   }, []);
 
   const openCreateSession = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push('/create-session');
   }, []);
 
   const handleApprove = useCallback(async (sessionName: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setApprovingSessionId(sessionName);
     try {
       await approvePlan(sessionName);
       // Refresh sessions to update state
       await fetchSessions(true);
-    } catch (err) {
+    } catch {
       // Error is handled by useJulesApi state
     } finally {
       setApprovingSessionId(null);
@@ -168,7 +167,7 @@ export default function SessionsScreen() {
 
   const clearSearch = useCallback(() => {
     setSearchQuery('');
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
 
   const handleLoadMore = useCallback(() => {
