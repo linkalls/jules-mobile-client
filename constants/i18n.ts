@@ -108,6 +108,9 @@ const translations = {
     networkError: 'ネットワークエラー。接続を確認してね。',
     retryHint: 'もう一度お試しください',
     tapToRetry: 'タップして再試行',
+    savedFilters: '保存フィルタ',
+    saveCurrentFilter: '現在の条件を保存',
+    quickFilters: 'クイックフィルタ',
     
     // Help & Support
     help: 'ヘルプ',
@@ -245,6 +248,9 @@ const translations = {
     networkError: 'Network error. Please check your connection.',
     retryHint: 'Please try again',
     tapToRetry: 'Tap to retry',
+    savedFilters: 'Saved Filters',
+    saveCurrentFilter: 'Save current filter',
+    quickFilters: 'Quick Filters',
     
     // Help & Support
     help: 'Help',
