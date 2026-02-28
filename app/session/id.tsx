@@ -186,7 +186,7 @@ export default function SessionDetailScreen() {
   // Export session handler
   const handleExportSession = useCallback(async (format: 'markdown' | 'json') => {
     if (!currentSession || activities.length === 0) {
-      Alert.alert(t('error'), 'No session data to export');
+      Alert.alert(t('error'), t('noSessionDataToExport'));
       return;
     }
 
@@ -226,7 +226,7 @@ export default function SessionDetailScreen() {
       // Android - show simple alert
       Alert.alert(
         t('exportSession'),
-        'Choose export format',
+        t('chooseExportFormat'),
         [
           { text: t('cancel'), style: 'cancel' },
           { text: t('exportAsMarkdown'), onPress: () => void handleExportSession('markdown') },
@@ -296,13 +296,13 @@ export default function SessionDetailScreen() {
         {sessionState === 'AWAITING_PLAN_APPROVAL' && id && (
           <View style={[styles.approvalBanner, isDark && styles.approvalBannerDark]}>
             <Text style={[styles.approvalBannerText, isDark && styles.approvalBannerTextDark]}>
-              Plan is waiting for your approval
+              {t('planWaitingApproval')}
             </Text>
             <TouchableOpacity
               style={styles.approvalBannerButton}
               onPress={() => void handleApprovePlan('')}
             >
-              <Text style={styles.approvalBannerButtonText}>Approve</Text>
+              <Text style={styles.approvalBannerButtonText}>{t('approve')}</Text>
             </TouchableOpacity>
           </View>
         )}

@@ -11,6 +11,7 @@ const translations = {
     cancel: 'キャンセル',
     close: '閉じる',
     refresh: '更新',
+    approve: '承認',
     
     // Sessions
     sessions: 'セッション',
@@ -135,6 +136,9 @@ const translations = {
     exportSuccess: 'セッションをエクスポートしました！',
     exportFailed: 'エクスポートに失敗しました',
     sharingNotAvailable: 'この端末では共有機能が利用できません',
+    noSessionDataToExport: 'エクスポートできるセッションデータがありません',
+    chooseExportFormat: 'エクスポート形式を選んでね',
+    planWaitingApproval: 'このプランは承認待ちです',
   },
   en: {
     // Common
@@ -144,6 +148,7 @@ const translations = {
     cancel: 'Cancel',
     close: 'Close',
     refresh: 'Refresh',
+    approve: 'Approve',
     
     // Sessions
     sessions: 'Sessions',
@@ -268,6 +273,9 @@ const translations = {
     exportSuccess: 'Session exported successfully!',
     exportFailed: 'Failed to export session',
     sharingNotAvailable: 'Sharing is not available on this platform',
+    noSessionDataToExport: 'No session data available to export',
+    chooseExportFormat: 'Choose export format',
+    planWaitingApproval: 'This plan is waiting for your approval',
   },
 };
 
