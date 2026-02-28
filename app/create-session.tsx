@@ -82,7 +82,7 @@ function FormSkeleton({ paddingBottom }: { paddingBottom: number }) {
   const isDark = colorScheme === 'dark';
 
   return (
-    <ScrollView 
+    <ScrollView
       contentContainerStyle={[skeletonStyles.content, { paddingBottom }]}
     >
       {/* ラベル1 */}
@@ -163,17 +163,18 @@ export default function CreateSessionScreen() {
   const [sourcesLoaded, setSourcesLoaded] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [recentRepos, setRecentRepos] = useState<Source[]>([]);
+  const [sourceQuery, setSourceQuery] = useState('');
 
-  const { 
-    isLoading, 
-    error, 
-    clearError, 
+  const {
+    isLoading,
+    error,
+    clearError,
     sources,
     hasMoreSources,
     isLoadingMoreSources,
-    fetchSources, 
+    fetchSources,
     fetchMoreSources,
-    createSession 
+    createSession
   } = useJulesApi({ apiKey, t });
 
   // Load recent repos on mount
@@ -195,11 +196,28 @@ export default function CreateSessionScreen() {
     return recentRepos.filter(r => sourceNames.has(r.name));
   }, [sources, recentRepos]);
 
+  const sourceMatchesQuery = useCallback((source: Source) => {
+    if (!sourceQuery.trim()) return true;
+    const q = sourceQuery.toLowerCase();
+    const display = source.githubRepo
+      ? `${source.githubRepo.owner}/${source.githubRepo.repo}`
+      : source.displayName || source.name;
+    return display.toLowerCase().includes(q) || source.name.toLowerCase().includes(q);
+  }, [sourceQuery]);
+
   // Memoize all sources excluding recent ones
   const allSources = useMemo(() => {
     const recentNames = validRecentRepos.map(r => r.name);
     return sources.filter(s => !recentNames.includes(s.name));
   }, [sources, validRecentRepos]);
+
+  const filteredRecentRepos = useMemo(() => {
+    return validRecentRepos.filter(sourceMatchesQuery);
+  }, [validRecentRepos, sourceMatchesQuery]);
+
+  const filteredAllSources = useMemo(() => {
+    return allSources.filter(sourceMatchesQuery);
+  }, [allSources, sourceMatchesQuery]);
 
   // Helper function to get display name for a source
   const getSourceDisplayName = useCallback((source: Source): string => {
@@ -211,7 +229,7 @@ export default function CreateSessionScreen() {
   // Background fetch more sources while dropdown is open
   useEffect(() => {
     if (!isDropdownOpen || !hasMoreSources || isLoadingMoreSources) return;
-    
+
     // Fetch next page after a short delay while dropdown is open
     const timer = setTimeout(() => {
       void fetchMoreSources();
@@ -221,8 +239,22 @@ export default function CreateSessionScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDropdownOpen, hasMoreSources, isLoadingMoreSources, sources.length]);
 
+  // Keep preloading repos in the background after first load
+  useEffect(() => {
+    if (!sourcesLoaded || !hasMoreSources || isLoadingMoreSources) return;
+
+    const timer = setTimeout(() => {
+      void fetchMoreSources();
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [sourcesLoaded, hasMoreSources, isLoadingMoreSources, fetchMoreSources, sources.length]);
+
   // Toggle dropdown (sources already loaded)
   const toggleSources = useCallback(() => {
+    if (isDropdownOpen) {
+      setSourceQuery('');
+    }
     setIsDropdownOpen(!isDropdownOpen);
   }, [isDropdownOpen]);
 
@@ -230,7 +262,7 @@ export default function CreateSessionScreen() {
   const handleSourcesScroll = (event: { nativeEvent: { layoutMeasurement: { height: number }; contentOffset: { y: number }; contentSize: { height: number } } }) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
-    
+
     if (isCloseToBottom && hasMoreSources && !isLoadingMoreSources) {
       void fetchMoreSources();
     }
@@ -280,7 +312,7 @@ export default function CreateSessionScreen() {
         {isLoading ? (
           <FormSkeleton paddingBottom={40 + insets.bottom} />
         ) : (
-          <ScrollView 
+          <ScrollView
             contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]}
             keyboardShouldPersistTaps="handled"
           >
@@ -324,128 +356,144 @@ export default function CreateSessionScreen() {
 
               {/* Source list with lazy loading */}
               {isDropdownOpen && sourcesLoaded && sources.length > 0 && (
-                <ScrollView 
-                  style={[styles.sourceList, isDark && styles.sourceListDark]}
-                  nestedScrollEnabled
-                  showsVerticalScrollIndicator
-                  onScroll={handleSourcesScroll}
-                  scrollEventThrottle={400}
-                >
-                  {/* Recent Repositories Section */}
-                  {validRecentRepos.length > 0 && (
-                    <>
-                      <View style={[styles.sectionHeader, isDark && styles.sectionHeaderDark]}>
-                        <IconSymbol name="clock" size={14} color={isDark ? '#60a5fa' : '#2563eb'} />
-                        <Text style={[styles.sectionHeaderText, isDark && styles.sectionHeaderTextDark]}>
-                          {t('recentRepos')}
-                        </Text>
-                      </View>
-                      {validRecentRepos.map((source) => {
-                        return (
-                          <TouchableOpacity
-                            key={source.name}
-                            style={[
-                              styles.sourceItem,
-                              selectedSource === source.name && styles.sourceItemSelected,
-                              isDark && styles.sourceItemDark,
-                            ]}
-                            onPress={() => {
-                              setSelectedSource(source.name);
-                              setIsDropdownOpen(false);
-                            }}
-                          >
-                            <IconSymbol
-                              name="clock.fill"
-                              size={14}
-                              color={selectedSource === source.name ? '#2563eb' : isDark ? '#60a5fa' : '#3b82f6'}
-                            />
-                            <Text
-                              style={[
-                                styles.sourceItemText,
-                                isDark && styles.sourceItemTextDark,
-                                selectedSource === source.name && styles.sourceItemTextSelected,
-                              ]}
-                              numberOfLines={1}
-                            >
-                              {getSourceDisplayName(source)}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </>
-                  )}
-                  
-                  {/* All Repositories Section */}
-                  {allSources.length > 0 && (
-                    <>
-                      {validRecentRepos.length > 0 && (
-                        <View style={[styles.sectionHeader, isDark && styles.sectionHeaderDark, { marginTop: 8 }]}>
-                          <IconSymbol name="folder" size={14} color={isDark ? '#94a3b8' : '#64748b'} />
+                <View style={[styles.sourceList, isDark && styles.sourceListDark]}>
+                  <View style={[styles.repoSearchContainer, isDark && styles.repoSearchContainerDark]}>
+                    <IconSymbol name="magnifyingglass" size={14} color={isDark ? '#94a3b8' : '#64748b'} />
+                    <TextInput
+                      style={[styles.repoSearchInput, isDark && styles.repoSearchInputDark]}
+                      placeholder={t('searchSessions')}
+                      placeholderTextColor={isDark ? '#64748b' : '#94a3b8'}
+                      value={sourceQuery}
+                      onChangeText={setSourceQuery}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+
+                  <ScrollView
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator
+                    onScroll={handleSourcesScroll}
+                    scrollEventThrottle={400}
+                  >
+                    {/* Recent Repositories Section */}
+                    {filteredRecentRepos.length > 0 && (
+                      <>
+                        <View style={[styles.sectionHeader, isDark && styles.sectionHeaderDark]}>
+                          <IconSymbol name="clock" size={14} color={isDark ? '#60a5fa' : '#2563eb'} />
                           <Text style={[styles.sectionHeaderText, isDark && styles.sectionHeaderTextDark]}>
-                            {t('allRepos')}
+                            {t('recentRepos')}
                           </Text>
                         </View>
-                      )}
-                      {allSources.map((source) => {
-                        return (
-                          <TouchableOpacity
-                            key={source.name}
-                            style={[
-                              styles.sourceItem,
-                              selectedSource === source.name && styles.sourceItemSelected,
-                              isDark && styles.sourceItemDark,
-                            ]}
-                            onPress={() => {
-                              setSelectedSource(source.name);
-                              setIsDropdownOpen(false);
-                            }}
-                          >
-                            <IconSymbol
-                              name="link"
-                              size={14}
-                              color={selectedSource === source.name ? '#2563eb' : isDark ? '#64748b' : '#94a3b8'}
-                            />
-                            <Text
+                        {filteredRecentRepos.map((source) => {
+                          return (
+                            <TouchableOpacity
+                              key={source.name}
                               style={[
-                                styles.sourceItemText,
-                                isDark && styles.sourceItemTextDark,
-                                selectedSource === source.name && styles.sourceItemTextSelected,
+                                styles.sourceItem,
+                                selectedSource === source.name && styles.sourceItemSelected,
+                                isDark && styles.sourceItemDark,
                               ]}
-                              numberOfLines={1}
+                              onPress={() => {
+                                setSelectedSource(source.name);
+                                setIsDropdownOpen(false);
+                                setSourceQuery('');
+                              }}
                             >
-                              {getSourceDisplayName(source)}
+                              <IconSymbol
+                                name="clock.fill"
+                                size={14}
+                                color={selectedSource === source.name ? '#2563eb' : isDark ? '#60a5fa' : '#3b82f6'}
+                              />
+                              <Text
+                                style={[
+                                  styles.sourceItemText,
+                                  isDark && styles.sourceItemTextDark,
+                                  selectedSource === source.name && styles.sourceItemTextSelected,
+                                ]}
+                                numberOfLines={1}
+                              >
+                                {getSourceDisplayName(source)}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </>
+                    )}
+
+                    {/* All Repositories Section */}
+                    {filteredAllSources.length > 0 && (
+                      <>
+                        {filteredRecentRepos.length > 0 && (
+                          <View style={[styles.sectionHeader, isDark && styles.sectionHeaderDark, { marginTop: 8 }]}> 
+                            <IconSymbol name="folder" size={14} color={isDark ? '#94a3b8' : '#64748b'} />
+                            <Text style={[styles.sectionHeaderText, isDark && styles.sectionHeaderTextDark]}>
+                              {t('allRepos')}
                             </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </>
-                  )}
-                  {/* Loading indicator for more sources */}
-                  {isLoadingMoreSources && (
-                    <View style={styles.loadingMore}>
-                      <ActivityIndicator size="small" color="#2563eb" />
-                      <Text style={[styles.loadingMoreText, isDark && styles.loadingMoreTextDark]}>
-                        {t('loadingMore')}
-                      </Text>
-                    </View>
-                  )}
-                  {/* End of list indicator */}
-                  {!hasMoreSources && sources.length > 20 && (
-                    <View style={styles.endOfList}>
-                      <Text style={[styles.endOfListText, isDark && styles.endOfListTextDark]}>
-                        {sources.length} repos
-                      </Text>
-                    </View>
-                  )}
-                </ScrollView>
+                          </View>
+                        )}
+                        {filteredAllSources.map((source) => {
+                          return (
+                            <TouchableOpacity
+                              key={source.name}
+                              style={[
+                                styles.sourceItem,
+                                selectedSource === source.name && styles.sourceItemSelected,
+                                isDark && styles.sourceItemDark,
+                              ]}
+                              onPress={() => {
+                                setSelectedSource(source.name);
+                                setIsDropdownOpen(false);
+                                setSourceQuery('');
+                              }}
+                            >
+                              <IconSymbol
+                                name="link"
+                                size={14}
+                                color={selectedSource === source.name ? '#2563eb' : isDark ? '#64748b' : '#94a3b8'}
+                              />
+                              <Text
+                                style={[
+                                  styles.sourceItemText,
+                                  isDark && styles.sourceItemTextDark,
+                                  selectedSource === source.name && styles.sourceItemTextSelected,
+                                ]}
+                                numberOfLines={1}
+                              >
+                                {getSourceDisplayName(source)}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </>
+                    )}
+                    {/* Loading indicator for more sources */}
+                    {isLoadingMoreSources && (
+                      <View style={styles.loadingMore}>
+                        <ActivityIndicator size="small" color="#2563eb" />
+                        <Text style={[styles.loadingMoreText, isDark && styles.loadingMoreTextDark]}>
+                          {t('loadingMore')}
+                        </Text>
+                      </View>
+                    )}
+                    {/* End of list indicator */}
+                    {!hasMoreSources && sources.length > 20 && (
+                      <View style={styles.endOfList}>
+                        <Text style={[styles.endOfListText, isDark && styles.endOfListTextDark]}>
+                          {sources.length} repos
+                        </Text>
+                      </View>
+                    )}
+                  </ScrollView>
+                </View>
               )}
 
-              {sourcesLoaded && sources.length === 0 && isDropdownOpen && (
+              {sourcesLoaded && isDropdownOpen && (sources.length === 0 || (filteredRecentRepos.length === 0 && filteredAllSources.length === 0 && !isLoadingMoreSources)) && (
                 <Text style={[styles.hint, { color: '#f59e0b' }]}>
                   {t('noSourcesFound')}
                 </Text>
               )}
-              
+
               {/* Helper hint */}
               {!isDropdownOpen && sourcesLoaded && sources.length > 0 && (
                 <Text style={[styles.hint, isDark && styles.hintDark]}>
@@ -557,7 +605,7 @@ export default function CreateSessionScreen() {
             {/* 作成ボタン with gradient */}
             <TouchableOpacity
               style={[
-                styles.createButton, 
+                styles.createButton,
                 (!selectedSource || !prompt.trim()) && styles.createButtonDisabled
               ]}
               onPress={() => {
@@ -683,7 +731,30 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 8,
     overflow: 'hidden',
-    maxHeight: 250,
+    maxHeight: 300,
+  },
+  repoSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+  },
+  repoSearchContainerDark: {
+    borderBottomColor: '#334155',
+    backgroundColor: '#0f172a',
+  },
+  repoSearchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#334155',
+    paddingVertical: 0,
+  },
+  repoSearchInputDark: {
+    color: '#cbd5e1',
   },
   sourceListDark: {
     backgroundColor: '#1e293b',
