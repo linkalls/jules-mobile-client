@@ -61,17 +61,37 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
 
       const response = await fetch(url, { ...options, headers });
 
+      const parseJsonSafe = async <U>(): Promise<U | null> => {
+        const contentType = response.headers.get('content-type') || '';
+        const contentLength = response.headers.get('content-length');
+
+        if (response.status === 204 || contentLength === '0') {
+          return null;
+        }
+
+        if (!contentType.toLowerCase().includes('application/json')) {
+          return null;
+        }
+
+        try {
+          return (await response.json()) as U;
+        } catch {
+          return null;
+        }
+      };
+
       if (!response.ok) {
-        const errorData = (await response.json()) as ApiError;
+        const errorData = await parseJsonSafe<ApiError>();
         // Only log errors in development mode
         if (__DEV__) {
           // eslint-disable-next-line no-console
           console.error('API Error Response:', errorData);
         }
-        throw new Error(errorData.error?.message || `${translate('apiError', 'API Error')}: ${response.status}`);
+        throw new Error(errorData?.error?.message || `${translate('apiError', 'API Error')}: ${response.status}`);
       }
 
-      return (await response.json()) as T;
+      const data = await parseJsonSafe<T>();
+      return (data ?? ({} as T));
     },
     [apiKey, translate]
   );

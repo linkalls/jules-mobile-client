@@ -53,11 +53,12 @@ export default function SettingsScreen() {
   }, [getTheme]);
 
   const handleSave = async () => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     try {
       await saveApiKeyToContext(localApiKey);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(t('savedSuccess'));
     } catch {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert(t('error'), t('savedError'));
     }
   };
