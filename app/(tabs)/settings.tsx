@@ -53,7 +53,7 @@ export default function SettingsScreen() {
   }, [getTheme]);
 
   const handleSave = async () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     try {
       await saveApiKeyToContext(localApiKey);
       Alert.alert(t('savedSuccess'));
@@ -63,7 +63,7 @@ export default function SettingsScreen() {
   };
 
   const toggleDarkMode = async (value: boolean) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setManualDarkMode(value);
     const theme = value ? 'dark' : 'light';
     await saveTheme(theme);
@@ -71,7 +71,7 @@ export default function SettingsScreen() {
   };
 
   const toggleLanguage = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const newLang = language === 'ja' ? 'en' : 'ja';
     setLanguage(newLang);
   };

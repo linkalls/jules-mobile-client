@@ -32,7 +32,7 @@ export function useNetworkStatus() {
       }
     };
 
-    checkConnection();
+    void checkConnection();
 
     // Set up interval to check periodically
     const interval = setInterval(checkConnection, CHECK_INTERVAL);

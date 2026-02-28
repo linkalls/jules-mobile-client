@@ -258,7 +258,7 @@ export default function CreateSessionScreen() {
         },
       ]);
     }
-  }, [selectedSource, prompt, requirePlanApproval, sources, createSession, saveRecentRepo, t, router]);
+  }, [selectedSource, prompt, requirePlanApproval, sources, createSession, saveRecentRepo, t]);
 
   return (
     <>
@@ -561,8 +561,8 @@ export default function CreateSessionScreen() {
                 (!selectedSource || !prompt.trim()) && styles.createButtonDisabled
               ]}
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                handleCreate();
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                void handleCreate();
               }}
               disabled={!selectedSource || !prompt.trim() || isLoading}
               activeOpacity={0.9}
