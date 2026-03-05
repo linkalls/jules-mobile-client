@@ -11,10 +11,11 @@ interface DataRendererProps {
  * キー名を読みやすく変換する
  * 例: createTime -> Create Time
  */
-const formatKey = (key: string): string => {
+export const formatKey = (key: string): string => {
   return key
     .replace(/([A-Z])/g, ' $1')
     .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ') // Collapse multiple spaces
     .replace(/^\w/, (c) => c.toUpperCase())
     .trim();
 };
