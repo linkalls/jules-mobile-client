@@ -41,8 +41,8 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
       { regex: BOOLEANS, color: colors.boolean },
     ].forEach(({ regex, color }) => {
       let match;
-      const r = new RegExp(regex.source, regex.flags);
-      while ((match = r.exec(text)) !== null) {
+      regex.lastIndex = 0;
+      while ((match = regex.exec(text)) !== null) {
         matches.push({ index: match.index, length: match[0].length, color, text: match[0] });
       }
     });
