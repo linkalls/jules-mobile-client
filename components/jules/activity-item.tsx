@@ -406,12 +406,20 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
     const { title, description } = activity.progressUpdated;
     const artifacts = activity.artifacts || [];
     
-    const bashArtifacts = artifacts.filter(a => a.bashOutput);
-    const mediaArtifacts = artifacts.filter(a => a.media);
+    const bashArtifacts: typeof artifacts = [];
+    const mediaArtifacts: typeof artifacts = [];
+    let changeSetArtifacts: typeof artifacts = [];
+
+    for (const a of artifacts) {
+      if (a.bashOutput) bashArtifacts.push(a);
+      if (a.media) mediaArtifacts.push(a);
+      if (a.changeSet?.gitPatch) changeSetArtifacts.push(a);
+    }
+
     // CLI実行時(bashOutputあり)は、過去の変更履歴(changeSet)を表示しないようにする
-    const changeSetArtifacts = bashArtifacts.length > 0
-      ? []
-      : artifacts.filter(a => a.changeSet?.gitPatch);
+    if (bashArtifacts.length > 0) {
+      changeSetArtifacts = [];
+    }
     
     const hasAnyContent = title || description || bashArtifacts.length > 0 || 
                          changeSetArtifacts.length > 0 || mediaArtifacts.length > 0;
