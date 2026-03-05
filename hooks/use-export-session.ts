@@ -86,22 +86,24 @@ export async function exportSessionAsMarkdown(
     }
     
     if (activity.artifacts) {
+      let block = '';
       for (const artifact of activity.artifacts) {
         if (artifact.bashOutput) {
-          markdown.push(`#### 💻 Bash Command\n\n`);
-          markdown.push(`\`\`\`bash\n${artifact.bashOutput.command}\n\`\`\`\n\n`);
+          block += `#### 💻 Bash Command\n\n\`\`\`bash\n${artifact.bashOutput.command}\n\`\`\`\n\n`;
           if (artifact.bashOutput.output) {
-            markdown.push(`**Output:**\n\n\`\`\`\n${artifact.bashOutput.output}\n\`\`\`\n\n`);
+            block += `**Output:**\n\n\`\`\`\n${artifact.bashOutput.output}\n\`\`\`\n\n`;
           }
           if (artifact.bashOutput.exitCode !== undefined) {
-            markdown.push(`Exit code: ${artifact.bashOutput.exitCode}\n\n`);
+            block += `Exit code: ${artifact.bashOutput.exitCode}\n\n`;
           }
         }
         
         if (artifact.changeSet?.gitPatch) {
-          markdown.push(`#### 📝 Code Changes\n\n`);
-          markdown.push(`\`\`\`diff\n${artifact.changeSet.gitPatch.unidiffPatch}\n\`\`\`\n\n`);
+          block += `#### 📝 Code Changes\n\n\`\`\`diff\n${artifact.changeSet.gitPatch.unidiffPatch}\n\`\`\`\n\n`;
         }
+      }
+      if (block) {
+        markdown.push(block);
       }
     }
   }
