@@ -2,10 +2,26 @@ import { useState, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import type { Source } from '@/constants/types';
 
+export type SessionFilterState = 'all' | 'inProgress' | 'awaitingPlanApproval' | 'failed' | 'completed';
+
+export interface SessionFilterPreset {
+  id: string;
+  name: string;
+  query: string;
+  state: SessionFilterState;
+}
+
+export interface LastSessionFilter {
+  query: string;
+  state: SessionFilterState;
+}
+
 const API_KEY_STORAGE_KEY = 'jules_api_key';
 const THEME_STORAGE_KEY = 'jules_theme';
 const LANGUAGE_STORAGE_KEY = 'jules_language';
 const RECENT_REPOS_STORAGE_KEY = 'jules_recent_repos';
+const SESSION_FILTER_PRESETS_STORAGE_KEY = 'jules_session_filter_presets';
+const LAST_SESSION_FILTER_STORAGE_KEY = 'jules_last_session_filter';
 
 /**
  * SecureStoreを使用したセキュアストレージフック
@@ -108,6 +124,48 @@ export function useSecureStorage() {
     }
   }, []);
 
+  // セッション一覧のフィルタプリセット保存
+  const saveSessionFilterPreset = useCallback(async (preset: SessionFilterPreset): Promise<void> => {
+    try {
+      const stored = await SecureStore.getItemAsync(SESSION_FILTER_PRESETS_STORAGE_KEY);
+      let presets: SessionFilterPreset[] = stored ? JSON.parse(stored) : [];
+
+      presets = presets.filter((p) => p.id !== preset.id);
+      presets.unshift(preset);
+      presets = presets.slice(0, 8);
+
+      await SecureStore.setItemAsync(SESSION_FILTER_PRESETS_STORAGE_KEY, JSON.stringify(presets));
+    } catch {
+      // 無視
+    }
+  }, []);
+
+  const getSessionFilterPresets = useCallback(async (): Promise<SessionFilterPreset[]> => {
+    try {
+      const stored = await SecureStore.getItemAsync(SESSION_FILTER_PRESETS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }, []);
+
+  const saveLastSessionFilter = useCallback(async (filter: LastSessionFilter): Promise<void> => {
+    try {
+      await SecureStore.setItemAsync(LAST_SESSION_FILTER_STORAGE_KEY, JSON.stringify(filter));
+    } catch {
+      // 無視
+    }
+  }, []);
+
+  const getLastSessionFilter = useCallback(async (): Promise<LastSessionFilter | null> => {
+    try {
+      const stored = await SecureStore.getItemAsync(LAST_SESSION_FILTER_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
   return {
     isLoading,
     saveApiKey,
@@ -119,5 +177,9 @@ export function useSecureStorage() {
     getLanguage,
     saveRecentRepo,
     getRecentRepos,
+    saveSessionFilterPreset,
+    getSessionFilterPresets,
+    saveLastSessionFilter,
+    getLastSessionFilter,
   };
 }

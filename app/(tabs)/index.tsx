@@ -21,6 +21,11 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
+import {
+  useSecureStorage,
+  type SessionFilterPreset,
+  type SessionFilterState,
+} from '@/hooks/use-secure-storage';
 import { Colors } from '@/constants/theme';
 
 // Memoized SessionCard wrapper for performance
@@ -28,6 +33,14 @@ const MemoizedSessionCard = memo((props: React.ComponentProps<typeof SessionCard
   <SessionCard {...props} />
 ));
 MemoizedSessionCard.displayName = 'MemoizedSessionCard';
+
+const FILTER_OPTIONS: { key: SessionFilterState; labelKey: 'filterAll' | 'filterInProgress' | 'filterAwaitingPlanApproval' | 'filterFailed' | 'filterCompleted' }[] = [
+  { key: 'all', labelKey: 'filterAll' },
+  { key: 'inProgress', labelKey: 'filterInProgress' },
+  { key: 'awaitingPlanApproval', labelKey: 'filterAwaitingPlanApproval' },
+  { key: 'failed', labelKey: 'filterFailed' },
+  { key: 'completed', labelKey: 'filterCompleted' },
+];
 
 // Extract PR URL from session outputs
 // The API returns PR information in outputs[].pullRequest.url, not as a top-level field
@@ -51,8 +64,16 @@ export default function SessionsScreen() {
   const colors = isDark ? Colors.dark : Colors.light;
 
   const { apiKey } = useApiKey();
+  const {
+    getSessionFilterPresets,
+    saveSessionFilterPreset,
+    getLastSessionFilter,
+    saveLastSessionFilter,
+  } = useSecureStorage();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<SessionFilterState>('all');
+  const [savedPresets, setSavedPresets] = useState<SessionFilterPreset[]>([]);
   const [approvingSessionId, setApprovingSessionId] = useState<string | null>(null);
   const fabScale = React.useRef(new Animated.Value(0)).current;
 
@@ -77,6 +98,24 @@ export default function SessionsScreen() {
   const filteredAndSortedSessions = useMemo(() => {
     let result = [...sessionsWithPr];
 
+    // Filter by selected state
+    if (activeFilter !== 'all') {
+      result = result.filter((session) => {
+        switch (activeFilter) {
+          case 'inProgress':
+            return session.state === 'IN_PROGRESS' || session.state === 'ACTIVE' || session.state === 'PLANNING' || session.state === 'QUEUED';
+          case 'awaitingPlanApproval':
+            return session.state === 'AWAITING_PLAN_APPROVAL';
+          case 'failed':
+            return session.state === 'FAILED';
+          case 'completed':
+            return session.state === 'COMPLETED';
+          default:
+            return true;
+        }
+      });
+    }
+
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -92,7 +131,7 @@ export default function SessionsScreen() {
     });
 
     return result;
-  }, [sessionsWithPr, searchQuery]);
+  }, [sessionsWithPr, searchQuery, activeFilter]);
 
   // Animate FAB on mount
   useEffect(() => {
@@ -113,6 +152,30 @@ export default function SessionsScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
+
+  // Load saved filter state and presets
+  useEffect(() => {
+    const loadFilterState = async () => {
+      const [lastFilter, presets] = await Promise.all([
+        getLastSessionFilter(),
+        getSessionFilterPresets(),
+      ]);
+
+      if (lastFilter) {
+        setSearchQuery(lastFilter.query || '');
+        setActiveFilter(lastFilter.state || 'all');
+      }
+
+      setSavedPresets(presets);
+    };
+
+    void loadFilterState();
+  }, [getLastSessionFilter, getSessionFilterPresets]);
+
+  // Persist latest filter state
+  useEffect(() => {
+    void saveLastSessionFilter({ query: searchQuery, state: activeFilter });
+  }, [searchQuery, activeFilter, saveLastSessionFilter]);
 
   const loadSessions = useCallback(async () => {
     await fetchSessions();
@@ -167,6 +230,41 @@ export default function SessionsScreen() {
 
   const clearSearch = useCallback(() => {
     setSearchQuery('');
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, []);
+
+  const getFilterLabel = useCallback((filter: SessionFilterState): string => {
+    switch (filter) {
+      case 'inProgress':
+        return t('filterInProgress');
+      case 'awaitingPlanApproval':
+        return t('filterAwaitingPlanApproval');
+      case 'failed':
+        return t('filterFailed');
+      case 'completed':
+        return t('filterCompleted');
+      default:
+        return t('filterAll');
+    }
+  }, [t]);
+
+  const saveCurrentPreset = useCallback(async () => {
+    const preset: SessionFilterPreset = {
+      id: `${Date.now()}`,
+      name: searchQuery.trim() ? `${t('searchSessions')}: ${searchQuery.trim().slice(0, 20)}` : getFilterLabel(activeFilter),
+      query: searchQuery,
+      state: activeFilter,
+    };
+
+    await saveSessionFilterPreset(preset);
+    const presets = await getSessionFilterPresets();
+    setSavedPresets(presets);
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }, [searchQuery, activeFilter, saveSessionFilterPreset, getSessionFilterPresets, t, getFilterLabel]);
+
+  const applyPreset = useCallback((preset: SessionFilterPreset) => {
+    setSearchQuery(preset.query);
+    setActiveFilter(preset.state);
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
 
@@ -263,6 +361,65 @@ export default function SessionsScreen() {
               </TouchableOpacity>
             )}
           </View>
+
+          <Text style={[styles.filterLabel, { color: colors.icon }]}>{t('quickFilters')}</Text>
+          <FlatList
+            data={FILTER_OPTIONS}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.key}
+            contentContainerStyle={styles.filterChipsContainer}
+            renderItem={({ item }) => {
+              const isActive = activeFilter === item.key;
+              return (
+                <TouchableOpacity
+                  style={[
+                    styles.filterChip,
+                    isDark && styles.filterChipDark,
+                    isActive && styles.filterChipActive,
+                  ]}
+                  onPress={() => setActiveFilter(item.key)}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      isDark && styles.filterChipTextDark,
+                      isActive && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {t(item.labelKey)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }}
+          />
+
+          <View style={styles.savedFilterHeader}>
+            <Text style={[styles.filterLabel, { color: colors.icon }]}>{t('savedFilters')}</Text>
+            <TouchableOpacity onPress={() => void saveCurrentPreset()}>
+              <Text style={[styles.savePresetText, { color: colors.primary }]}>{t('saveCurrentFilter')}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {savedPresets.length > 0 && (
+            <FlatList
+              data={savedPresets}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.filterChipsContainer}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.filterChip, isDark && styles.filterChipDark]}
+                  onPress={() => applyPreset(item)}
+                >
+                  <Text style={[styles.filterChipText, isDark && styles.filterChipTextDark]} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
         </View>
       )}
 
@@ -512,6 +669,53 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     padding: 0,
+  },
+  filterLabel: {
+    marginTop: 8,
+    marginBottom: 6,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  filterChipsContainer: {
+    gap: 8,
+    paddingRight: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: '#eef2ff',
+    borderWidth: 1,
+    borderColor: '#c7d2fe',
+  },
+  filterChipDark: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
+  filterChipActive: {
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  filterChipText: {
+    fontSize: 12,
+    color: '#334155',
+    fontWeight: '600',
+  },
+  filterChipTextDark: {
+    color: '#cbd5e1',
+  },
+  filterChipTextActive: {
+    color: '#ffffff',
+  },
+  savedFilterHeader: {
+    marginTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  savePresetText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   loadingMoreContainer: {
     flexDirection: 'row',
