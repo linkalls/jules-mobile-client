@@ -207,8 +207,8 @@ export default function CreateSessionScreen() {
 
   // Memoize all sources excluding recent ones
   const allSources = useMemo(() => {
-    const recentNames = validRecentRepos.map(r => r.name);
-    return sources.filter(s => !recentNames.includes(s.name));
+    const recentNames = new Set(validRecentRepos.map(r => r.name));
+    return sources.filter(s => !recentNames.has(s.name));
   }, [sources, validRecentRepos]);
 
   const filteredRecentRepos = useMemo(() => {
