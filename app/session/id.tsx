@@ -266,10 +266,20 @@ export default function SessionDetailScreen() {
                   </Text>
                 </View>
               )}
-              <TouchableOpacity onPress={showExportMenu}>
+              <TouchableOpacity
+                onPress={showExportMenu}
+                accessibilityLabel={t('exportSession')}
+                accessibilityRole="button"
+                accessibilityHint={t('chooseExportFormat')}
+              >
                 <IconSymbol name="square.and.arrow.up" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={loadActivities}>
+              <TouchableOpacity
+                onPress={loadActivities}
+                accessibilityLabel={t('refresh')}
+                accessibilityRole="button"
+                accessibilityHint={t('refresh')}
+              >
                 <IconSymbol name="arrow.clockwise" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
               </TouchableOpacity>
             </View>
@@ -286,7 +296,12 @@ export default function SessionDetailScreen() {
         {error && (
           <View style={[styles.errorBanner, isDark && styles.errorBannerDark]}>
             <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={clearError}>
+            <TouchableOpacity
+              onPress={clearError}
+              accessibilityLabel={t('close')}
+              accessibilityRole="button"
+              accessibilityHint={t('close')}
+            >
               <Text style={styles.errorClose}>×</Text>
             </TouchableOpacity>
           </View>
@@ -378,6 +393,9 @@ export default function SessionDetailScreen() {
               style={[styles.sendButton, !messageInput.trim() && styles.sendButtonDisabled]}
               onPress={handleSend}
               disabled={!messageInput.trim()}
+              accessibilityLabel="Send message"
+              accessibilityRole="button"
+              accessibilityHint="Send message"
             >
               <IconSymbol name="paperplane.fill" size={18} color="#ffffff" />
             </TouchableOpacity>

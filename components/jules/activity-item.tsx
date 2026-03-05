@@ -493,6 +493,10 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
               <TouchableOpacity 
                 style={styles.bashHeader}
                 onPress={() => setExpanded(!expanded)}
+                accessibilityLabel="Toggle bash output"
+                accessibilityRole="button"
+                accessibilityHint="Expands or collapses the bash command output"
+                accessibilityState={{ expanded }}
               >
                 <Text style={styles.bashCommand}>
                   $ {artifact.bashOutput?.command}

@@ -320,7 +320,12 @@ export default function CreateSessionScreen() {
             {error && (
               <View style={[styles.errorBanner, isDark && styles.errorBannerDark]}>
                 <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity onPress={clearError}>
+                <TouchableOpacity
+                  onPress={clearError}
+                  accessibilityLabel={t('close')}
+                  accessibilityRole="button"
+                  accessibilityHint={t('close')}
+                >
                   <Text style={styles.errorClose}>×</Text>
                 </TouchableOpacity>
               </View>
