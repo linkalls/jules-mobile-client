@@ -303,11 +303,6 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
         }
         */
 
-        if (__DEV__) {
-          // eslint-disable-next-line no-console
-          console.log('Creating session with body:', body);
-        }
-
         const session = await julesFetch<Session>('/sessions', {
           method: 'POST',
           body: JSON.stringify(body),
