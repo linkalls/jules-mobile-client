@@ -20,18 +20,25 @@ export default function StatisticsScreen() {
   const { sessions } = useJulesApi({ apiKey, t });
 
   const stats = useMemo(() => {
-    const total = sessions.length;
-    const active = sessions.filter((s: Session) => 
-      s.state === 'ACTIVE' || 
-      s.state === 'QUEUED' || 
-      s.state === 'PLANNING' || 
-      s.state === 'IN_PROGRESS' ||
-      s.state === 'AWAITING_PLAN_APPROVAL'
-    ).length;
-    const completed = sessions.filter((s: Session) => s.state === 'COMPLETED').length;
-    const failed = sessions.filter((s: Session) => s.state === 'FAILED').length;
-
-    return { total, active, completed, failed };
+    const results = { total: sessions.length, active: 0, completed: 0, failed: 0 };
+    for (const s of sessions) {
+      switch (s.state) {
+        case 'ACTIVE':
+        case 'QUEUED':
+        case 'PLANNING':
+        case 'IN_PROGRESS':
+        case 'AWAITING_PLAN_APPROVAL':
+          results.active++;
+          break;
+        case 'COMPLETED':
+          results.completed++;
+          break;
+        case 'FAILED':
+          results.failed++;
+          break;
+      }
+    }
+    return results;
   }, [sessions]);
 
   return (
