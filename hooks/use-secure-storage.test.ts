@@ -1,4 +1,10 @@
 import { describe, expect, it, mock } from "bun:test";
+
+mock.module("react-native", () => ({
+  Platform: { OS: "ios" },
+  StyleSheet: { create: (s: any) => s },
+}));
+
 import { renderHook, act } from "@testing-library/react-native";
 import * as SecureStore from "expo-secure-store";
 import { useSecureStorage } from "./use-secure-storage";

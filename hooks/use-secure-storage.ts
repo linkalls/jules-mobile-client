@@ -22,6 +22,7 @@ const LANGUAGE_STORAGE_KEY = 'jules_language';
 const RECENT_REPOS_STORAGE_KEY = 'jules_recent_repos';
 const SESSION_FILTER_PRESETS_STORAGE_KEY = 'jules_session_filter_presets';
 const LAST_SESSION_FILTER_STORAGE_KEY = 'jules_last_session_filter';
+const CACHED_SOURCES_STORAGE_KEY = 'jules_cached_sources';
 
 /**
  * SecureStoreを使用したセキュアストレージフック
@@ -166,6 +167,25 @@ export function useSecureStorage() {
     }
   }, []);
 
+  // キャッシュされたソースの保存
+  const saveCachedSources = useCallback(async (sources: Source[]): Promise<void> => {
+    try {
+      await SecureStore.setItemAsync(CACHED_SOURCES_STORAGE_KEY, JSON.stringify(sources));
+    } catch {
+      // 無視
+    }
+  }, []);
+
+  // キャッシュされたソースの取得
+  const getCachedSources = useCallback(async (): Promise<Source[]> => {
+    try {
+      const stored = await SecureStore.getItemAsync(CACHED_SOURCES_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }, []);
+
   return {
     isLoading,
     saveApiKey,
@@ -181,5 +201,7 @@ export function useSecureStorage() {
     getSessionFilterPresets,
     saveLastSessionFilter,
     getLastSessionFilter,
+    saveCachedSources,
+    getCachedSources,
   };
 }

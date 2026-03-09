@@ -23,6 +23,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
 import { useSecureStorage } from '@/hooks/use-secure-storage';
+import { useSourcesCache } from '@/hooks/use-sources-cache';
 import type { Source } from '@/constants/types';
 import { Colors } from '@/constants/theme';
 
@@ -157,6 +158,7 @@ export default function CreateSessionScreen() {
 
   const { apiKey } = useApiKey();
   const { saveRecentRepo, getRecentRepos } = useSecureStorage();
+  const { getCachedSources, saveCachedSources } = useSourcesCache();
   const [selectedSource, setSelectedSource] = useState('');
   const [prompt, setPrompt] = useState('');
   const [requirePlanApproval, setRequirePlanApproval] = useState(false); // false = Start/Run, true = Review
@@ -170,10 +172,11 @@ export default function CreateSessionScreen() {
     error,
     clearError,
     sources,
+    setSources,
     hasMoreSources,
     isLoadingMoreSources,
-    fetchSources,
     fetchMoreSources,
+    syncAllSources,
     createSession
   } = useJulesApi({ apiKey, t });
 
@@ -185,10 +188,47 @@ export default function CreateSessionScreen() {
   // Pre-fetch sources when screen loads
   useEffect(() => {
     if (apiKey && !sourcesLoaded) {
-      void fetchSources().then(() => setSourcesLoaded(true));
+      const loadSources = async () => {
+        // 1. Try to load from cache
+        const cached = await getCachedSources();
+        let hasAnySources = false;
+        if (cached && cached.length > 0) {
+          setSources(cached);
+          setSourcesLoaded(true); // Allow immediate filtering from cache
+          hasAnySources = true;
+        }
+
+        // 2. Fetch full sources list in background without blowing up UI
+        try {
+          const freshSources = await syncAllSources();
+          if (freshSources && freshSources.length > 0) {
+            setSources(freshSources);
+            await saveCachedSources(freshSources);
+            if (!hasAnySources) {
+              // Only mark as loaded here if we didn't already do so via cache
+              setSourcesLoaded(true);
+            }
+          }
+        } catch (e) {
+          // If there was no cache and the full sync failed, leave sourcesLoaded as false
+          // so the UI can decide to trigger a retry or lighter fetch path.
+          if (hasAnySources) {
+            // We at least have cached data; keep the previously set loaded state.
+            return;
+          }
+        }
+      };
+      void loadSources();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
+
+  // Save sources to cache when they change significantly (like via fetchMoreSources)
+  useEffect(() => {
+    if (sources.length > 0 && sourcesLoaded) {
+      void saveCachedSources(sources);
+    }
+  }, [sources, sourcesLoaded, saveCachedSources]);
 
   // Filter recent repos to only include those that still exist in sources
   const validRecentRepos = useMemo(() => {
@@ -226,29 +266,6 @@ export default function CreateSessionScreen() {
       : source.displayName || source.name;
   }, []);
 
-  // Background fetch more sources while dropdown is open
-  useEffect(() => {
-    if (!isDropdownOpen || !hasMoreSources || isLoadingMoreSources) return;
-
-    // Fetch next page after a short delay while dropdown is open
-    const timer = setTimeout(() => {
-      void fetchMoreSources();
-    }, 500);
-
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDropdownOpen, hasMoreSources, isLoadingMoreSources, sources.length]);
-
-  // Keep preloading repos in the background after first load
-  useEffect(() => {
-    if (!sourcesLoaded || !hasMoreSources || isLoadingMoreSources) return;
-
-    const timer = setTimeout(() => {
-      void fetchMoreSources();
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [sourcesLoaded, hasMoreSources, isLoadingMoreSources, fetchMoreSources, sources.length]);
 
   // Toggle dropdown (sources already loaded)
   const toggleSources = useCallback(() => {
