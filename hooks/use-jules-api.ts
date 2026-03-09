@@ -124,7 +124,12 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
       const endpoint = `/sources?pageSize=20&pageToken=${sourcesPageTokenRef.current}`;
       const data: ListSourcesResponse = await julesFetch<ListSourcesResponse>(endpoint);
       const newSources = data.sources || [];
-      const allSources = [...sources, ...newSources];
+
+      // Update local state by merging without duplicates
+      const currentNames = new Set(sources.map(s => s.name));
+      const deduplicatedNewSources = newSources.filter(s => !currentNames.has(s.name));
+      const allSources = [...sources, ...deduplicatedNewSources];
+
       setSources(allSources);
       sourcesPageTokenRef.current = data.nextPageToken;
       setHasMoreSources(!!data.nextPageToken);
@@ -137,6 +142,36 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
       setIsLoadingMoreSources(false);
     }
   }, [julesFetch, sources, hasMoreSources, isLoadingMoreSources, translate]);
+
+  // Fetch all sources in background (sync with cache)
+  const syncAllSources = useCallback(async (): Promise<Source[]> => {
+    setIsLoadingMoreSources(true);
+    let allFetchedSources: Source[] = [];
+    let pageToken: string | undefined = undefined;
+
+    try {
+      do {
+        const endpoint = `/sources?pageSize=100${pageToken ? `&pageToken=${pageToken}` : ''}`;
+        const data: ListSourcesResponse = await julesFetch<ListSourcesResponse>(endpoint);
+        allFetchedSources = [...allFetchedSources, ...(data.sources || [])];
+        pageToken = data.nextPageToken;
+      } while (pageToken);
+
+      // Successfully synced all sources, update state to fully reflect server truth
+      setSources(allFetchedSources);
+      sourcesPageTokenRef.current = undefined;
+      setHasMoreSources(false);
+
+      return allFetchedSources;
+    } catch (err) {
+      // In case of error, just fallback to what we currently have
+      const message = err instanceof Error ? err.message : translate('fetchSourcesFailed', 'Failed to sync sources');
+      setError(message);
+      return sources;
+    } finally {
+      setIsLoadingMoreSources(false);
+    }
+  }, [julesFetch, translate, sources]);
 
   // Fetch sessions (initial load or reset)
   const fetchSessions = useCallback(async (silent: boolean = false): Promise<Session[]> => {
@@ -351,10 +386,12 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
     clearError,
     // Sources with lazy loading
     sources,
+    setSources,
     hasMoreSources,
     isLoadingMoreSources,
     fetchSources,
     fetchMoreSources,
+    syncAllSources,
     // Sessions with lazy loading
     sessions,
     hasMoreSessions,
