@@ -191,17 +191,32 @@ export default function CreateSessionScreen() {
       const loadSources = async () => {
         // 1. Try to load from cache
         const cached = await getCachedSources();
+        let hasAnySources = false;
         if (cached && cached.length > 0) {
           setSources(cached);
-          setSourcesLoaded(true); // Allow immediate filtering
+          setSourcesLoaded(true); // Allow immediate filtering from cache
+          hasAnySources = true;
         }
 
         // 2. Fetch full sources list in background without blowing up UI
-        const freshSources = await syncAllSources();
-        if (freshSources && freshSources.length > 0) {
-          await saveCachedSources(freshSources);
+        try {
+          const freshSources = await syncAllSources();
+          if (freshSources && freshSources.length > 0) {
+            setSources(freshSources);
+            await saveCachedSources(freshSources);
+            if (!hasAnySources) {
+              // Only mark as loaded here if we didn't already do so via cache
+              setSourcesLoaded(true);
+            }
+          }
+        } catch (e) {
+          // If there was no cache and the full sync failed, leave sourcesLoaded as false
+          // so the UI can decide to trigger a retry or lighter fetch path.
+          if (hasAnySources) {
+            // We at least have cached data; keep the previously set loaded state.
+            return;
+          }
         }
-        setSourcesLoaded(true);
       };
       void loadSources();
     }
