@@ -26,6 +26,7 @@ import { shareSession } from '@/hooks/use-export-session';
 import type { Activity, Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
+import { isValidExternalLink } from '@/utils/url';
 
 export default function SessionDetailScreen() {
   const { id, title, submittedPr } = useLocalSearchParams<{ id: string; title: string; submittedPr?: string }>();
@@ -360,7 +361,13 @@ export default function SessionDetailScreen() {
                   </View>
                   <TouchableOpacity
                     style={styles.prButton}
-                    onPress={() => Linking.openURL(submittedPr)}
+                    onPress={() => {
+                      if (isValidExternalLink(submittedPr)) {
+                        void Linking.openURL(submittedPr);
+                      } else {
+                        Alert.alert(t('error'), t('unableToOpenLink'));
+                      }
+                    }}
                     activeOpacity={0.7}
                   >
                     <Text style={styles.prButtonText}>View PR</Text>
