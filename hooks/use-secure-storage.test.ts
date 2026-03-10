@@ -3,6 +3,9 @@ import { describe, expect, it, mock } from "bun:test";
 mock.module("react-native", () => ({
   Platform: { OS: "ios" },
   StyleSheet: { create: (s: any) => s },
+  TurboModuleRegistry: { get: () => null, getEnforcing: () => null },
+  NativeEventEmitter: class {},
+  useColorScheme: () => "light",
 }));
 
 import { renderHook, act } from "@testing-library/react-native";
