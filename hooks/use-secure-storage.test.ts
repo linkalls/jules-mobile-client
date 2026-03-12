@@ -1,5 +1,21 @@
 import { describe, expect, it, mock } from "bun:test";
 
+mock.module("@testing-library/react-native", () => ({
+  renderHook: (hook: any) => {
+    let current;
+    const result = {
+      get current() {
+        return current;
+      }
+    };
+    current = hook();
+    return { result };
+  },
+  act: async (cb: any) => {
+    await cb();
+  }
+}));
+
 mock.module("react-native", () => ({
   Platform: { OS: "ios" },
   StyleSheet: { create: (s: any) => s },
@@ -8,9 +24,16 @@ mock.module("react-native", () => ({
   useColorScheme: () => "light",
 }));
 
-import { renderHook, act } from "@testing-library/react-native";
-import * as SecureStore from "expo-secure-store";
-import { useSecureStorage } from "./use-secure-storage";
+mock.module("react/jsx-dev-runtime", () => ({
+  jsxDEV: (type: any, props: any, key: any) => ({ type, props, key }),
+  Fragment: "Fragment"
+}));
+
+mock.module("react/jsx-runtime", () => ({
+  jsx: (type: any, props: any, key: any) => ({ type, props, key }),
+  jsxs: (type: any, props: any, key: any) => ({ type, props, key }),
+  Fragment: "Fragment"
+}));
 
 // Mock expo-secure-store
 mock.module("expo-secure-store", () => ({
@@ -18,6 +41,10 @@ mock.module("expo-secure-store", () => ({
   setItemAsync: mock(() => Promise.resolve()),
   deleteItemAsync: mock(() => Promise.resolve()),
 }));
+
+import { renderHook, act } from "@testing-library/react-native";
+import * as SecureStore from "expo-secure-store";
+import { useSecureStorage } from "./use-secure-storage";
 
 describe("useSecureStorage", () => {
   describe("getApiKey", () => {
@@ -39,7 +66,7 @@ describe("useSecureStorage", () => {
       (getItemAsync as any).mockImplementation(() => Promise.resolve("test-api-key"));
 
       const { result } = renderHook(() => useSecureStorage());
-      let apiKey;
+      let apiKey: string | null = "";
       await act(async () => {
         apiKey = await result.current.getApiKey();
       });
@@ -139,7 +166,7 @@ describe("useSecureStorage", () => {
       (getItemAsync as any).mockImplementation(() => Promise.reject(new Error("Storage error")));
 
       const { result } = renderHook(() => useSecureStorage());
-      let repos;
+      let repos: any[] = [];
       await act(async () => {
         repos = await result.current.getRecentRepos();
       });

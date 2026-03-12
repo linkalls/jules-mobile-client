@@ -285,6 +285,14 @@ export default function CreateSessionScreen() {
     }
   };
 
+  const sourcesMap = useMemo(() => {
+    const map = new Map<string, Source>();
+    for (const source of sources) {
+      map.set(source.name, source);
+    }
+    return map;
+  }, [sources]);
+
   // Create session and save to recent repos
   const handleCreate = useCallback(async () => {
     if (!selectedSource || !prompt.trim()) {
@@ -292,8 +300,8 @@ export default function CreateSessionScreen() {
       return;
     }
 
-    // Get source object from sources (validRecentRepos are already included in sources)
-    const source = sources.find((s) => s.name === selectedSource);
+    // Get source object from sourcesMap (validRecentRepos are already included in sources)
+    const source = sourcesMap.get(selectedSource);
     const defaultBranch = source?.githubRepo?.defaultBranch?.displayName || 'main';
 
     const session = await createSession(selectedSource, prompt, defaultBranch, [], requirePlanApproval);
@@ -307,7 +315,7 @@ export default function CreateSessionScreen() {
         },
       ]);
     }
-  }, [selectedSource, prompt, requirePlanApproval, sources, createSession, saveRecentRepo, t]);
+  }, [selectedSource, prompt, requirePlanApproval, sourcesMap, createSession, saveRecentRepo, t]);
 
   return (
     <>
@@ -368,7 +376,7 @@ export default function CreateSessionScreen() {
                 >
                   {selectedSource
                     ? (() => {
-                        const source = sources.find((s) => s.name === selectedSource);
+                        const source = sourcesMap.get(selectedSource);
                         return source ? getSourceDisplayName(source) : selectedSource;
                       })()
                     : t('selectPlaceholder')}
