@@ -52,7 +52,7 @@ function Skeleton({ width, height, style }: { width: number | string; height: nu
           width,
           height,
           borderRadius: height / 2,
-          backgroundColor: isDark ? '#334155' : '#e2e8f0',
+          backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
           opacity,
         },
         style,
