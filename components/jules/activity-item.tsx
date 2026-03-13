@@ -133,7 +133,7 @@ const skeletonStyles = StyleSheet.create({
 
 // Custom diff highlighter component
 function DiffHighlighter({ code }: { code: string }) {
-  const lines = code.split('\n');
+  const lines = React.useMemo(() => code.split('\n'), [code]);
 
   return (
     <View>
