@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors } from '@/constants/theme';
 
 interface CodeBlockProps {
   code: string;
@@ -15,16 +16,16 @@ const BOOLEANS = /\b(true|false|null|undefined)\b/g;
 
 export function CodeBlock({ code, language }: CodeBlockProps) {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const theme = colorScheme ?? 'light';
 
   const colors = useMemo(() => ({
-    keyword: isDark ? '#c586c0' : '#af00db',
-    string: isDark ? '#ce9178' : '#a31515',
-    number: isDark ? '#b5cea8' : '#098658',
-    comment: isDark ? '#6a9955' : '#008000',
-    boolean: isDark ? '#569cd6' : '#0000ff',
-    default: isDark ? '#d4d4d4' : '#1e1e1e',
-  }), [isDark]);
+    keyword: Colors[theme].codeKeyword,
+    string: Colors[theme].codeString,
+    number: Colors[theme].codeNumber,
+    comment: Colors[theme].codeComment,
+    boolean: Colors[theme].codeBoolean,
+    default: Colors[theme].codeDefault,
+  }), [theme]);
 
   // Simple highlighting by wrapping in spans
   const highlightCode = React.useCallback((code: string) => {
@@ -76,10 +77,10 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   const parts = useMemo(() => highlightCode(code), [code, highlightCode]);
 
   return (
-    <View style={[styles.container, isDark && styles.containerDark]}>
+    <View style={[styles.container, { backgroundColor: Colors[theme].codeBackground }]}>
       {language && (
-        <View style={[styles.langTag, isDark && styles.langTagDark]}>
-          <Text style={styles.langText}>{language}</Text>
+        <View style={[styles.langTag, { backgroundColor: Colors[theme].codeTagBackground }]}>
+          <Text style={[styles.langText, { color: Colors[theme].codeTagText }]}>{language}</Text>
         </View>
       )}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -97,27 +98,18 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
     overflow: 'hidden',
     marginVertical: 4,
   },
-  containerDark: {
-    backgroundColor: '#1e1e1e',
-  },
   langTag: {
-    backgroundColor: '#e0e0e0',
     paddingHorizontal: 8,
     paddingVertical: 2,
     alignSelf: 'flex-start',
   },
-  langTagDark: {
-    backgroundColor: '#333',
-  },
   langText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#666',
     textTransform: 'uppercase',
   },
   scroll: {

@@ -41,6 +41,17 @@ export const Colors = {
     shadowLight: 'rgba(99, 102, 241, 0.1)',
     shadowMedium: 'rgba(99, 102, 241, 0.2)',
     shadowDark: 'rgba(99, 102, 241, 0.3)',
+
+    // Code Highlighting
+    codeKeyword: '#af00db',
+    codeString: '#a31515',
+    codeNumber: '#098658',
+    codeComment: '#008000',
+    codeBoolean: '#0000ff',
+    codeDefault: '#1e1e1e',
+    codeBackground: '#f5f5f5',
+    codeTagBackground: '#e0e0e0',
+    codeTagText: '#666',
   },
   dark: {
     text: '#f1f5f9',
@@ -75,6 +86,17 @@ export const Colors = {
     shadowLight: 'rgba(129, 140, 248, 0.15)',
     shadowMedium: 'rgba(129, 140, 248, 0.25)',
     shadowDark: 'rgba(129, 140, 248, 0.35)',
+
+    // Code Highlighting
+    codeKeyword: '#c586c0',
+    codeString: '#ce9178',
+    codeNumber: '#b5cea8',
+    codeComment: '#6a9955',
+    codeBoolean: '#569cd6',
+    codeDefault: '#d4d4d4',
+    codeBackground: '#1e1e1e',
+    codeTagBackground: '#333',
+    codeTagText: '#666',
   },
 };
 
