@@ -127,7 +127,7 @@ export default function SessionsScreen() {
 
     // Default Sort (Newest first)
     result.sort((a, b) => {
-      return new Date(b.updateTime).getTime() - new Date(a.updateTime).getTime();
+      return Date.parse(b.updateTime) - Date.parse(a.updateTime);
     });
 
     return result;
