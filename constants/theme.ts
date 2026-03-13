@@ -37,6 +37,10 @@ export const Colors = {
     border: '#e2e8f0',
     borderLight: '#f1f5f9',
     
+    // Header colors
+    headerBackground: '#ffffff',
+    headerText: '#0f172a',
+
     // Shadows
     shadowLight: 'rgba(99, 102, 241, 0.1)',
     shadowMedium: 'rgba(99, 102, 241, 0.2)',
@@ -71,6 +75,10 @@ export const Colors = {
     border: '#334155',
     borderLight: '#1e293b',
     
+    // Header colors
+    headerBackground: '#0f172a',
+    headerText: '#f8fafc',
+
     // Shadows
     shadowLight: 'rgba(129, 140, 248, 0.15)',
     shadowMedium: 'rgba(129, 140, 248, 0.25)',
