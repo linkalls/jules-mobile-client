@@ -6,6 +6,13 @@ import React from 'react';
 // before anything else so bun caches our mocked versions!
 mock.module("@testing-library/react-native", () => ({}));
 mock.module("react-test-renderer", () => ({}));
+
+// Mock react to simulate basic hooks when bypassing RNTL
+mock.module("react", () => ({
+  useMemo: (factory: any) => factory(),
+  createElement: (type: any, props: any, ...children: any[]) => ({ type, props, children }),
+}));
+
 mock.module("react-native", () => ({
   Platform: { OS: "ios" },
   StyleSheet: {
