@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { isValidExternalLink } from '@/utils/url';
 
 interface License {
   name: string;
@@ -29,7 +30,7 @@ export default function LicensesScreen() {
   const insets = useSafeAreaInsets();
 
   const openUrl = (url?: string) => {
-    if (url) {
+    if (url && isValidExternalLink(url)) {
       void Linking.openURL(url);
     }
   };

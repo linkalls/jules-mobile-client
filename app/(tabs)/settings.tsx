@@ -22,6 +22,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
 import { Colors } from '@/constants/theme';
+import { isValidExternalLink } from '@/utils/url';
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
@@ -79,6 +80,10 @@ export default function SettingsScreen() {
 
   const openURL = async (url: string) => {
     try {
+      if (!isValidExternalLink(url)) {
+        Alert.alert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please check your device settings.');
+        return;
+      }
       const supported = await Linking.canOpenURL(url);
       if (supported) {
         await Linking.openURL(url);
