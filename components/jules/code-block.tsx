@@ -17,17 +17,17 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const colors = {
+  const colors = useMemo(() => ({
     keyword: isDark ? '#c586c0' : '#af00db',
     string: isDark ? '#ce9178' : '#a31515',
     number: isDark ? '#b5cea8' : '#098658',
     comment: isDark ? '#6a9955' : '#008000',
     boolean: isDark ? '#569cd6' : '#0000ff',
     default: isDark ? '#d4d4d4' : '#1e1e1e',
-  };
+  }), [isDark]);
 
   // Simple highlighting by wrapping in spans
-  const parts = useMemo(() => {
+  const highlightCode = React.useCallback((code: string) => {
     const partsList: { text: string; color: string }[] = [];
     let lastIdx = 0;
     const matches: { index: number; length: number; color: string; text: string }[] = [];
@@ -71,7 +71,9 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     }
 
     return partsList;
-  }, [code, colorScheme]);
+  }, [colors]);
+
+  const parts = useMemo(() => highlightCode(code), [code, highlightCode]);
 
   return (
     <View style={[styles.container, isDark && styles.containerDark]}>
