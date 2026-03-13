@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -27,9 +27,9 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   };
 
   // Simple highlighting by wrapping in spans
-  const highlightCode = (text: string) => {
-    const parts: { text: string; color: string }[] = [];
-    let lastIndex = 0;
+  const parts = useMemo(() => {
+    const partsList: { text: string; color: string }[] = [];
+    let lastIdx = 0;
     const matches: { index: number; length: number; color: string; text: string }[] = [];
 
     // Collect all matches
@@ -42,7 +42,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     ].forEach(({ regex, color }) => {
       let match;
       const r = new RegExp(regex.source, regex.flags);
-      while ((match = r.exec(text)) !== null) {
+      while ((match = r.exec(code)) !== null) {
         matches.push({ index: match.index, length: match[0].length, color, text: match[0] });
       }
     });
@@ -60,20 +60,18 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
 
     // Build parts
     for (const m of filtered) {
-      if (m.index > lastIndex) {
-        parts.push({ text: text.slice(lastIndex, m.index), color: colors.default });
+      if (m.index > lastIdx) {
+        partsList.push({ text: code.slice(lastIdx, m.index), color: colors.default });
       }
-      parts.push({ text: m.text, color: m.color });
-      lastIndex = m.index + m.length;
+      partsList.push({ text: m.text, color: m.color });
+      lastIdx = m.index + m.length;
     }
-    if (lastIndex < text.length) {
-      parts.push({ text: text.slice(lastIndex), color: colors.default });
+    if (lastIdx < code.length) {
+      partsList.push({ text: code.slice(lastIdx), color: colors.default });
     }
 
-    return parts;
-  };
-
-  const parts = highlightCode(code);
+    return partsList;
+  }, [code, colorScheme]);
 
   return (
     <View style={[styles.container, isDark && styles.containerDark]}>
