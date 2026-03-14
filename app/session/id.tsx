@@ -27,11 +27,13 @@ import type { Activity, Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
 import { isValidExternalLink } from '@/utils/url';
+import { Colors } from '@/constants/theme';
 
 export default function SessionDetailScreen() {
   const { id, title, submittedPr } = useLocalSearchParams<{ id: string; title: string; submittedPr?: string }>();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const colors = isDark ? Colors.dark : Colors.light;
   const { t } = useI18n();
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
@@ -394,7 +396,7 @@ export default function SessionDetailScreen() {
               value={messageInput}
               onChangeText={setMessageInput}
               placeholder={t('replyPlaceholder')}
-              placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+              placeholderTextColor={colors.textPlaceholder}
             />
             <TouchableOpacity
               style={[styles.sendButton, !messageInput.trim() && styles.sendButtonDisabled]}

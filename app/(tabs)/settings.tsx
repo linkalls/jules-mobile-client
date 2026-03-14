@@ -123,7 +123,7 @@ export default function SettingsScreen() {
             value={localApiKey}
             onChangeText={setLocalApiKey}
             placeholder="AIzaSy..."
-            placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+            placeholderTextColor={colors.textPlaceholder}
             secureTextEntry
             autoCapitalize="none"
             autoCorrect={false}

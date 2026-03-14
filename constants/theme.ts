@@ -10,6 +10,7 @@ const tintColorDark = '#a5b4fc'; // Lighter indigo for dark mode
 export const Colors = {
   light: {
     text: '#0f172a',
+    textPlaceholder: '#94a3b8',
     background: '#fafbfe',
     tint: tintColorLight,
     icon: '#64748b',
@@ -59,6 +60,7 @@ export const Colors = {
   },
   dark: {
     text: '#f1f5f9',
+    textPlaceholder: '#475569',
     background: '#0a0d1a',
     tint: tintColorDark,
     icon: '#94a3b8',

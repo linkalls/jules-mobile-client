@@ -392,7 +392,7 @@ export default function CreateSessionScreen() {
                     <TextInput
                       style={[styles.repoSearchInput, isDark && styles.repoSearchInputDark]}
                       placeholder={t('searchSessions')}
-                      placeholderTextColor={isDark ? '#64748b' : '#94a3b8'}
+                      placeholderTextColor={colors.textPlaceholder}
                       value={sourceQuery}
                       onChangeText={setSourceQuery}
                       autoCapitalize="none"
@@ -545,7 +545,7 @@ export default function CreateSessionScreen() {
                 value={prompt}
                 onChangeText={setPrompt}
                 placeholder={t('promptPlaceholder')}
-                placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+                placeholderTextColor={colors.textPlaceholder}
                 multiline
                 textAlignVertical="top"
                 maxLength={500}
