@@ -47,9 +47,9 @@ export default function StatisticsScreen() {
         options={{
           title: t('statistics'),
           headerStyle: {
-            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+            backgroundColor: colors.headerBackground,
           },
-          headerTintColor: isDark ? '#f8fafc' : '#0f172a',
+          headerTintColor: colors.headerText,
         }}
       />
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
