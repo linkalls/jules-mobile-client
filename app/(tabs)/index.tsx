@@ -9,6 +9,7 @@ import {
   Animated,
   TextInput,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -362,64 +363,58 @@ export default function SessionsScreen() {
             )}
           </View>
 
-          <Text style={[styles.filterLabel, { color: colors.icon }]}>{t('quickFilters')}</Text>
-          <FlatList
-            data={FILTER_OPTIONS}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.key}
-            contentContainerStyle={styles.filterChipsContainer}
-            renderItem={({ item }) => {
-              const isActive = activeFilter === item.key;
-              return (
-                <TouchableOpacity
-                  style={[
-                    styles.filterChip,
-                    isDark && styles.filterChipDark,
-                    isActive && styles.filterChipActive,
-                  ]}
-                  onPress={() => setActiveFilter(item.key)}
-                >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      isDark && styles.filterChipTextDark,
-                      isActive && styles.filterChipTextActive,
-                    ]}
-                  >
-                    {t(item.labelKey)}
-                  </Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
+          <View style={styles.filtersRow}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+              <View style={styles.filtersScrollContent}>
+                <Text style={[styles.filterLabel, { color: colors.icon }]}>{t('quickFilters')}</Text>
+                {FILTER_OPTIONS.map((item) => {
+                  const isActive = activeFilter === item.key;
+                  return (
+                    <TouchableOpacity
+                      key={item.key}
+                      style={[
+                        styles.filterChip,
+                        isDark && styles.filterChipDark,
+                        isActive && styles.filterChipActive,
+                      ]}
+                      onPress={() => setActiveFilter(item.key)}
+                    >
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          isDark && styles.filterChipTextDark,
+                          isActive && styles.filterChipTextActive,
+                        ]}
+                      >
+                        {t(item.labelKey)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
 
-          <View style={styles.savedFilterHeader}>
-            <Text style={[styles.filterLabel, { color: colors.icon }]}>{t('savedFilters')}</Text>
+                {savedPresets.length > 0 && (
+                  <>
+                    <Text style={[styles.filterLabel, { color: colors.icon, marginLeft: 8 }]}>{t('savedFilters')}</Text>
+                    {savedPresets.map((item) => (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={[styles.filterChip, isDark && styles.filterChipDark]}
+                        onPress={() => applyPreset(item)}
+                      >
+                        <Text style={[styles.filterChipText, isDark && styles.filterChipTextDark]} numberOfLines={1}>
+                          {item.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </>
+                )}
+              </View>
+            </ScrollView>
+
             <TouchableOpacity onPress={() => void saveCurrentPreset()}>
-              <Text style={[styles.savePresetText, { color: colors.primary }]}>{t('saveCurrentFilter')}</Text>
+              <Text style={[styles.savePresetText, { color: colors.primary }]} numberOfLines={1}>{t('saveCurrentFilter')}</Text>
             </TouchableOpacity>
           </View>
-
-          {savedPresets.length > 0 && (
-            <FlatList
-              data={savedPresets}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.filterChipsContainer}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.filterChip, isDark && styles.filterChipDark]}
-                  onPress={() => applyPreset(item)}
-                >
-                  <Text style={[styles.filterChipText, isDark && styles.filterChipTextDark]} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          )}
         </View>
       )}
 
@@ -643,11 +638,11 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   searchContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 10,
-    alignItems: 'center',
+    alignItems: 'stretch',
   },
   searchBar: {
     flex: 1,
@@ -665,14 +660,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#1e293b',
     borderColor: '#334155',
   },
+  filtersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'nowrap',
+    gap: 8,
+  },
+  filtersScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingRight: 8,
+  },
   searchInput: {
     flex: 1,
     fontSize: 15,
     padding: 0,
   },
   filterLabel: {
-    marginTop: 8,
-    marginBottom: 6,
     fontSize: 12,
     fontWeight: '600',
   },
