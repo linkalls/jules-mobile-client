@@ -7,58 +7,11 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Activity } from '@/constants/types';
 import { Colors } from '@/constants/theme';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ActivityItemProps {
   activity: Activity;
   onApprovePlan?: (planId: string) => void;
-}
-
-/**
- * シマー効果付きスケルトン
- */
-function Skeleton({ width, height, style }: { width: number | string; height: number; style?: object }) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [shimmerAnim]);
-
-  const opacity = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
-  });
-
-  return (
-    <Animated.View
-      style={[
-        {
-          width,
-          height,
-          borderRadius: height / 2,
-          backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
-          opacity,
-        },
-        style,
-      ]}
-    />
-  );
 }
 
 /**
@@ -80,7 +33,7 @@ export function ActivityItemSkeleton({ isAgent = true }: { isAgent?: boolean }) 
         isDark && (isAgent ? skeletonStyles.agentBubbleDark : skeletonStyles.userBubbleDark),
       ]}>
         <View style={skeletonStyles.header}>
-          <Skeleton width={24} height={24} style={{ borderRadius: 12 }} />
+          <Skeleton width={24} height={24} borderRadius={12} style={{ borderRadius: 12 }} />
           <Skeleton width={80} height={14} />
         </View>
         <View style={{ marginTop: 12, gap: 8 }}>
