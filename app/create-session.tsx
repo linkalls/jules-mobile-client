@@ -66,7 +66,7 @@ function Skeleton({ width, height, style }: { width: number | string; height: nu
           width,
           height,
           borderRadius: 8,
-          backgroundColor: isDark ? '#334155' : '#e2e8f0',
+          backgroundColor: isDark ? Colors.dark.border : Colors.light.border,
           opacity,
         },
         style,
@@ -123,7 +123,7 @@ const skeletonStyles = StyleSheet.create({
   selectBox: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.light.border,
     borderRadius: 12,
     padding: 14,
     flexDirection: 'row',
@@ -132,19 +132,19 @@ const skeletonStyles = StyleSheet.create({
   },
   selectBoxDark: {
     backgroundColor: '#1e293b',
-    borderColor: '#334155',
+    borderColor: Colors.dark.border,
   },
   textArea: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.light.border,
     borderRadius: 12,
     padding: 14,
     height: 120,
   },
   textAreaDark: {
     backgroundColor: '#1e293b',
-    borderColor: '#334155',
+    borderColor: Colors.dark.border,
   },
 });
 
@@ -732,7 +732,7 @@ const styles = StyleSheet.create({
   selectButton: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.light.border,
     borderRadius: 12,
     padding: 14,
     flexDirection: 'row',
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
   },
   selectButtonDark: {
     backgroundColor: '#1e293b',
-    borderColor: '#334155',
+    borderColor: Colors.dark.border,
   },
   selectButtonText: {
     fontSize: 15,
@@ -757,7 +757,7 @@ const styles = StyleSheet.create({
   sourceList: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.light.border,
     borderRadius: 12,
     marginTop: 8,
     overflow: 'hidden',
@@ -770,11 +770,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: Colors.light.border,
     backgroundColor: '#f8fafc',
   },
   repoSearchContainerDark: {
-    borderBottomColor: '#334155',
+    borderBottomColor: Colors.dark.border,
     backgroundColor: '#0f172a',
   },
   repoSearchInput: {
@@ -788,7 +788,7 @@ const styles = StyleSheet.create({
   },
   sourceListDark: {
     backgroundColor: '#1e293b',
-    borderColor: '#334155',
+    borderColor: Colors.dark.border,
   },
   sourceItem: {
     flexDirection: 'row',
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f1f5f9',
   },
   sourceItemDark: {
-    borderBottomColor: '#334155',
+    borderBottomColor: Colors.dark.border,
   },
   sourceItemSelected: {
     backgroundColor: 'rgba(37, 99, 235, 0.1)',
@@ -827,7 +827,7 @@ const styles = StyleSheet.create({
   textArea: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.light.border,
     borderRadius: 12,
     padding: 14,
     fontSize: 15,
@@ -836,7 +836,7 @@ const styles = StyleSheet.create({
   },
   textAreaDark: {
     backgroundColor: '#1e293b',
-    borderColor: '#334155',
+    borderColor: Colors.dark.border,
     color: '#f8fafc',
   },
   createButton: {
@@ -909,11 +909,11 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: '#f8fafc',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: Colors.light.border,
   },
   sectionHeaderDark: {
     backgroundColor: '#0f172a',
-    borderBottomColor: '#334155',
+    borderBottomColor: Colors.dark.border,
   },
   sectionHeaderText: {
     fontSize: 12,
@@ -933,14 +933,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
     borderWidth: 2,
-    borderColor: '#e2e8f0',
+    borderColor: Colors.light.border,
     borderRadius: 12,
     padding: 14,
     gap: 8,
   },
   modeButtonDark: {
     backgroundColor: '#1e293b',
-    borderColor: '#334155',
+    borderColor: Colors.dark.border,
   },
   modeButtonSelected: {
     borderColor: '#2563eb',
