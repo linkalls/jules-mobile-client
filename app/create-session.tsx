@@ -26,54 +26,7 @@ import { useSecureStorage } from '@/hooks/use-secure-storage';
 import { useSourcesCache } from '@/hooks/use-sources-cache';
 import type { Source } from '@/constants/types';
 import { Colors } from '@/constants/theme';
-
-/**
- * シマー効果付きスケルトン
- */
-function Skeleton({ width, height, style }: { width: number | string; height: number; style?: object }) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [shimmerAnim]);
-
-  const opacity = shimmerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
-  });
-
-  return (
-    <Animated.View
-      style={[
-        {
-          width,
-          height,
-          borderRadius: 8,
-          backgroundColor: isDark ? '#334155' : '#e2e8f0',
-          opacity,
-        },
-        style,
-      ]}
-    />
-  );
-}
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * フォームスケルトン
@@ -88,27 +41,27 @@ function FormSkeleton({ paddingBottom }: { paddingBottom: number }) {
     >
       {/* ラベル1 */}
       <View style={skeletonStyles.section}>
-        <Skeleton width={200} height={16} style={{ marginBottom: 8 }} />
+        <Skeleton width={200} height={16} borderRadius={8} style={{ marginBottom: 8 }} />
         {/* セレクトボックス */}
         <View style={[skeletonStyles.selectBox, isDark && skeletonStyles.selectBoxDark]}>
-          <Skeleton width="60%" height={16} />
-          <Skeleton width={16} height={16} style={{ borderRadius: 8 }} />
+          <Skeleton width="60%" height={16} borderRadius={8} />
+          <Skeleton width={16} height={16} borderRadius={8} style={{ borderRadius: 8 }} />
         </View>
       </View>
 
       {/* ラベル2 */}
       <View style={[skeletonStyles.section, { marginTop: 24 }]}>
-        <Skeleton width={180} height={16} style={{ marginBottom: 8 }} />
+        <Skeleton width={180} height={16} borderRadius={8} style={{ marginBottom: 8 }} />
         {/* テキストエリア */}
         <View style={[skeletonStyles.textArea, isDark && skeletonStyles.textAreaDark]}>
-          <Skeleton width="90%" height={14} style={{ marginBottom: 8 }} />
-          <Skeleton width="75%" height={14} style={{ marginBottom: 8 }} />
-          <Skeleton width="60%" height={14} />
+          <Skeleton width="90%" height={14} borderRadius={8} style={{ marginBottom: 8 }} />
+          <Skeleton width="75%" height={14} borderRadius={8} style={{ marginBottom: 8 }} />
+          <Skeleton width="60%" height={14} borderRadius={8} />
         </View>
       </View>
 
       {/* ボタン */}
-      <Skeleton width="100%" height={52} style={{ marginTop: 24, borderRadius: 12 }} />
+      <Skeleton width="100%" height={52} borderRadius={12} style={{ marginTop: 24, borderRadius: 12 }} />
     </ScrollView>
   );
 }
