@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors } from '@/constants/theme';
 
 interface DataRendererProps {
   data: unknown;
@@ -68,7 +69,7 @@ export function DataRenderer({ data, depth = 0 }: DataRendererProps) {
     }
 
     return (
-      <View style={[styles.objectContainer, depth > 0 && styles.nestedObject]}>
+      <View style={[styles.objectContainer, depth > 0 && styles.nestedObject, depth > 0 && isDark && styles.nestedObjectDark]}>
         {keys.map((key) => (
           <View key={key} style={styles.objectField}>
             <Text style={[styles.keyText, isDark && styles.keyTextDark]}>{formatKey(key)}</Text>
@@ -87,18 +88,18 @@ export function DataRenderer({ data, depth = 0 }: DataRendererProps) {
 
 const styles = StyleSheet.create({
   nullText: {
-    color: '#94a3b8',
+    color: Colors.light.tabIconDefault,
     fontStyle: 'italic',
   },
   nullTextDark: {
-    color: '#64748b',
+    color: Colors.dark.tabIconDefault,
   },
   valueText: {
-    color: '#334155',
+    color: Colors.light.text,
     flexShrink: 1,
   },
   valueTextDark: {
-    color: '#cbd5e1',
+    color: Colors.dark.text,
   },
   arrayContainer: {
     gap: 8,
@@ -106,21 +107,21 @@ const styles = StyleSheet.create({
   arrayItem: {
     flexDirection: 'row',
     gap: 8,
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: Colors.light.surfaceSecondary,
     padding: 8,
     borderRadius: 6,
   },
   arrayItemDark: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: Colors.dark.surfaceSecondary,
   },
   indexText: {
     fontSize: 10,
-    color: '#94a3b8',
+    color: Colors.light.tabIconDefault,
     fontFamily: 'monospace',
     minWidth: 20,
   },
   indexTextDark: {
-    color: '#64748b',
+    color: Colors.dark.tabIconDefault,
   },
   itemContent: {
     flex: 1,
@@ -130,9 +131,12 @@ const styles = StyleSheet.create({
   },
   nestedObject: {
     borderLeftWidth: 2,
-    borderLeftColor: '#e2e8f0',
+    borderLeftColor: Colors.light.border,
     paddingLeft: 8,
     marginLeft: 4,
+  },
+  nestedObjectDark: {
+    borderLeftColor: Colors.dark.border,
   },
   objectField: {
     marginBottom: 4,
@@ -140,11 +144,11 @@ const styles = StyleSheet.create({
   keyText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#64748b',
+    color: Colors.light.icon,
     marginBottom: 2,
   },
   keyTextDark: {
-    color: '#94a3b8',
+    color: Colors.dark.icon,
   },
   fieldValue: {
     paddingLeft: 2,
