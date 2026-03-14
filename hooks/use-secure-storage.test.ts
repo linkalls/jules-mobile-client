@@ -24,6 +24,13 @@ mock.module("react-native", () => ({
   useColorScheme: () => "light",
 }));
 
+// Mock expo-modules-core to fix __DEV__ undefined error
+mock.module("expo-modules-core", () => ({
+  canUseEventListeners: false,
+  canUseViewport: false,
+  isAsyncDebugging: false,
+}));
+
 mock.module("react/jsx-dev-runtime", () => ({
   jsxDEV: (type: any, props: any, key: any) => ({ type, props, key }),
   Fragment: "Fragment"
