@@ -3,3 +3,8 @@ export { SessionCard, SessionCardSkeleton } from './session-card';
 export { ActivityItem, ActivityItemSkeleton } from './activity-item';
 export { LoadingOverlay } from './loading-overlay';
 export { CodeBlock } from './code-block';
+export { SessionHeaderRight } from './session-header-right';
+export { ErrorBanner } from './error-banner';
+export { ApprovalBanner } from './approval-banner';
+export { SessionInput } from './session-input';
+export { PrCard } from './pr-card';

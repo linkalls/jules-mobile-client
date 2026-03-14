@@ -26,7 +26,11 @@ import { shareSession } from '@/hooks/use-export-session';
 import type { Activity, Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
-import { isValidExternalLink } from '@/utils/url';
+import { SessionHeaderRight } from '@/components/jules/session-header-right';
+import { ErrorBanner } from '@/components/jules/error-banner';
+import { ApprovalBanner } from '@/components/jules/approval-banner';
+import { SessionInput } from '@/components/jules/session-input';
+import { PrCard } from '@/components/jules/pr-card';
 
 export default function SessionDetailScreen() {
   const { id, title, submittedPr } = useLocalSearchParams<{ id: string; title: string; submittedPr?: string }>();
@@ -167,23 +171,6 @@ export default function SessionDetailScreen() {
     }
   };
 
-  // Get session state display text
-  const getSessionStateText = useCallback((state: string | null): string => {
-    if (!state) return '';
-    switch (state) {
-      case 'QUEUED': return t('stateQueued');
-      case 'PLANNING': return t('statePlanning');
-      case 'AWAITING_PLAN_APPROVAL': return t('stateAwaitingPlanApproval');
-      case 'AWAITING_USER_FEEDBACK': return t('stateAwaitingUserFeedback');
-      case 'IN_PROGRESS': return t('stateInProgress');
-      case 'PAUSED': return t('statePaused');
-      case 'FAILED': return t('stateFailed');
-      case 'COMPLETED': return t('stateCompleted');
-      case 'ACTIVE': return t('stateActive');
-      default: return t('stateUnknown');
-    }
-  }, [t]);
-
   // Export session handler
   const handleExportSession = useCallback(async (format: 'markdown' | 'json') => {
     if (!currentSession || activities.length === 0) {
@@ -248,42 +235,13 @@ export default function SessionDetailScreen() {
           },
           headerTintColor: isDark ? '#f8fafc' : '#0f172a',
           headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginRight: 8 }}>
-              {sessionState && (
-                <View style={[
-                  styles.stateBadge,
-                  sessionState === 'AWAITING_PLAN_APPROVAL' && styles.stateBadgeWarning,
-                  sessionState === 'COMPLETED' && styles.stateBadgeSuccess,
-                  sessionState === 'FAILED' && styles.stateBadgeError,
-                  isDark && styles.stateBadgeDark,
-                ]}>
-                  <Text style={[
-                    styles.stateBadgeText,
-                    sessionState === 'AWAITING_PLAN_APPROVAL' && styles.stateBadgeTextWarning,
-                    sessionState === 'COMPLETED' && styles.stateBadgeTextSuccess,
-                    sessionState === 'FAILED' && styles.stateBadgeTextError,
-                  ]}>
-                    {getSessionStateText(sessionState)}
-                  </Text>
-                </View>
-              )}
-              <TouchableOpacity
-                onPress={showExportMenu}
-                accessibilityLabel={t('exportSession')}
-                accessibilityRole="button"
-                accessibilityHint={t('chooseExportFormat')}
-              >
-                <IconSymbol name="square.and.arrow.up" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={loadActivities}
-                accessibilityLabel={t('refresh')}
-                accessibilityRole="button"
-                accessibilityHint={t('refresh')}
-              >
-                <IconSymbol name="arrow.clockwise" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
-              </TouchableOpacity>
-            </View>
+            <SessionHeaderRight
+              sessionState={sessionState}
+              isDark={isDark}
+              t={t}
+              showExportMenu={showExportMenu}
+              loadActivities={loadActivities}
+            />
           ),
         }}
       />
@@ -294,34 +252,10 @@ export default function SessionDetailScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
         {/* エラー表示 */}
-        {error && (
-          <View style={[styles.errorBanner, isDark && styles.errorBannerDark]}>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity
-              onPress={clearError}
-              accessibilityLabel={t('close')}
-              accessibilityRole="button"
-              accessibilityHint={t('close')}
-            >
-              <Text style={styles.errorClose}>×</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <ErrorBanner error={error} isDark={isDark} t={t} clearError={clearError} />
 
         {/* Global approve button fallback (API may not emit planApprovalRequested activity) */}
-        {sessionState === 'AWAITING_PLAN_APPROVAL' && id && (
-          <View style={[styles.approvalBanner, isDark && styles.approvalBannerDark]}>
-            <Text style={[styles.approvalBannerText, isDark && styles.approvalBannerTextDark]}>
-              {t('planWaitingApproval')}
-            </Text>
-            <TouchableOpacity
-              style={styles.approvalBannerButton}
-              onPress={() => void handleApprovePlan('')}
-            >
-              <Text style={styles.approvalBannerButtonText}>{t('approve')}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <ApprovalBanner sessionState={sessionState} id={id} isDark={isDark} t={t} handleApprovePlan={handleApprovePlan} />
 
         {/* チャットエリア */}
         {isLoading && activities.length === 0 ? (
@@ -353,61 +287,21 @@ export default function SessionDetailScreen() {
               </View>
             }
             ListFooterComponent={
-              submittedPr ? (
-                <View style={[styles.prCard, isDark && styles.prCardDark]}>
-                  <View style={styles.prHeader}>
-                    <IconSymbol name="link" size={16} color="#2563eb" />
-                    <Text style={[styles.prTitle, isDark && styles.prTitleDark]}>Pull Request Submitted</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.prButton}
-                    onPress={() => {
-                      if (isValidExternalLink(submittedPr)) {
-                        void Linking.openURL(submittedPr);
-                      } else {
-                        Alert.alert(t('error'), t('unableToOpenLink'));
-                      }
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.prButtonText}>View PR</Text>
-                    <IconSymbol name="chevron.right" size={16} color="#ffffff" />
-                  </TouchableOpacity>
-                </View>
-              ) : null
+              <PrCard submittedPr={submittedPr} isDark={isDark} t={t} />
             }
           />
         )}
 
         {/* 入力エリア - Androidではキーボード用パディング付き */}
-        <Animated.View
-          style={[
-            styles.inputContainer,
-            isDark && styles.inputContainerDark,
-            { paddingBottom: 12 + insets.bottom },
-            Platform.OS === 'android' && { marginBottom: keyboardPadding },
-          ]}
-        >
-          <View style={styles.inputRow}>
-            <TextInput
-              style={[styles.input, isDark && styles.inputDark]}
-              value={messageInput}
-              onChangeText={setMessageInput}
-              placeholder={t('replyPlaceholder')}
-              placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
-            />
-            <TouchableOpacity
-              style={[styles.sendButton, !messageInput.trim() && styles.sendButtonDisabled]}
-              onPress={handleSend}
-              disabled={!messageInput.trim()}
-              accessibilityLabel="Send message"
-              accessibilityRole="button"
-              accessibilityHint="Send message"
-            >
-              <IconSymbol name="paperplane.fill" size={18} color="#ffffff" />
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
+        <SessionInput
+          isDark={isDark}
+          insetsBottom={insets.bottom}
+          keyboardPadding={keyboardPadding}
+          messageInput={messageInput}
+          setMessageInput={setMessageInput}
+          t={t}
+          handleSend={handleSend}
+        />
       </KeyboardAvoidingView>
     </>
   );
@@ -420,29 +314,6 @@ const styles = StyleSheet.create({
   },
   containerDark: {
     backgroundColor: '#0f172a',
-  },
-  errorBanner: {
-    margin: 12,
-    padding: 12,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  errorBannerDark: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-  },
-  errorText: {
-    color: '#dc2626',
-    fontSize: 13,
-    flex: 1,
-  },
-  errorClose: {
-    color: '#dc2626',
-    fontSize: 18,
-    fontWeight: '700',
-    paddingLeft: 12,
   },
   chatContent: {
     padding: 16,
@@ -462,166 +333,5 @@ const styles = StyleSheet.create({
   },
   emptyTextDark: {
     color: '#94a3b8',
-  },
-  inputContainer: {
-    padding: 12,
-    backgroundColor: '#ffffff',
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-  },
-  inputContainerDark: {
-    backgroundColor: '#1e293b',
-    borderTopColor: '#334155',
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#0f172a',
-  },
-  inputDark: {
-    backgroundColor: '#0f172a',
-    color: '#f8fafc',
-  },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#94a3b8',
-    shadowOpacity: 0,
-  },
-  prCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    marginVertical: 6,
-  },
-  prCardDark: {
-    backgroundColor: '#1e293b',
-    borderColor: '#334155',
-  },
-  prHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  prTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e293b',
-  },
-  prTitleDark: {
-    color: '#e2e8f0',
-  },
-  prButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#2563eb',
-    borderRadius: 10,
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  prButtonText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  stateBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: '#e2e8f0',
-  },
-  stateBadgeDark: {
-    backgroundColor: '#334155',
-  },
-  stateBadgeWarning: {
-    backgroundColor: 'rgba(251, 191, 36, 0.15)',
-  },
-  stateBadgeSuccess: {
-    backgroundColor: 'rgba(34, 197, 94, 0.15)',
-  },
-  stateBadgeError: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-  },
-  stateBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  stateBadgeTextWarning: {
-    color: '#f59e0b',
-  },
-  stateBadgeTextSuccess: {
-    color: '#22c55e',
-  },
-  stateBadgeTextError: {
-    color: '#ef4444',
-  },
-  approvalBanner: {
-    marginHorizontal: 12,
-    marginTop: 8,
-    marginBottom: 4,
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.35)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  approvalBannerDark: {
-    backgroundColor: 'rgba(251, 191, 36, 0.16)',
-    borderColor: 'rgba(251, 191, 36, 0.35)',
-  },
-  approvalBannerText: {
-    flex: 1,
-    fontSize: 12,
-    color: '#92400e',
-    fontWeight: '600',
-  },
-  approvalBannerTextDark: {
-    color: '#fcd34d',
-  },
-  approvalBannerButton: {
-    backgroundColor: '#10b981',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  approvalBannerButtonText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '700',
   },
 });
