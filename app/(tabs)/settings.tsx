@@ -91,9 +91,6 @@ export default function SettingsScreen() {
         Alert.alert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please check your device settings.');
       }
     } catch (error) {
-      if (__DEV__) {
-        console.error('Failed to open URL:', url, error);
-      }
       Alert.alert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please try again later.');
     }
   };
