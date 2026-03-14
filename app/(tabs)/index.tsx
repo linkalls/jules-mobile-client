@@ -291,7 +291,7 @@ export default function SessionsScreen() {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <IconSymbol name="terminal" size={20} color="#ffffff" />
+              <IconSymbol name="terminal" size={20} color={colors.surface} />
             </LinearGradient>
             <View>
               <Text style={[styles.headerTitle, { color: colors.text }]}>Jules Client</Text>
@@ -511,7 +511,7 @@ export default function SessionsScreen() {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <IconSymbol name="plus" size={28} color="#ffffff" />
+              <IconSymbol name="plus" size={28} color={colors.surface} />
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
