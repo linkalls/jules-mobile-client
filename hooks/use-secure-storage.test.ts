@@ -1,5 +1,12 @@
 import { describe, expect, it, mock } from "bun:test";
 
+mock.module("react", () => ({
+  useMemo: (factory: any) => factory(),
+  createElement: (type: any, props: any, ...children: any[]) => ({ type, props, children }),
+  ComponentProps: {},
+  useCallback: (cb: any) => cb,
+}));
+
 mock.module("@testing-library/react-native", () => ({
   renderHook: (hook: any) => {
     let current;

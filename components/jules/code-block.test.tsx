@@ -11,6 +11,7 @@ mock.module("react-test-renderer", () => ({}));
 mock.module("react", () => ({
   useMemo: (factory: any) => factory(),
   createElement: (type: any, props: any, ...children: any[]) => ({ type, props, children }),
+  ComponentProps: {},
 }));
 
 mock.module("react-native", () => ({
