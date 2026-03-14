@@ -40,6 +40,7 @@ export const Colors = {
     // Header colors
     headerBackground: '#ffffff',
     headerText: '#0f172a',
+    parallaxBackground: '#D0D0D0',
 
     // Shadows
     shadowLight: 'rgba(99, 102, 241, 0.1)',
@@ -89,6 +90,7 @@ export const Colors = {
     // Header colors
     headerBackground: '#0f172a',
     headerText: '#f8fafc',
+    parallaxBackground: '#353636',
 
     // Shadows
     shadowLight: 'rgba(129, 140, 248, 0.15)',

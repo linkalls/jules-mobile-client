@@ -2,7 +2,7 @@ import { describe, expect, it, mock } from "bun:test";
 
 mock.module("@testing-library/react-native", () => ({
   renderHook: (hook: any) => {
-    let current;
+    let current: any;
     const result = {
       get current() {
         return current;
@@ -17,7 +17,7 @@ mock.module("@testing-library/react-native", () => ({
 }));
 
 mock.module("react-native", () => ({
-  Platform: { OS: "ios" },
+  Platform: { OS: "ios", select: (obj: any) => obj.ios || obj.default },
   StyleSheet: { create: (s: any) => s },
   TurboModuleRegistry: { get: () => null, getEnforcing: () => null },
   NativeEventEmitter: class {},

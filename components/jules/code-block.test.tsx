@@ -10,11 +10,13 @@ mock.module("react-test-renderer", () => ({}));
 // Mock react to simulate basic hooks when bypassing RNTL
 mock.module("react", () => ({
   useMemo: (factory: any) => factory(),
+  useCallback: (cb: any) => cb,
+  useState: (init: any) => [init, () => {}],
   createElement: (type: any, props: any, ...children: any[]) => ({ type, props, children }),
 }));
 
 mock.module("react-native", () => ({
-  Platform: { OS: "ios" },
+  Platform: { OS: "ios", select: (obj: any) => obj.ios || obj.default },
   StyleSheet: {
     create: (s: any) => s,
     flatten: (s: any) => s
