@@ -1,5 +1,14 @@
 import { describe, expect, it, mock } from "bun:test";
 
+mock.module("react", () => ({
+  default: {
+    useState: (init: any) => [init, () => {}],
+    useCallback: (cb: any) => cb,
+  },
+  useState: (init: any) => [init, () => {}],
+  useCallback: (cb: any) => cb,
+}));
+
 mock.module("@testing-library/react-native", () => ({
   renderHook: (hook: any) => {
     let current;
@@ -42,9 +51,24 @@ mock.module("expo-secure-store", () => ({
   deleteItemAsync: mock(() => Promise.resolve()),
 }));
 
-import { renderHook, act } from "@testing-library/react-native";
 import * as SecureStore from "expo-secure-store";
 import { useSecureStorage } from "./use-secure-storage";
+
+// Bypass missing RNTL
+const renderHook = (hook: any) => {
+  let current;
+  const result = {
+    get current() {
+      return current;
+    }
+  };
+  current = hook();
+  return { result };
+};
+
+const act = async (cb: any) => {
+  await cb();
+};
 
 describe("useSecureStorage", () => {
   describe("getApiKey", () => {

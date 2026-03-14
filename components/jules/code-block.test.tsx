@@ -9,12 +9,18 @@ mock.module("react-test-renderer", () => ({}));
 
 // Mock react to simulate basic hooks when bypassing RNTL
 mock.module("react", () => ({
+  default: {
+    useMemo: (factory: any) => factory(),
+    useCallback: (factory: any) => factory,
+    createElement: (type: any, props: any, ...children: any[]) => ({ type, props, children }),
+  },
   useMemo: (factory: any) => factory(),
+  useCallback: (factory: any) => factory,
   createElement: (type: any, props: any, ...children: any[]) => ({ type, props, children }),
 }));
 
 mock.module("react-native", () => ({
-  Platform: { OS: "ios" },
+  Platform: { OS: "ios", select: (obj: any) => obj.ios || obj.default },
   StyleSheet: {
     create: (s: any) => s,
     flatten: (s: any) => s
@@ -43,6 +49,7 @@ mock.module("react/jsx-runtime", () => ({
 }));
 
 // RNTL bypass using pure require to guarantee isolation
+import React from 'react';
 const { CodeBlock } = require("./code-block");
 
 function extractTextNodes(node: any): { text: string; color: string }[] {
