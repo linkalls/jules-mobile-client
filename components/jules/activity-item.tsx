@@ -172,6 +172,387 @@ function DiffHighlighter({ code }: { code: string }) {
   );
 }
 
+// 時刻フォーマット
+const formatTime = (dateStr: string) => {
+  try {
+    return new Date(dateStr).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
+};
+
+// Markdownスタイル
+const getMarkdownStyles = (isDark: boolean, colors: any) => ({
+  body: {
+    color: isDark ? '#e2e8f0' : '#1e293b',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  heading1: {
+    color: isDark ? '#f8fafc' : '#0f172a',
+    fontSize: 18,
+    fontWeight: '700' as const,
+    marginVertical: 8,
+  },
+  heading2: {
+    color: isDark ? '#f8fafc' : '#0f172a',
+    fontSize: 16,
+    fontWeight: '600' as const,
+    marginVertical: 6,
+  },
+  strong: {
+    fontWeight: '600' as const,
+  },
+  code_inline: {
+    backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+    color: colors.accent,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    fontFamily: 'monospace',
+  },
+  fence: {
+    backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+    padding: 12,
+    borderRadius: 8,
+    fontFamily: 'monospace',
+    fontSize: 12,
+  },
+  bullet_list: {
+    marginVertical: 4,
+  },
+  list_item: {
+    marginVertical: 2,
+  },
+  link: {
+    color: colors.primary,
+  },
+});
+
+function AgentMessageActivity({ activity, isDark, colors, formatTime, getMarkdownStyles }: { activity: Activity, isDark: boolean, colors: any, formatTime: (dateStr: string) => string, getMarkdownStyles: (isDark: boolean, colors: any) => any }) {
+  return (
+    <View style={styles.container}>
+      <View style={[styles.bubble, styles.bubbleAgent, isDark && styles.bubbleAgentDark]}>
+        <View style={styles.avatarContainer}>
+          <LinearGradient
+            colors={[colors.primary, colors.primaryLight]}
+            style={styles.avatar}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <IconSymbol name="sparkles" size={14} color="#ffffff" />
+          </LinearGradient>
+        </View>
+        <View style={styles.bubbleContent}>
+          <View style={styles.header}>
+            <Text style={[styles.sender, { color: colors.primary }]}>Jules</Text>
+            <Text style={[styles.time, { color: colors.icon }]}>{formatTime(activity.createTime)}</Text>
+          </View>
+          <Markdown style={getMarkdownStyles(isDark, colors)}>
+            {activity.agentMessaged!.agentMessage}
+          </Markdown>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function UserMessageActivity({ activity, isDark, colors, formatTime }: { activity: Activity, isDark: boolean, colors: any, formatTime: (dateStr: string) => string }) {
+  return (
+    <View style={[styles.container, styles.containerUser]}>
+      <View style={styles.bubble}>
+        <LinearGradient
+          colors={[colors.primary, colors.primaryLight]}
+          style={[styles.bubbleUser]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <View style={styles.header}>
+            <Text style={styles.senderUser}>You</Text>
+            <Text style={styles.timeUser}>{formatTime(activity.createTime)}</Text>
+          </View>
+          <Text style={styles.messageUser} selectable>
+            {activity.userMessaged!.userMessage}
+          </Text>
+        </LinearGradient>
+        <View style={styles.avatarContainer}>
+          <View style={[styles.avatar, styles.avatarUser]}>
+            <IconSymbol name="person.fill" size={14} color={colors.primary} />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function PlanGeneratedActivity({ activity, isDark, colors }: { activity: Activity, isDark: boolean, colors: any }) {
+  const plan = activity.planGenerated!.plan;
+  return (
+    <View style={styles.container}>
+      <View style={[styles.card, isDark && styles.cardDark]}>
+        <View style={styles.cardHeader}>
+          <LinearGradient
+            colors={[colors.success, '#34d399']}
+            style={styles.cardIconContainer}
+          >
+            <IconSymbol name="doc.text" size={16} color="#ffffff" />
+          </LinearGradient>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Plan Generated</Text>
+        </View>
+        {plan.steps?.map((step, index) => (
+          <View key={step.id || index} style={styles.planStep}>
+            <View style={[styles.stepBadge, { backgroundColor: `${colors.success}20` }]}>
+              <Text style={[styles.stepNumber, { color: colors.success }]}>
+                {index + 1}
+              </Text>
+            </View>
+            <Text style={[styles.stepTitle, { color: colors.text }]}>
+              {step.title}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function PlanApprovalRequestedActivity({ activity, isDark, colors, onApprovePlan }: { activity: Activity, isDark: boolean, colors: any, onApprovePlan?: (planId: string) => void }) {
+  const planId = activity.planApprovalRequested!.planId;
+  return (
+    <View style={styles.container}>
+      <View style={[styles.card, styles.approvalCard, isDark && styles.cardDark]}>
+        <LinearGradient
+          colors={isDark
+            ? ['rgba(251, 191, 36, 0.1)', 'rgba(251, 191, 36, 0.05)']
+            : ['rgba(245, 158, 11, 0.08)', 'rgba(245, 158, 11, 0.03)']
+          }
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.cardHeader}>
+          <LinearGradient
+            colors={[colors.warning, '#fbbf24']}
+            style={styles.cardIconContainer}
+          >
+            <IconSymbol name="hand.raised" size={16} color="#ffffff" />
+          </LinearGradient>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Approval Required</Text>
+        </View>
+        <Text style={[styles.description, { color: colors.icon }]}>
+          Jules is waiting for your approval to proceed with the plan.
+        </Text>
+        {onApprovePlan && (
+          <TouchableOpacity
+            style={styles.approveButton}
+            onPress={() => {
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              onApprovePlan(planId);
+            }}
+            activeOpacity={0.9}
+          >
+            <LinearGradient
+              colors={[colors.success, '#34d399']}
+              style={styles.approveButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <IconSymbol name="checkmark.circle.fill" size={20} color="#ffffff" />
+              <Text style={styles.approveButtonText}>Approve Plan</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function PlanApprovedActivity({ activity, isDark, colors, formatTime }: { activity: Activity, isDark: boolean, colors: any, formatTime: (dateStr: string) => string }) {
+  return (
+    <View style={[styles.container, styles.containerUser]}>
+      <View style={[styles.bubble, styles.bubbleUser]}>
+        <View style={styles.header}>
+          <Text style={styles.senderUser}>You</Text>
+          <Text style={styles.timeUser}>{formatTime(activity.createTime)}</Text>
+        </View>
+        <View style={styles.approvalRow}>
+          <IconSymbol name="checkmark.circle.fill" size={16} color="#ffffff" />
+          <Text style={styles.messageUser}>Plan approved</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function ProgressUpdatedActivity({ activity, isDark, colors }: { activity: Activity, isDark: boolean, colors: any }) {
+  const [expanded, setExpanded] = useState(false);
+  const [showCode, setShowCode] = useState(false);
+
+  const { title, description } = activity.progressUpdated!;
+  const artifacts = activity.artifacts || [];
+
+  const bashArtifacts: typeof artifacts = [];
+  const mediaArtifacts: typeof artifacts = [];
+  let changeSetArtifacts: typeof artifacts = [];
+
+  for (const a of artifacts) {
+    if (a.bashOutput) bashArtifacts.push(a);
+    if (a.media) mediaArtifacts.push(a);
+    if (a.changeSet?.gitPatch) changeSetArtifacts.push(a);
+  }
+
+  // CLI実行時(bashOutputあり)は、過去の変更履歴(changeSet)を表示しないようにする
+  if (bashArtifacts.length > 0) {
+    changeSetArtifacts = [];
+  }
+
+  const hasAnyContent = title || description || bashArtifacts.length > 0 ||
+                       changeSetArtifacts.length > 0 || mediaArtifacts.length > 0;
+
+  return (
+    <View style={styles.container}>
+      <View style={[styles.card, isDark && styles.cardDark]}>
+        {/* タイトル */}
+        {title && (
+          <View style={styles.cardHeader}>
+            <IconSymbol name="terminal" size={16} color="#f59e0b" />
+            <Text style={[styles.cardTitle, isDark && styles.cardTitleDark]}>
+              {title}
+            </Text>
+          </View>
+        )}
+
+        {/* description */}
+        {description && (
+          <Text style={[styles.description, isDark && styles.descriptionDark]}>
+            {description}
+          </Text>
+        )}
+
+        {/* Media artifacts (images) */}
+        {mediaArtifacts.length > 0 && (
+          <View style={styles.mediaContainer}>
+            {mediaArtifacts.map((artifact, index) => {
+              if (!artifact.media) return null;
+              const { mimeType, data } = artifact.media;
+              // Check if it's an image
+              if (mimeType.startsWith('image/')) {
+                // Validate base64 data format (basic check)
+                const isValidBase64 = data && typeof data === 'string' && data.length > 0;
+                if (!isValidBase64) {
+                  return (
+                    <View key={index} style={[styles.mediaPlaceholder, isDark && styles.mediaPlaceholderDark]}>
+                      <IconSymbol name="exclamationmark.triangle" size={24} color="#ef4444" />
+                      <Text style={[styles.mediaPlaceholderText, isDark && styles.mediaPlaceholderTextDark]}>
+                        Invalid image data
+                      </Text>
+                    </View>
+                  );
+                }
+                return (
+                  <View key={index} style={styles.mediaImageWrapper}>
+                    <Image
+                      source={{ uri: `data:${mimeType};base64,${data}` }}
+                      style={styles.mediaImage}
+                      resizeMode="contain"
+                    />
+                  </View>
+                );
+              }
+              // For non-image media, show a placeholder
+              return (
+                <View key={index} style={[styles.mediaPlaceholder, isDark && styles.mediaPlaceholderDark]}>
+                  <IconSymbol name="doc" size={24} color={isDark ? '#94a3b8' : '#64748b'} />
+                  <Text style={[styles.mediaPlaceholderText, isDark && styles.mediaPlaceholderTextDark]}>
+                    {mimeType}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* bashOutput */}
+        {bashArtifacts.map((artifact, index) => (
+          <View key={index} style={styles.bashContainer}>
+            <TouchableOpacity 
+              style={styles.bashHeader}
+              onPress={() => setExpanded(!expanded)}
+              accessibilityLabel="Toggle bash output"
+              accessibilityRole="button"
+              accessibilityHint="Expands or collapses the bash command output"
+              accessibilityState={{ expanded }}
+            >
+              <Text style={styles.bashCommand}>
+                $ {artifact.bashOutput?.command}
+              </Text>
+              <IconSymbol
+                name={expanded ? 'chevron.down' : 'chevron.right'}
+                size={14}
+                color="#64748b"
+              />
+            </TouchableOpacity>
+
+            {expanded && artifact.bashOutput?.output && (
+              <ScrollView 
+                style={styles.bashOutput}
+                horizontal
+                nestedScrollEnabled
+              >
+                <Text style={styles.bashOutputText}>
+                  {artifact.bashOutput.output}
+                </Text>
+              </ScrollView>
+            )}
+          </View>
+        ))}
+
+        {/* changeSet (コード変更) */}
+        {changeSetArtifacts.length > 0 && (
+          <TouchableOpacity
+            style={styles.codeButton}
+            onPress={() => setShowCode(!showCode)}
+          >
+            <IconSymbol name="chevron.left.forwardslash.chevron.right" size={14} color="#2563eb" />
+            <Text style={styles.codeButtonText}>
+              {showCode ? 'Hide Code Changes' : `View Code Changes (${changeSetArtifacts.length})`}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {showCode && changeSetArtifacts.map((artifact, index) => (
+          <View key={index} style={styles.codeContainer}>
+            <ScrollView
+              style={styles.codeScrollVertical}
+              nestedScrollEnabled
+              showsVerticalScrollIndicator
+            >
+              <ScrollView
+                horizontal
+                nestedScrollEnabled
+                showsHorizontalScrollIndicator
+              >
+                <DiffHighlighter
+                  code={(artifact.changeSet?.gitPatch?.unidiffPatch?.slice(0, 3000) || '') +
+                    ((artifact.changeSet?.gitPatch?.unidiffPatch?.length || 0) > 3000 ? '\n... (truncated)' : '')}
+                />
+              </ScrollView>
+            </ScrollView>
+          </View>
+        ))}
+
+        {/* 何もない場合 */}
+        {!hasAnyContent && (
+          <View style={styles.cardHeader}>
+            <IconSymbol name="arrow.clockwise" size={16} color="#64748b" />
+            <Text style={[styles.cardTitle, isDark && styles.cardTitleDark]}>Working...</Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+
 /**
  * 全アクティビティタイプ対応のコンポーネント
  * - Markdown表示対応
@@ -181,391 +562,29 @@ export const ActivityItem = React.memo(function ActivityItem({ activity, onAppro
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? Colors.dark : Colors.light;
-  const [expanded, setExpanded] = useState(false);
-  const [showCode, setShowCode] = useState(false);
-  
-  // 時刻フォーマット
-  const formatTime = (dateStr: string) => {
-    try {
-      return new Date(dateStr).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return '';
-    }
-  };
 
-  // Markdownスタイル
-  const markdownStyles = {
-    body: {
-      color: isDark ? '#e2e8f0' : '#1e293b',
-      fontSize: 14,
-      lineHeight: 20,
-    },
-    heading1: {
-      color: isDark ? '#f8fafc' : '#0f172a',
-      fontSize: 18,
-      fontWeight: '700' as const,
-      marginVertical: 8,
-    },
-    heading2: {
-      color: isDark ? '#f8fafc' : '#0f172a',
-      fontSize: 16,
-      fontWeight: '600' as const,
-      marginVertical: 6,
-    },
-    strong: {
-      fontWeight: '600' as const,
-    },
-    code_inline: {
-      backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
-      color: colors.accent,
-      paddingHorizontal: 4,
-      borderRadius: 4,
-      fontFamily: 'monospace',
-    },
-    fence: {
-      backgroundColor: isDark ? '#0f172a' : '#f8fafc',
-      padding: 12,
-      borderRadius: 8,
-      fontFamily: 'monospace',
-      fontSize: 12,
-    },
-    bullet_list: {
-      marginVertical: 4,
-    },
-    list_item: {
-      marginVertical: 2,
-    },
-    link: {
-      color: colors.primary,
-    },
-  };
-
-  // === エージェントメッセージ (Markdown対応) with modern design ===
   if (activity.agentMessaged?.agentMessage) {
-    return (
-      <View style={styles.container}>
-        <View style={[styles.bubble, styles.bubbleAgent, isDark && styles.bubbleAgentDark]}>
-          <View style={styles.avatarContainer}>
-            <LinearGradient
-              colors={[colors.primary, colors.primaryLight]}
-              style={styles.avatar}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <IconSymbol name="sparkles" size={14} color="#ffffff" />
-            </LinearGradient>
-          </View>
-          <View style={styles.bubbleContent}>
-            <View style={styles.header}>
-              <Text style={[styles.sender, { color: colors.primary }]}>Jules</Text>
-              <Text style={[styles.time, { color: colors.icon }]}>{formatTime(activity.createTime)}</Text>
-            </View>
-            <Markdown style={markdownStyles}>
-              {activity.agentMessaged.agentMessage}
-            </Markdown>
-          </View>
-        </View>
-      </View>
-    );
+    return <AgentMessageActivity activity={activity} isDark={isDark} colors={colors} formatTime={formatTime} getMarkdownStyles={getMarkdownStyles} />;
   }
 
-  // === ユーザーメッセージ with modern design ===
   if (activity.userMessaged?.userMessage) {
-    return (
-      <View style={[styles.container, styles.containerUser]}>
-        <View style={styles.bubble}>
-          <LinearGradient
-            colors={[colors.primary, colors.primaryLight]}
-            style={[styles.bubbleUser]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <View style={styles.header}>
-              <Text style={styles.senderUser}>You</Text>
-              <Text style={styles.timeUser}>{formatTime(activity.createTime)}</Text>
-            </View>
-            <Text style={styles.messageUser} selectable>
-              {activity.userMessaged.userMessage}
-            </Text>
-          </LinearGradient>
-          <View style={styles.avatarContainer}>
-            <View style={[styles.avatar, styles.avatarUser]}>
-              <IconSymbol name="person.fill" size={14} color={colors.primary} />
-            </View>
-          </View>
-        </View>
-      </View>
-    );
+    return <UserMessageActivity activity={activity} isDark={isDark} colors={colors} formatTime={formatTime} />;
   }
 
-  // === プラン生成 with modern design ===
   if (activity.planGenerated?.plan) {
-    const plan = activity.planGenerated.plan;
-    return (
-      <View style={styles.container}>
-        <View style={[styles.card, isDark && styles.cardDark]}>
-          <View style={styles.cardHeader}>
-            <LinearGradient
-              colors={[colors.success, '#34d399']}
-              style={styles.cardIconContainer}
-            >
-              <IconSymbol name="doc.text" size={16} color="#ffffff" />
-            </LinearGradient>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Plan Generated</Text>
-          </View>
-          {plan.steps?.map((step, index) => (
-            <View key={step.id || index} style={styles.planStep}>
-              <View style={[styles.stepBadge, { backgroundColor: `${colors.success}20` }]}>
-                <Text style={[styles.stepNumber, { color: colors.success }]}>
-                  {index + 1}
-                </Text>
-              </View>
-              <Text style={[styles.stepTitle, { color: colors.text }]}>
-                {step.title}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
-    );
+    return <PlanGeneratedActivity activity={activity} isDark={isDark} colors={colors} />;
   }
 
-  // === プラン承認リクエスト with modern design ===
   if (activity.planApprovalRequested) {
-    const planId = activity.planApprovalRequested.planId;
-    return (
-      <View style={styles.container}>
-        <View style={[styles.card, styles.approvalCard, isDark && styles.cardDark]}>
-          <LinearGradient
-            colors={isDark 
-              ? ['rgba(251, 191, 36, 0.1)', 'rgba(251, 191, 36, 0.05)']
-              : ['rgba(245, 158, 11, 0.08)', 'rgba(245, 158, 11, 0.03)']
-            }
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={styles.cardHeader}>
-            <LinearGradient
-              colors={[colors.warning, '#fbbf24']}
-              style={styles.cardIconContainer}
-            >
-              <IconSymbol name="hand.raised" size={16} color="#ffffff" />
-            </LinearGradient>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Approval Required</Text>
-          </View>
-          <Text style={[styles.description, { color: colors.icon }]}>
-            Jules is waiting for your approval to proceed with the plan.
-          </Text>
-          {onApprovePlan && (
-            <TouchableOpacity
-              style={styles.approveButton}
-              onPress={() => {
-                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                onApprovePlan(planId);
-              }}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={[colors.success, '#34d399']}
-                style={styles.approveButtonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              >
-                <IconSymbol name="checkmark.circle.fill" size={20} color="#ffffff" />
-                <Text style={styles.approveButtonText}>Approve Plan</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-    );
+    return <PlanApprovalRequestedActivity activity={activity} isDark={isDark} colors={colors} onApprovePlan={onApprovePlan} />;
   }
 
-  // === プラン承認 ===
   if (activity.planApproved) {
-    return (
-      <View style={[styles.container, styles.containerUser]}>
-        <View style={[styles.bubble, styles.bubbleUser]}>
-          <View style={styles.header}>
-            <Text style={styles.senderUser}>You</Text>
-            <Text style={styles.timeUser}>{formatTime(activity.createTime)}</Text>
-          </View>
-          <View style={styles.approvalRow}>
-            <IconSymbol name="checkmark.circle.fill" size={16} color="#ffffff" />
-            <Text style={styles.messageUser}>Plan approved</Text>
-          </View>
-        </View>
-      </View>
-    );
+    return <PlanApprovedActivity activity={activity} isDark={isDark} colors={colors} formatTime={formatTime} />;
   }
 
-  // === 進捗更新 (progressUpdated) ===
   if (activity.progressUpdated) {
-    const { title, description } = activity.progressUpdated;
-    const artifacts = activity.artifacts || [];
-    
-    const bashArtifacts: typeof artifacts = [];
-    const mediaArtifacts: typeof artifacts = [];
-    let changeSetArtifacts: typeof artifacts = [];
-
-    for (const a of artifacts) {
-      if (a.bashOutput) bashArtifacts.push(a);
-      if (a.media) mediaArtifacts.push(a);
-      if (a.changeSet?.gitPatch) changeSetArtifacts.push(a);
-    }
-
-    // CLI実行時(bashOutputあり)は、過去の変更履歴(changeSet)を表示しないようにする
-    if (bashArtifacts.length > 0) {
-      changeSetArtifacts = [];
-    }
-    
-    const hasAnyContent = title || description || bashArtifacts.length > 0 || 
-                         changeSetArtifacts.length > 0 || mediaArtifacts.length > 0;
-    
-    return (
-      <View style={styles.container}>
-        <View style={[styles.card, isDark && styles.cardDark]}>
-          {/* タイトル */}
-          {title && (
-            <View style={styles.cardHeader}>
-              <IconSymbol name="terminal" size={16} color="#f59e0b" />
-              <Text style={[styles.cardTitle, isDark && styles.cardTitleDark]}>
-                {title}
-              </Text>
-            </View>
-          )}
-          
-          {/* description */}
-          {description && (
-            <Text style={[styles.description, isDark && styles.descriptionDark]}>
-              {description}
-            </Text>
-          )}
-          
-          {/* Media artifacts (images) */}
-          {mediaArtifacts.length > 0 && (
-            <View style={styles.mediaContainer}>
-              {mediaArtifacts.map((artifact, index) => {
-                if (!artifact.media) return null;
-                const { mimeType, data } = artifact.media;
-                // Check if it's an image
-                if (mimeType.startsWith('image/')) {
-                  // Validate base64 data format (basic check)
-                  const isValidBase64 = data && typeof data === 'string' && data.length > 0;
-                  if (!isValidBase64) {
-                    return (
-                      <View key={index} style={[styles.mediaPlaceholder, isDark && styles.mediaPlaceholderDark]}>
-                        <IconSymbol name="exclamationmark.triangle" size={24} color="#ef4444" />
-                        <Text style={[styles.mediaPlaceholderText, isDark && styles.mediaPlaceholderTextDark]}>
-                          Invalid image data
-                        </Text>
-                      </View>
-                    );
-                  }
-                  return (
-                    <View key={index} style={styles.mediaImageWrapper}>
-                      <Image
-                        source={{ uri: `data:${mimeType};base64,${data}` }}
-                        style={styles.mediaImage}
-                        resizeMode="contain"
-                      />
-                    </View>
-                  );
-                }
-                // For non-image media, show a placeholder
-                return (
-                  <View key={index} style={[styles.mediaPlaceholder, isDark && styles.mediaPlaceholderDark]}>
-                    <IconSymbol name="doc" size={24} color={isDark ? '#94a3b8' : '#64748b'} />
-                    <Text style={[styles.mediaPlaceholderText, isDark && styles.mediaPlaceholderTextDark]}>
-                      {mimeType}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          )}
-          
-          {/* bashOutput */}
-          {bashArtifacts.map((artifact, index) => (
-            <View key={index} style={styles.bashContainer}>
-              <TouchableOpacity 
-                style={styles.bashHeader}
-                onPress={() => setExpanded(!expanded)}
-                accessibilityLabel="Toggle bash output"
-                accessibilityRole="button"
-                accessibilityHint="Expands or collapses the bash command output"
-                accessibilityState={{ expanded }}
-              >
-                <Text style={styles.bashCommand}>
-                  $ {artifact.bashOutput?.command}
-                </Text>
-                <IconSymbol 
-                  name={expanded ? 'chevron.down' : 'chevron.right'} 
-                  size={14} 
-                  color="#64748b" 
-                />
-              </TouchableOpacity>
-              
-              {expanded && artifact.bashOutput?.output && (
-                <ScrollView 
-                  style={styles.bashOutput}
-                  horizontal
-                  nestedScrollEnabled
-                >
-                  <Text style={styles.bashOutputText}>
-                    {artifact.bashOutput.output}
-                  </Text>
-                </ScrollView>
-              )}
-            </View>
-          ))}
-          
-          {/* changeSet (コード変更) */}
-          {changeSetArtifacts.length > 0 && (
-            <TouchableOpacity 
-              style={styles.codeButton}
-              onPress={() => setShowCode(!showCode)}
-            >
-              <IconSymbol name="chevron.left.forwardslash.chevron.right" size={14} color="#2563eb" />
-              <Text style={styles.codeButtonText}>
-                {showCode ? 'Hide Code Changes' : `View Code Changes (${changeSetArtifacts.length})`}
-              </Text>
-            </TouchableOpacity>
-          )}
-          
-          {showCode && changeSetArtifacts.map((artifact, index) => (
-            <View key={index} style={styles.codeContainer}>
-              <ScrollView 
-                style={styles.codeScrollVertical}
-                nestedScrollEnabled
-                showsVerticalScrollIndicator
-              >
-                <ScrollView 
-                  horizontal
-                  nestedScrollEnabled
-                  showsHorizontalScrollIndicator
-                >
-                  <DiffHighlighter
-                    code={(artifact.changeSet?.gitPatch?.unidiffPatch?.slice(0, 3000) || '') +
-                      ((artifact.changeSet?.gitPatch?.unidiffPatch?.length || 0) > 3000 ? '\n... (truncated)' : '')}
-                  />
-                </ScrollView>
-              </ScrollView>
-            </View>
-          ))}
-          
-          {/* 何もない場合 */}
-          {!hasAnyContent && (
-            <View style={styles.cardHeader}>
-              <IconSymbol name="arrow.clockwise" size={16} color="#64748b" />
-              <Text style={[styles.cardTitle, isDark && styles.cardTitleDark]}>Working...</Text>
-            </View>
-          )}
-        </View>
-      </View>
-    );
+    return <ProgressUpdatedActivity activity={activity} isDark={isDark} colors={colors} />;
   }
 
   return null;
