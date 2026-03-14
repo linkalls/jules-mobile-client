@@ -24,6 +24,68 @@ import { useApiKey } from '@/constants/api-key-context';
 import { Colors } from '@/constants/theme';
 import { isValidExternalLink } from '@/utils/url';
 
+type SettingsActionRowProps = {
+  iconName?: React.ComponentProps<typeof IconSymbol>['name'];
+  iconColor?: string;
+  iconNode?: React.ReactNode;
+  title: string;
+  isDark: boolean;
+  onPress?: () => void;
+  rightContent?: React.ReactNode;
+  style?: any;
+};
+
+function SettingsActionRow({ iconName, iconColor, iconNode, title, isDark, onPress, rightContent, style }: SettingsActionRowProps) {
+  const Container = onPress ? TouchableOpacity : View;
+  return (
+    <Container
+      style={[styles.switchRow, isDark && styles.switchRowDark, style]}
+      onPress={onPress as any}
+    >
+      <View style={styles.switchLabel}>
+        {iconNode || (iconName && <IconSymbol name={iconName} size={20} color={iconColor || (isDark ? '#94a3b8' : '#64748b')} />)}
+        <Text style={[styles.label, isDark && styles.labelDark]}>
+          {title}
+        </Text>
+      </View>
+      {rightContent !== undefined ? rightContent : (
+        onPress ? <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} /> : null
+      )}
+    </Container>
+  );
+}
+
+function SettingsSwitchRow({ iconName, iconColor, title, isDark, value, onValueChange }: SettingsActionRowProps & { value: boolean, onValueChange: (v: boolean) => void }) {
+  return (
+    <View style={[styles.switchRow, isDark && styles.switchRowDark]}>
+      <View style={styles.switchLabel}>
+        {iconName && <IconSymbol name={iconName} size={20} color={iconColor || (isDark ? '#fbbf24' : '#f59e0b')} />}
+        <Text style={[styles.label, isDark && styles.labelDark]}>{title}</Text>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ false: '#e2e8f0', true: '#3b82f6' }}
+        thumbColor={value ? '#ffffff' : '#f4f4f5'}
+      />
+    </View>
+  );
+}
+
+function SettingsHintBox({ isDark, title, text }: { isDark: boolean; title: string; text: string }) {
+  return (
+    <View style={[styles.hintBox, isDark && styles.hintBoxDark]}>
+      <View style={styles.hintHeader}>
+        <IconSymbol name="lightbulb" size={16} color={isDark ? '#60a5fa' : '#2563eb'} />
+        <Text style={[styles.hintBoxTitle, isDark && styles.hintBoxTitleDark]}>{title}</Text>
+      </View>
+      <Text style={[styles.hintBoxText, isDark && styles.hintBoxTextDark]}>
+        {text}
+      </Text>
+    </View>
+  );
+}
+
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -152,72 +214,51 @@ export default function SettingsScreen() {
 
         {/* テーマ切り替え */}
         <View style={[styles.section, styles.sectionMargin]}>
-          <View style={[styles.switchRow, isDark && styles.switchRowDark]}>
-            <View style={styles.switchLabel}>
-              <IconSymbol
-                name={isDark ? 'moon.fill' : 'sun.max.fill'}
-                size={20}
-                color={isDark ? '#fbbf24' : '#f59e0b'}
-              />
-              <Text style={[styles.label, isDark && styles.labelDark]}>{t('darkMode')}</Text>
-            </View>
-            <Switch
-              value={manualDarkMode}
-              onValueChange={toggleDarkMode}
-              trackColor={{ false: '#e2e8f0', true: '#3b82f6' }}
-              thumbColor={manualDarkMode ? '#ffffff' : '#f4f4f5'}
-            />
-          </View>
+          <SettingsSwitchRow
+            iconName={isDark ? 'moon.fill' : 'sun.max.fill'}
+            iconColor={isDark ? '#fbbf24' : '#f59e0b'}
+            title={t('darkMode')}
+            isDark={isDark}
+            value={manualDarkMode}
+            onValueChange={toggleDarkMode}
+          />
         </View>
 
         {/* 言語切り替え */}
         <View style={styles.section}>
-          <TouchableOpacity 
-            style={[styles.switchRow, isDark && styles.switchRowDark]} 
+          <SettingsActionRow
+            iconNode={<Text style={{ fontSize: 20 }}>{language === 'ja' ? '🇯🇵' : '🇺🇸'}</Text>}
+            title={language === 'ja' ? 'Language / 言語' : 'Language'}
+            isDark={isDark}
             onPress={toggleLanguage}
-          >
-            <View style={styles.switchLabel}>
-              <Text style={{ fontSize: 20 }}>{language === 'ja' ? '🇯🇵' : '🇺🇸'}</Text>
-              <Text style={[styles.label, isDark && styles.labelDark]}>
-                {language === 'ja' ? 'Language / 言語' : 'Language'}
+            rightContent={
+              <Text style={[styles.langValue, isDark && styles.langValueDark]}>
+                {language === 'ja' ? '日本語' : 'English'}
               </Text>
-            </View>
-            <Text style={[styles.langValue, isDark && styles.langValueDark]}>
-              {language === 'ja' ? '日本語' : 'English'}
-            </Text>
-          </TouchableOpacity>
+            }
+          />
         </View>
 
         {/* ライセンス */}
         <View style={styles.section}>
-          <TouchableOpacity 
-            style={[styles.switchRow, isDark && styles.switchRowDark]} 
+          <SettingsActionRow
+            iconName="doc.text"
+            iconColor={isDark ? '#94a3b8' : '#64748b'}
+            title={t('licenses')}
+            isDark={isDark}
             onPress={() => router.push('/licenses')}
-          >
-            <View style={styles.switchLabel}>
-              <IconSymbol name="doc.text" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
-              <Text style={[styles.label, isDark && styles.labelDark]}>
-                {t('licenses')}
-              </Text>
-            </View>
-            <IconSymbol name="chevron.right" size={16} color={isDark ? '#475569' : '#94a3b8'} />
-          </TouchableOpacity>
+          />
         </View>
 
         {/* Statistics */}
         <View style={[styles.section, styles.sectionMargin]}>
-          <TouchableOpacity 
-            style={[styles.switchRow, isDark && styles.switchRowDark]} 
+          <SettingsActionRow
+            iconName="info.circle"
+            iconColor={isDark ? '#60a5fa' : '#2563eb'}
+            title={t('statistics')}
+            isDark={isDark}
             onPress={() => router.push('/statistics')}
-          >
-            <View style={styles.switchLabel}>
-              <IconSymbol name="info.circle" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
-              <Text style={[styles.label, isDark && styles.labelDark]}>
-                {t('statistics')}
-              </Text>
-            </View>
-            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
-          </TouchableOpacity>
+          />
         </View>
 
         {/* Help & Resources Section */}
@@ -227,73 +268,56 @@ export default function SettingsScreen() {
           </Text>
           
           {/* FAQ */}
-          <TouchableOpacity 
-            style={[styles.switchRow, isDark && styles.switchRowDark, { marginBottom: 8 }]} 
+          <SettingsActionRow
+            iconName="questionmark.circle"
+            iconColor={isDark ? '#60a5fa' : '#2563eb'}
+            title={t('faq')}
+            isDark={isDark}
             onPress={() => openURL('https://github.com/linkalls/jules-mobile-client/blob/main/docs/FAQ.md')}
-          >
-            <View style={styles.switchLabel}>
-              <IconSymbol name="questionmark.circle" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
-              <Text style={[styles.label, isDark && styles.labelDark]}>
-                {t('faq')}
-              </Text>
-            </View>
-            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
-          </TouchableOpacity>
+            style={{ marginBottom: 8 }}
+          />
 
           {/* Troubleshooting */}
-          <TouchableOpacity 
-            style={[styles.switchRow, isDark && styles.switchRowDark, { marginBottom: 8 }]} 
+          <SettingsActionRow
+            iconName="wrench"
+            iconColor={isDark ? '#60a5fa' : '#2563eb'}
+            title={t('troubleshooting')}
+            isDark={isDark}
             onPress={() => openURL('https://github.com/linkalls/jules-mobile-client/blob/main/docs/TROUBLESHOOTING.md')}
-          >
-            <View style={styles.switchLabel}>
-              <IconSymbol name="wrench" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
-              <Text style={[styles.label, isDark && styles.labelDark]}>
-                {t('troubleshooting')}
-              </Text>
-            </View>
-            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
-          </TouchableOpacity>
+            style={{ marginBottom: 8 }}
+          />
 
           {/* GitHub */}
-          <TouchableOpacity 
-            style={[styles.switchRow, isDark && styles.switchRowDark]} 
+          <SettingsActionRow
+            iconName="link"
+            iconColor={isDark ? '#60a5fa' : '#2563eb'}
+            title={t('viewOnGitHub')}
+            isDark={isDark}
             onPress={() => openURL('https://github.com/linkalls/jules-mobile-client')}
-          >
-            <View style={styles.switchLabel}>
-              <IconSymbol name="link" size={20} color={isDark ? '#60a5fa' : '#2563eb'} />
-              <Text style={[styles.label, isDark && styles.labelDark]}>
-                {t('viewOnGitHub')}
-              </Text>
-            </View>
-            <IconSymbol name="chevron.right" size={16} color={isDark ? '#64748b' : '#94a3b8'} />
-          </TouchableOpacity>
+          />
         </View>
 
         {/* About/Version */}
         <View style={styles.section}>
-          <View style={[styles.switchRow, isDark && styles.switchRowDark]}>
-            <View style={styles.switchLabel}>
-              <IconSymbol name="info.circle" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
-              <Text style={[styles.label, isDark && styles.labelDark]}>
-                {t('appVersion')}
+          <SettingsActionRow
+            iconName="info.circle"
+            iconColor={isDark ? '#94a3b8' : '#64748b'}
+            title={t('appVersion')}
+            isDark={isDark}
+            rightContent={
+              <Text style={[styles.langValue, isDark && styles.langValueDark]}>
+                v{Constants.expoConfig?.version || '1.0.0'}
               </Text>
-            </View>
-            <Text style={[styles.langValue, isDark && styles.langValueDark]}>
-              v{Constants.expoConfig?.version || '1.0.0'}
-            </Text>
-          </View>
+            }
+          />
         </View>
 
         {/* ヒント */}
-        <View style={[styles.hintBox, isDark && styles.hintBoxDark]}>
-          <View style={styles.hintHeader}>
-            <IconSymbol name="lightbulb" size={16} color={isDark ? '#60a5fa' : '#2563eb'} />
-            <Text style={[styles.hintBoxTitle, isDark && styles.hintBoxTitleDark]}>{t('hint')}</Text>
-          </View>
-          <Text style={[styles.hintBoxText, isDark && styles.hintBoxTextDark]}>
-            {t('securityHint')}
-          </Text>
-        </View>
+        <SettingsHintBox
+          isDark={isDark}
+          title={t('hint')}
+          text={t('securityHint')}
+        />
       </ScrollView>
     </SafeAreaView>
   );
