@@ -53,7 +53,7 @@
     "react-syntax-highlighter": "^16.1.0"
   },
   "devDependencies": {
-    "@testing-library/react-native": "^12.9.0",
+    "@testing-library/react-native": "^13.3.3",
     "@types/react": "~19.1.0",
     "@types/react-test-renderer": "^19.0.0",
     "babel-plugin-module-resolver": "^5.0.2",
