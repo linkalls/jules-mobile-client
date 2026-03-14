@@ -7,7 +7,6 @@ import {
   StyleSheet,
   RefreshControl,
   Animated,
-  TextInput,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +15,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SessionCard, SessionCardSkeleton } from '@/components/jules';
+import { ErrorBanner } from '@/components/jules/error-banner';
+import { SearchAndFilterBar } from '@/components/jules/search-and-filter-bar';
 import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Session } from '@/constants/types';
@@ -320,107 +321,31 @@ export default function SessionsScreen() {
 
       {/* エラー表示 */}
       {error && (
-        <View style={[styles.errorBanner, isDark && styles.errorBannerDark]}>
-          <View style={styles.errorContent}>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity 
-              style={styles.retryButton}
-              onPress={() => {
-                clearError();
-                void onRefresh();
-              }}
-              accessibilityLabel={t('tapToRetry')}
-              accessibilityRole="button"
-            >
-              <Text style={styles.retryButtonText}>{t('tapToRetry')}</Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity onPress={clearError} accessibilityLabel="Close error" accessibilityRole="button">
-            <Text style={styles.errorClose}>×</Text>
-          </TouchableOpacity>
-        </View>
+        <ErrorBanner
+          error={error}
+          clearError={clearError}
+          onRefresh={onRefresh}
+          isDark={isDark}
+          t={t}
+        />
       )}
 
       {/* Search and Filter Bar */}
       {apiKey && sessions.length > 0 && (
-        <View style={styles.searchContainer}>
-          <View style={[styles.searchBar, isDark && styles.searchBarDark]}>
-            <IconSymbol name="magnifyingglass" size={18} color={colors.icon} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.text }]}
-              placeholder={t('searchSessions')}
-              placeholderTextColor={colors.icon}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={clearSearch}>
-                <IconSymbol name="xmark.circle.fill" size={18} color={colors.icon} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <Text style={[styles.filterLabel, { color: colors.icon }]}>{t('quickFilters')}</Text>
-          <FlatList
-            data={FILTER_OPTIONS}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.key}
-            contentContainerStyle={styles.filterChipsContainer}
-            renderItem={({ item }) => {
-              const isActive = activeFilter === item.key;
-              return (
-                <TouchableOpacity
-                  style={[
-                    styles.filterChip,
-                    isDark && styles.filterChipDark,
-                    isActive && styles.filterChipActive,
-                  ]}
-                  onPress={() => setActiveFilter(item.key)}
-                >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      isDark && styles.filterChipTextDark,
-                      isActive && styles.filterChipTextActive,
-                    ]}
-                  >
-                    {t(item.labelKey)}
-                  </Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
-
-          <View style={styles.savedFilterHeader}>
-            <Text style={[styles.filterLabel, { color: colors.icon }]}>{t('savedFilters')}</Text>
-            <TouchableOpacity onPress={() => void saveCurrentPreset()}>
-              <Text style={[styles.savePresetText, { color: colors.primary }]}>{t('saveCurrentFilter')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {savedPresets.length > 0 && (
-            <FlatList
-              data={savedPresets}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.filterChipsContainer}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.filterChip, isDark && styles.filterChipDark]}
-                  onPress={() => applyPreset(item)}
-                >
-                  <Text style={[styles.filterChipText, isDark && styles.filterChipTextDark]} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          )}
-        </View>
+        <SearchAndFilterBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          clearSearch={clearSearch}
+          activeFilter={activeFilter}
+          setActiveFilter={setActiveFilter}
+          filterOptions={FILTER_OPTIONS}
+          savedPresets={savedPresets}
+          saveCurrentPreset={saveCurrentPreset}
+          applyPreset={applyPreset}
+          colors={colors}
+          isDark={isDark}
+          t={t}
+        />
       )}
 
       {/* セッション一覧 */}
@@ -574,47 +499,6 @@ const styles = StyleSheet.create({
   refreshButton: {
     padding: 8,
   },
-  errorBanner: {
-    margin: 16,
-    padding: 14,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    borderLeftWidth: 3,
-    borderLeftColor: '#ef4444',
-  },
-  errorBannerDark: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-  },
-  errorContent: {
-    flex: 1,
-    gap: 8,
-  },
-  errorText: {
-    color: '#dc2626',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  retryButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(220, 38, 38, 0.15)',
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  retryButtonText: {
-    color: '#dc2626',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  errorClose: {
-    color: '#dc2626',
-    fontSize: 20,
-    fontWeight: '700',
-    paddingLeft: 12,
-  },
   listContent: {
     padding: 16,
     paddingBottom: 100,
@@ -641,81 +525,6 @@ const styles = StyleSheet.create({
   },
   emptySubtextDark: {
     color: '#64748b',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
-    alignItems: 'center',
-  },
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 8,
-    borderWidth: 1.5,
-    borderColor: '#e2e8f0',
-  },
-  searchBarDark: {
-    backgroundColor: '#1e293b',
-    borderColor: '#334155',
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    padding: 0,
-  },
-  filterLabel: {
-    marginTop: 8,
-    marginBottom: 6,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  filterChipsContainer: {
-    gap: 8,
-    paddingRight: 8,
-  },
-  filterChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 999,
-    backgroundColor: '#eef2ff',
-    borderWidth: 1,
-    borderColor: '#c7d2fe',
-  },
-  filterChipDark: {
-    backgroundColor: '#1e293b',
-    borderColor: '#334155',
-  },
-  filterChipActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
-  },
-  filterChipText: {
-    fontSize: 12,
-    color: '#334155',
-    fontWeight: '600',
-  },
-  filterChipTextDark: {
-    color: '#cbd5e1',
-  },
-  filterChipTextActive: {
-    color: '#ffffff',
-  },
-  savedFilterHeader: {
-    marginTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  savePresetText: {
-    fontSize: 12,
-    fontWeight: '700',
   },
   loadingMoreContainer: {
     flexDirection: 'row',
