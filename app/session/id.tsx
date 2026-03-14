@@ -27,6 +27,7 @@ import type { Activity, Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
 import { isValidExternalLink } from '@/utils/url';
+import { Colors } from '@/constants/theme';
 
 export default function SessionDetailScreen() {
   const { id, title, submittedPr } = useLocalSearchParams<{ id: string; title: string; submittedPr?: string }>();
@@ -244,9 +245,9 @@ export default function SessionDetailScreen() {
         options={{
           title: title || 'Session',
           headerStyle: {
-            backgroundColor: isDark ? '#0f172a' : '#ffffff',
+            backgroundColor: Colors[isDark ? 'dark' : 'light'].headerBackground,
           },
-          headerTintColor: isDark ? '#f8fafc' : '#0f172a',
+          headerTintColor: Colors[isDark ? 'dark' : 'light'].headerText,
           headerRight: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginRight: 8 }}>
               {sessionState && (
