@@ -94,6 +94,7 @@ export default function SettingsScreen() {
 
   const { apiKey, setApiKey: saveApiKeyToContext } = useApiKey();
   const [localApiKey, setLocalApiKey] = useState(apiKey);
+  const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
   const [manualDarkMode, setManualDarkMode] = useState(isDark);
   
   const { language, setLanguage, t } = useI18n();
@@ -177,16 +178,29 @@ export default function SettingsScreen() {
         {/* APIキー設定 */}
         <View style={styles.section}>
           <Text style={[styles.label, isDark && styles.labelDark]}>{t('apiKeyLabel')}</Text>
-          <TextInput
-            style={[styles.input, isDark && styles.inputDark]}
-            value={localApiKey}
-            onChangeText={setLocalApiKey}
-            placeholder="AIzaSy..."
-            placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+          <View style={styles.passwordInputContainer}>
+            <TextInput
+              style={[styles.input, isDark && styles.inputDark, styles.passwordInput]}
+              value={localApiKey}
+              onChangeText={setLocalApiKey}
+              placeholder="AIzaSy..."
+              placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+              secureTextEntry={!isApiKeyVisible}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setIsApiKeyVisible(!isApiKeyVisible)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <IconSymbol
+                name={isApiKeyVisible ? "eye.slash" : "eye"}
+                size={20}
+                color={isDark ? '#94a3b8' : '#64748b'}
+              />
+            </TouchableOpacity>
+          </View>
           <Text style={[styles.hint, isDark && styles.hintDark]}>
             {t('apiKeyHint')}
           </Text>
@@ -383,6 +397,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  passwordInputContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  passwordInput: {
+    paddingRight: 50,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
+    height: '100%',
+    justifyContent: 'center',
   },
   inputDark: {
     backgroundColor: '#1e293b',
