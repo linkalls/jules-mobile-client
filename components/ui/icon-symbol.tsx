@@ -48,6 +48,10 @@ const MAPPING = {
   // Theme
   'sun.max.fill': 'light-mode',
   'moon.fill': 'dark-mode',
+
+  // Visibility
+  'eye': 'visibility',
+  'eye.slash': 'visibility-off',
 } as IconMapping;
 
 /**

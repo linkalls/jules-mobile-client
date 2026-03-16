@@ -311,7 +311,7 @@ function PromptInput({
       <View style={styles.labelRow}>
         <Text style={[styles.label, isDark && styles.labelDark]}>{t('promptLabel')}</Text>
         <Text style={[styles.charCounter, isDark && styles.charCounterDark]}>
-          {prompt.length} / 500
+          {prompt.length} / 5000
         </Text>
       </View>
       <TextInput
@@ -322,7 +322,7 @@ function PromptInput({
         placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
         multiline
         textAlignVertical="top"
-        maxLength={500}
+        maxLength={5000}
       />
     </View>
   );
