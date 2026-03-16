@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Activity } from '@/constants/types';
-import { Colors } from '@/constants/theme';
+import { Colors, type ThemeColors } from '@/constants/theme';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ActivityItemProps {
@@ -138,7 +138,7 @@ const formatTime = (dateStr: string) => {
 };
 
 // Markdownスタイル
-const getMarkdownStyles = (isDark: boolean, colors: any) => ({
+const getMarkdownStyles = (isDark: boolean, colors: ThemeColors) => ({
   body: {
     color: isDark ? '#e2e8f0' : '#1e293b',
     fontSize: 14,
@@ -184,7 +184,7 @@ const getMarkdownStyles = (isDark: boolean, colors: any) => ({
   },
 });
 
-function AgentMessageActivity({ activity, isDark, colors, formatTime, getMarkdownStyles }: { activity: Activity, isDark: boolean, colors: any, formatTime: (dateStr: string) => string, getMarkdownStyles: (isDark: boolean, colors: any) => any }) {
+function AgentMessageActivity({ activity, isDark, colors, formatTime, getMarkdownStyles }: { activity: Activity, isDark: boolean, colors: ThemeColors, formatTime: (dateStr: string) => string, getMarkdownStyles: (isDark: boolean, colors: ThemeColors) => ReturnType<typeof getMarkdownStyles> }) {
   return (
     <View style={styles.container}>
       <View style={[styles.bubble, styles.bubbleAgent, isDark && styles.bubbleAgentDark]}>
@@ -212,7 +212,7 @@ function AgentMessageActivity({ activity, isDark, colors, formatTime, getMarkdow
   );
 }
 
-function UserMessageActivity({ activity, isDark, colors, formatTime }: { activity: Activity, isDark: boolean, colors: any, formatTime: (dateStr: string) => string }) {
+function UserMessageActivity({ activity, isDark, colors, formatTime }: { activity: Activity, isDark: boolean, colors: ThemeColors, formatTime: (dateStr: string) => string }) {
   return (
     <View style={[styles.container, styles.containerUser]}>
       <View style={styles.bubble}>
@@ -240,7 +240,7 @@ function UserMessageActivity({ activity, isDark, colors, formatTime }: { activit
   );
 }
 
-function PlanGeneratedActivity({ activity, isDark, colors }: { activity: Activity, isDark: boolean, colors: any }) {
+function PlanGeneratedActivity({ activity, isDark, colors }: { activity: Activity, isDark: boolean, colors: ThemeColors }) {
   const plan = activity.planGenerated!.plan;
   return (
     <View style={styles.container}>
@@ -271,7 +271,7 @@ function PlanGeneratedActivity({ activity, isDark, colors }: { activity: Activit
   );
 }
 
-function PlanApprovalRequestedActivity({ activity, isDark, colors, onApprovePlan }: { activity: Activity, isDark: boolean, colors: any, onApprovePlan?: (planId: string) => void }) {
+function PlanApprovalRequestedActivity({ activity, isDark, colors, onApprovePlan }: { activity: Activity, isDark: boolean, colors: ThemeColors, onApprovePlan?: (planId: string) => void }) {
   const planId = activity.planApprovalRequested!.planId;
   return (
     <View style={styles.container}>
@@ -320,7 +320,7 @@ function PlanApprovalRequestedActivity({ activity, isDark, colors, onApprovePlan
   );
 }
 
-function PlanApprovedActivity({ activity, isDark, colors, formatTime }: { activity: Activity, isDark: boolean, colors: any, formatTime: (dateStr: string) => string }) {
+function PlanApprovedActivity({ activity, isDark, colors, formatTime }: { activity: Activity, isDark: boolean, colors: ThemeColors, formatTime: (dateStr: string) => string }) {
   return (
     <View style={[styles.container, styles.containerUser]}>
       <View style={[styles.bubble, styles.bubbleUser]}>
@@ -337,7 +337,7 @@ function PlanApprovedActivity({ activity, isDark, colors, formatTime }: { activi
   );
 }
 
-function ProgressUpdatedActivity({ activity, isDark, colors }: { activity: Activity, isDark: boolean, colors: any }) {
+function ProgressUpdatedActivity({ activity, isDark, colors }: { activity: Activity, isDark: boolean, colors: ThemeColors }) {
   const [expanded, setExpanded] = useState(false);
   const [showCode, setShowCode] = useState(false);
 
