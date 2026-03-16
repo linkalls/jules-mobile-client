@@ -1,4 +1,4 @@
-import { describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, mock, Mock } from "bun:test";
 
 mock.module("react", () => ({
   default: {
@@ -58,7 +58,6 @@ mock.module("expo-secure-store", () => ({
   deleteItemAsync: mock(() => Promise.resolve()),
 }));
 
-import * as SecureStore from "expo-secure-store";
 import { useSecureStorage } from "./use-secure-storage";
 
 // Bypass missing RNTL
@@ -81,7 +80,7 @@ describe("useSecureStorage", () => {
   describe("getApiKey", () => {
     it("should return null when SecureStore.getItemAsync fails", async () => {
       const { getItemAsync } = await import("expo-secure-store");
-      (getItemAsync as any).mockImplementation(() => Promise.reject(new Error("Storage error")));
+      (getItemAsync as Mock<typeof getItemAsync>).mockImplementation(() => Promise.reject(new Error("Storage error")));
 
       const { result } = renderHook(() => useSecureStorage());
       let apiKey;
@@ -94,10 +93,10 @@ describe("useSecureStorage", () => {
 
     it("should return the key when SecureStore.getItemAsync succeeds", async () => {
       const { getItemAsync } = await import("expo-secure-store");
-      (getItemAsync as any).mockImplementation(() => Promise.resolve("test-api-key"));
+      (getItemAsync as Mock<typeof getItemAsync>).mockImplementation(() => Promise.resolve("test-api-key"));
 
       const { result } = renderHook(() => useSecureStorage());
-      let apiKey: string | null = "";
+      let apiKey;
       await act(async () => {
         apiKey = await result.current.getApiKey();
       });
@@ -109,7 +108,7 @@ describe("useSecureStorage", () => {
   describe("saveApiKey", () => {
     it("should call SecureStore.setItemAsync with correct parameters", async () => {
       const { setItemAsync } = await import("expo-secure-store");
-      const mockSetItem = setItemAsync as any;
+      const mockSetItem = setItemAsync as Mock<typeof setItemAsync>;
       mockSetItem.mockClear();
 
       const { result } = renderHook(() => useSecureStorage());
@@ -124,7 +123,7 @@ describe("useSecureStorage", () => {
   describe("deleteApiKey", () => {
     it("should handle error silently when SecureStore.deleteItemAsync fails", async () => {
       const { deleteItemAsync } = await import("expo-secure-store");
-      (deleteItemAsync as any).mockImplementation(() => Promise.reject(new Error("Delete error")));
+      (deleteItemAsync as Mock<typeof deleteItemAsync>).mockImplementation(() => Promise.reject(new Error("Delete error")));
 
       const { result } = renderHook(() => useSecureStorage());
 
@@ -138,7 +137,7 @@ describe("useSecureStorage", () => {
   describe("theme storage", () => {
     it("getTheme should return null when SecureStore.getItemAsync fails", async () => {
       const { getItemAsync } = await import("expo-secure-store");
-      (getItemAsync as any).mockImplementation(() => Promise.reject(new Error("Storage error")));
+      (getItemAsync as Mock<typeof getItemAsync>).mockImplementation(() => Promise.reject(new Error("Storage error")));
 
       const { result } = renderHook(() => useSecureStorage());
       let theme;
@@ -151,7 +150,7 @@ describe("useSecureStorage", () => {
 
     it("saveTheme should call SecureStore.setItemAsync", async () => {
       const { setItemAsync } = await import("expo-secure-store");
-      const mockSetItem = setItemAsync as any;
+      const mockSetItem = setItemAsync as Mock<typeof setItemAsync>;
       mockSetItem.mockClear();
 
       const { result } = renderHook(() => useSecureStorage());
@@ -166,7 +165,7 @@ describe("useSecureStorage", () => {
   describe("language storage", () => {
     it("getLanguage should return null when SecureStore.getItemAsync fails", async () => {
       const { getItemAsync } = await import("expo-secure-store");
-      (getItemAsync as any).mockImplementation(() => Promise.reject(new Error("Storage error")));
+      (getItemAsync as Mock<typeof getItemAsync>).mockImplementation(() => Promise.reject(new Error("Storage error")));
 
       const { result } = renderHook(() => useSecureStorage());
       let lang;
@@ -179,7 +178,7 @@ describe("useSecureStorage", () => {
 
     it("saveLanguage should call SecureStore.setItemAsync", async () => {
       const { setItemAsync } = await import("expo-secure-store");
-      const mockSetItem = setItemAsync as any;
+      const mockSetItem = setItemAsync as Mock<typeof setItemAsync>;
       mockSetItem.mockClear();
 
       const { result } = renderHook(() => useSecureStorage());
@@ -194,7 +193,7 @@ describe("useSecureStorage", () => {
   describe("recent repos storage", () => {
     it("getRecentRepos should return empty array when SecureStore.getItemAsync fails", async () => {
       const { getItemAsync } = await import("expo-secure-store");
-      (getItemAsync as any).mockImplementation(() => Promise.reject(new Error("Storage error")));
+      (getItemAsync as Mock<typeof getItemAsync>).mockImplementation(() => Promise.reject(new Error("Storage error")));
 
       const { result } = renderHook(() => useSecureStorage());
       let repos: any[] = [];
@@ -210,9 +209,9 @@ describe("useSecureStorage", () => {
 
       // Initial state: one repo already exists
       const existingRepos = JSON.stringify([{ name: "old-repo" }]);
-      (getItemAsync as any).mockImplementation(() => Promise.resolve(existingRepos));
+      (getItemAsync as Mock<typeof getItemAsync>).mockImplementation(() => Promise.resolve(existingRepos));
 
-      const mockSetItem = setItemAsync as any;
+      const mockSetItem = setItemAsync as Mock<typeof setItemAsync>;
       mockSetItem.mockClear();
 
       const { result } = renderHook(() => useSecureStorage());
@@ -227,7 +226,7 @@ describe("useSecureStorage", () => {
 
     it("saveRecentRepo should handle error silently", async () => {
         const { getItemAsync } = await import("expo-secure-store");
-        (getItemAsync as any).mockImplementation(() => Promise.reject(new Error("Read error")));
+        (getItemAsync as Mock<typeof getItemAsync>).mockImplementation(() => Promise.reject(new Error("Read error")));
 
         const { result } = renderHook(() => useSecureStorage());
 
