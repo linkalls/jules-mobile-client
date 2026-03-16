@@ -51,7 +51,10 @@ export function useJulesSources({ julesFetch, translate, setIsLoading, setError 
       const newSources = data.sources || [];
 
       // Update local state by merging without duplicates
-      const currentNames = new Set(sources.map(s => s.name));
+      const currentNames = new Set<string>();
+      for (const s of sources) {
+        currentNames.add(s.name);
+      }
       const deduplicatedNewSources = newSources.filter(s => !currentNames.has(s.name));
       const allSources = [...sources, ...deduplicatedNewSources];
 
