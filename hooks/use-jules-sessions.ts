@@ -147,12 +147,14 @@ export function useJulesSessions({ julesFetch, translate, setIsLoading, setError
           title: string;
           images?: { mimeType: string; data: string }[];
           requirePlanApproval?: boolean;
+          automationMode?: string;
         } = {
           prompt: prompt.trim(),
           sourceContext: {
             source: sourceName,
           },
           title: prompt.trim().slice(0, 30) + (prompt.trim().length > 30 ? '...' : ''),
+          automationMode: 'AUTO_CREATE_PR',
         };
 
         // Add githubRepoContext if defaultBranch is provided
