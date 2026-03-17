@@ -228,7 +228,10 @@ export function useJulesSessions({ julesFetch, translate, setIsLoading, setError
             };
           };
           title: string;
-          images?: { mimeType: string; data: string }[];
+          // TODO: Jules API v1alpha currently does not expose image input via API.
+          // Image upload is supported in the web UI only (added 2025-09-09).
+          // When the API supports it, uncomment and include images in the request body.
+          // images?: { mimeType: string; data: string }[];
           requirePlanApproval?: boolean;
           automationMode?: string;
         } = {

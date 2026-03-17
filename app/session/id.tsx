@@ -18,6 +18,7 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ActivityItem, ActivityItemSkeleton } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
@@ -29,6 +30,7 @@ import { useApiKey } from '@/constants/api-key-context';
 import { SessionHeaderRight } from '@/components/jules/session-header-right';
 import { ErrorBanner } from '@/components/jules/error-banner';
 import { ApprovalBanner } from '@/components/jules/approval-banner';
+import { FeedbackBanner } from '@/components/jules/feedback-banner';
 import { SessionInput } from '@/components/jules/session-input';
 import { PrCard } from '@/components/jules/pr-card';
 
@@ -49,7 +51,7 @@ export default function SessionDetailScreen() {
   const keyboardPadding = useRef(new Animated.Value(0)).current;
 
   const flatListRef = useRef<FlatList>(null);
-  const { isLoading, error, clearError, fetchActivities, fetchSession, approvePlan, sendMessage } = useJulesApi({ apiKey, t });
+  const { isLoading, error, clearError, fetchActivities, fetchActivitiesSince, fetchSession, approvePlan, sendMessage } = useJulesApi({ apiKey, t });
 
   // キーボード表示時のアニメーション付きパディング調整
   useEffect(() => {
@@ -96,28 +98,70 @@ export default function SessionDetailScreen() {
       void loadSessionState();
 
       // ポーリング設定 (5秒ごと)
-      const interval = setInterval(() => {
-        void fetchActivities(id, true).then((data) => {
-          setActivities((prev) => {
-            // データが増えている場合のみ更新
-            if (data.length > prev.length) {
-              return data;
+      const interval = setInterval(async () => {
+        // 最後のactivityのcreateTimeを基準に差分取得
+        setActivities((prev) => {
+          const lastActivity = prev[prev.length - 1];
+          const sinceTime = lastActivity?.createTime ?? new Date(0).toISOString();
+
+          void fetchActivitiesSince(id, sinceTime, true).then((newActivities) => {
+            if (newActivities.length > 0) {
+              setActivities((currentActivities) => {
+                const existingNames = new Set(currentActivities.map((a) => a.name));
+                const truly_new = newActivities.filter((a) => !existingNames.has(a.name));
+                if (truly_new.length === 0) return currentActivities;
+
+                // 自動スクロール
+                setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+                return [...currentActivities, ...truly_new];
+              });
             }
-            return prev;
           });
+          return prev;
         });
+
         // Also poll session state to detect state changes
-        void fetchSession(id, true).then((session) => {
-          if (session) {
-            setSessionState(session.state);
+        const session = await fetchSession(id, true);
+        if (session) {
+          setSessionState(session.state);
+          setCurrentSession(session);
+
+          if (session.state === 'COMPLETED' && !currentSubmittedPr) {
+            for (const output of session.outputs ?? []) {
+              if (output.pullRequest?.url) {
+                setCurrentSubmittedPr(output.pullRequest);
+                break;
+              }
+            }
           }
-        });
+        }
       }, 5000);
 
       return () => clearInterval(interval);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, id]);
+
+  // sessionState の変化を監視してHaptics通知
+  const prevSessionStateRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!sessionState) return;
+    const prev = prevSessionStateRef.current;
+    prevSessionStateRef.current = sessionState;
+
+    if (prev && prev !== sessionState) {
+      if (sessionState === 'COMPLETED') {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else if (sessionState === 'FAILED') {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      } else if (
+        sessionState === 'AWAITING_PLAN_APPROVAL' ||
+        sessionState === 'AWAITING_USER_FEEDBACK'
+      ) {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
+    }
+  }, [sessionState]);
 
   const loadActivities = useCallback(async () => {
     if (!id) return;
@@ -182,6 +226,16 @@ export default function SessionDetailScreen() {
     }
   };
 
+  const STATE_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
+    QUEUED:                  { label: 'Queued',           color: '#64748b', icon: 'clock' },
+    IN_PROGRESS:             { label: 'Working...',       color: '#2563eb', icon: 'arrow.clockwise' },
+    AWAITING_PLAN_APPROVAL:  { label: 'Needs Approval',   color: '#f59e0b', icon: 'hand.raised' },
+    AWAITING_USER_FEEDBACK:  { label: 'Waiting for You',  color: '#8b5cf6', icon: 'bubble.left' },
+    COMPLETED:               { label: 'Completed',        color: '#10b981', icon: 'checkmark.circle' },
+    FAILED:                  { label: 'Failed',           color: '#ef4444', icon: 'xmark.circle' },
+    PAUSED:                  { label: 'Paused',           color: '#94a3b8', icon: 'pause.circle' },
+  };
+
   // Export session handler
   const handleExportSession = useCallback(async (format: 'markdown' | 'json') => {
     if (!currentSession || activities.length === 0) {
@@ -240,7 +294,21 @@ export default function SessionDetailScreen() {
     <>
       <Stack.Screen
         options={{
-          title: title || 'Session',
+          headerTitle: () => (
+            <View style={styles.headerTitleContainer}>
+              <Text style={[styles.headerTitle, isDark && styles.headerTitleDark]} numberOfLines={1}>
+                {title || 'Session'}
+              </Text>
+              {sessionState && STATE_CONFIG[sessionState] && (
+                <View style={styles.headerSubtitleContainer}>
+                  <IconSymbol name={STATE_CONFIG[sessionState].icon as any} size={10} color={STATE_CONFIG[sessionState].color} />
+                  <Text style={[styles.headerSubtitle, { color: STATE_CONFIG[sessionState].color }]}>
+                    {STATE_CONFIG[sessionState].label}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ),
           headerStyle: {
             backgroundColor: isDark ? '#0f172a' : '#ffffff',
           },
@@ -268,6 +336,7 @@ export default function SessionDetailScreen() {
 
         {/* Global approve button fallback (API may not emit planApprovalRequested activity) */}
         <ApprovalBanner sessionState={sessionState} id={id} isDark={isDark} t={t} handleApprovePlan={handleApprovePlan} />
+        <FeedbackBanner sessionState={sessionState} isDark={isDark} t={t} />
 
         {/* チャットエリア */}
         {isLoading && activities.length === 0 ? (
@@ -290,6 +359,36 @@ export default function SessionDetailScreen() {
             initialNumToRender={15}
             maxToRenderPerBatch={10}
             windowSize={10}
+            ListHeaderComponent={
+              sessionState === 'COMPLETED' && currentSubmittedPr ? (
+                <TouchableOpacity
+                  style={[styles.prBanner, isDark && styles.prBannerDark]}
+                  onPress={() => {
+                    const url = typeof currentSubmittedPr === 'string'
+                      ? currentSubmittedPr
+                      : currentSubmittedPr.url;
+                    if (url) void Linking.openURL(url);
+                  }}
+                >
+                  <LinearGradient
+                    colors={['#059669', '#10b981']}
+                    style={styles.prBannerGradient}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  >
+                    <IconSymbol name="arrow.triangle.pull" size={18} color="#ffffff" />
+                    <View style={{ flex: 1, marginLeft: 8 }}>
+                      <Text style={styles.prBannerTitle}>Pull Request Created!</Text>
+                      {typeof currentSubmittedPr !== 'string' && currentSubmittedPr?.title && (
+                        <Text style={styles.prBannerSubtitle} numberOfLines={1}>
+                          {currentSubmittedPr.title}
+                        </Text>
+                      )}
+                    </View>
+                    <IconSymbol name="chevron.right" size={14} color="rgba(255,255,255,0.7)" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              ) : null
+            }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <IconSymbol name="bubble.left.and.bubble.right" size={48} color={isDark ? '#475569' : '#94a3b8'} />
@@ -345,5 +444,57 @@ const styles = StyleSheet.create({
   },
   emptyTextDark: {
     color: '#94a3b8',
+  },
+  prBanner: {
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  prBannerDark: {
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+  },
+  prBannerGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  prBannerTitle: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  prBannerSubtitle: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  headerTitleContainer: {
+    alignItems: Platform.OS === 'ios' ? 'center' : 'flex-start',
+    justifyContent: 'center',
+    maxWidth: Platform.OS === 'ios' ? 200 : 250,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0f172a',
+  },
+  headerTitleDark: {
+    color: '#f8fafc',
+  },
+  headerSubtitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  headerSubtitle: {
+    fontSize: 11,
+    fontWeight: '500',
   },
 });

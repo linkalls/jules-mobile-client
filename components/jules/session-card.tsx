@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { Swipeable } from 'react-native-gesture-handler';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
 import type { Session } from '@/constants/types';
@@ -13,6 +15,10 @@ interface SessionCardProps {
   onPress: () => void;
   onApprove?: () => void;
   isApproving?: boolean;
+}
+
+interface SwipeableSessionCardProps extends SessionCardProps {
+  onDelete?: (sessionName: string) => void;
 }
 
 /**
@@ -46,10 +52,27 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress, o
   const { t } = useI18n();
   const colors = isDark ? Colors.dark : Colors.light;
   
+  const isAwaitingFeedback = session.state === 'AWAITING_USER_FEEDBACK';
+  const isAwaitingApproval = session.state === 'AWAITING_PLAN_APPROVAL';
+
   // Animation for press effect
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   
+  useEffect(() => {
+    if (isAwaitingFeedback || isAwaitingApproval) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.02, duration: 800, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1,    duration: 800, useNativeDriver: true }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isAwaitingFeedback, isAwaitingApproval, pulseAnim]);
+
   useEffect(() => {
     // Subtle glow animation
     Animated.loop(
@@ -84,6 +107,13 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress, o
       useNativeDriver: true,
     }).start();
   };
+
+  // Border color based on state
+  const borderColor = isAwaitingFeedback
+    ? '#8b5cf6'
+    : isAwaitingApproval
+    ? '#f59e0b'
+    : isDark ? '#334155' : '#e2e8f0';
 
   const getStateColor = () => {
     switch (session.state) {
@@ -163,9 +193,9 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress, o
   });
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View style={{ transform: [{ scale: Animated.multiply(scaleAnim, pulseAnim) }] }}>
       <TouchableOpacity
-        style={[styles.card, isDark && styles.cardDark]}
+        style={[styles.card, isDark && styles.cardDark, { borderColor, borderWidth: (isAwaitingFeedback || isAwaitingApproval) ? 2 : 1 }]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -342,4 +372,45 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  deleteAction: {
+    backgroundColor: '#ef4444',
+    width: 80,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+    marginLeft: 8,
+  },
+  deleteActionText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+  },
 });
+
+export function SwipeableSessionCard({ session, onDelete, ...props }: SwipeableSessionCardProps) {
+  const { t } = useI18n();
+  const renderRightActions = () => (
+    <TouchableOpacity
+      style={styles.deleteAction}
+      onPress={() => {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        if (onDelete) {
+          onDelete(session.name);
+        }
+      }}
+      accessibilityLabel={t('delete')}
+      accessibilityRole="button"
+    >
+      <IconSymbol name="trash.fill" size={22} color="#ffffff" />
+      <Text style={styles.deleteActionText}>{t('delete')}</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <Swipeable renderRightActions={renderRightActions} overshootRight={false}>
+      <SessionCard session={session} {...props} />
+    </Swipeable>
+  );
+}
