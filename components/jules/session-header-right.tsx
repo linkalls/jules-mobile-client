@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { isValidExternalLink } from '@/utils/url';
 
 export function getSessionStateText(state: string | null, t: (key: string) => string): string {
   if (!state) return '';
@@ -20,13 +21,14 @@ export function getSessionStateText(state: string | null, t: (key: string) => st
 
 interface SessionHeaderRightProps {
   sessionState: string | null;
+  sessionUrl?: string;
   isDark: boolean;
   t: (key: string) => string;
   showExportMenu: () => void;
   loadActivities: () => void;
 }
 
-export function SessionHeaderRight({ sessionState, isDark, t, showExportMenu, loadActivities }: SessionHeaderRightProps) {
+export function SessionHeaderRight({ sessionState, sessionUrl, isDark, t, showExportMenu, loadActivities }: SessionHeaderRightProps) {
   return (
     <View style={styles.headerRightContainer}>
       {sessionState && (
@@ -46,6 +48,22 @@ export function SessionHeaderRight({ sessionState, isDark, t, showExportMenu, lo
             {getSessionStateText(sessionState, t)}
           </Text>
         </View>
+      )}
+      {sessionUrl && (
+        <TouchableOpacity
+          onPress={() => {
+            if (isValidExternalLink(sessionUrl)) {
+              void Linking.openURL(sessionUrl);
+            } else {
+              Alert.alert(t('error'), t('unableToOpenLink'));
+            }
+          }}
+          accessibilityLabel="Open in Web"
+          accessibilityRole="button"
+          accessibilityHint="Open session in Jules web app"
+        >
+          <IconSymbol name="globe" size={20} color={isDark ? '#94a3b8' : '#64748b'} />
+        </TouchableOpacity>
       )}
       <TouchableOpacity
         onPress={showExportMenu}

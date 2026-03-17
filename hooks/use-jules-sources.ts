@@ -71,6 +71,25 @@ export function useJulesSources({ julesFetch, translate, setIsLoading, setError 
     }
   }, [julesFetch, sources, hasMoreSources, isLoadingMoreSources, translate, setError]);
 
+  // Fetch single source
+  const fetchSource = useCallback(
+    async (sourceName: string, silent: boolean = false): Promise<Source | null> => {
+      if (!silent) setIsLoading(true);
+      setError(null);
+      try {
+        const source = await julesFetch<Source>(`/${sourceName}`);
+        return source;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : translate('fetchSourceFailed', 'Failed to fetch source');
+        setError(message);
+        return null;
+      } finally {
+        if (!silent) setIsLoading(false);
+      }
+    },
+    [julesFetch, translate, setIsLoading, setError]
+  );
+
   // Fetch all sources in background (sync with cache)
   const syncAllSources = useCallback(async (): Promise<Source[]> => {
     setIsLoadingMoreSources(true);
@@ -108,6 +127,7 @@ export function useJulesSources({ julesFetch, translate, setIsLoading, setError 
     isLoadingMoreSources,
     fetchSources,
     fetchMoreSources,
+    fetchSource,
     syncAllSources,
   };
 }

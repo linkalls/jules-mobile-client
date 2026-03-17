@@ -84,41 +84,97 @@ const skeletonStyles = StyleSheet.create({
   },
 });
 
-// Custom diff highlighter component
-function DiffHighlighter({ code }: { code: string }) {
-  const lines = React.useMemo(() => code.split('\n'), [code]);
+// Modern file-based diff parser
+function FileDiffViewer({ patch, isDark }: { patch: string; isDark: boolean }) {
+  const [expandedFiles, setExpandedFiles] = useState<Record<string, boolean>>({});
+
+  const files = React.useMemo(() => {
+    if (!patch) return [];
+
+    const lines = patch.split('\n');
+    const parsedFiles: { filename: string; lines: string[] }[] = [];
+    let currentFile: { filename: string; lines: string[] } | null = null;
+
+    for (const line of lines) {
+      if (line.startsWith('diff --git')) {
+        if (currentFile) parsedFiles.push(currentFile);
+        const parts = line.split(' ');
+        const filename = parts[parts.length - 1]?.replace(/^b\//, '') || 'unknown';
+        currentFile = { filename, lines: [line] };
+      } else if (line.startsWith('--- a/')) {
+        if (!currentFile) {
+          currentFile = { filename: line.replace('--- a/', ''), lines: [line] };
+        } else {
+          currentFile.lines.push(line);
+        }
+      } else if (currentFile) {
+        currentFile.lines.push(line);
+      }
+    }
+    if (currentFile) parsedFiles.push(currentFile);
+    return parsedFiles;
+  }, [patch]);
+
+  const toggleFile = (filename: string) => {
+    setExpandedFiles(prev => ({ ...prev, [filename]: !prev[filename] }));
+  };
 
   return (
-    <View>
-      {lines.map((line, idx) => {
-        let color = '#94a3b8'; // default gray
-        let backgroundColor = 'transparent';
-
-        if (line.startsWith('+') && !line.startsWith('+++')) {
-          color = '#4ade80'; // green for additions
-          backgroundColor = 'rgba(74, 222, 128, 0.1)';
-        } else if (line.startsWith('-') && !line.startsWith('---')) {
-          color = '#f87171'; // red for deletions
-          backgroundColor = 'rgba(248, 113, 113, 0.1)';
-        } else if (line.startsWith('@@')) {
-          color = '#60a5fa'; // blue for chunk headers
-        } else if (line.startsWith('diff') || line.startsWith('index') || line.startsWith('---') || line.startsWith('+++')) {
-          color = '#a78bfa'; // purple for file headers
-        }
+    <View style={styles.diffContainer}>
+      {files.map((file, fileIdx) => {
+        const isExpanded = expandedFiles[file.filename] ?? false; // default false -> collapsed
 
         return (
-          <Text
-            key={idx}
-            style={{
-              fontFamily: 'monospace',
-              fontSize: 11,
-              color,
-              backgroundColor,
-              paddingHorizontal: 4,
-            }}
-          >
-            {line}
-          </Text>
+          <View key={fileIdx} style={[styles.diffFileCard, isDark && styles.diffFileCardDark]}>
+            <TouchableOpacity
+              style={styles.diffFileHeader}
+              onPress={() => toggleFile(file.filename)}
+            >
+              <View style={styles.diffFileHeaderLeft}>
+                <IconSymbol name="doc.text" size={14} color={isDark ? '#e2e8f0' : '#1e293b'} />
+                <Text style={[styles.diffFileName, isDark && styles.diffFileNameDark]} numberOfLines={1}>
+                  {file.filename}
+                </Text>
+              </View>
+              <IconSymbol name={isExpanded ? "chevron.up" : "chevron.down"} size={14} color="#64748b" />
+            </TouchableOpacity>
+
+            {isExpanded && (
+              <ScrollView horizontal style={styles.diffLinesContainer} showsHorizontalScrollIndicator={false}>
+                <View>
+                  {file.lines.map((line, lineIdx) => {
+                    let color = isDark ? '#94a3b8' : '#64748b';
+                    let bgColor = 'transparent';
+
+                    if (line.startsWith('+') && !line.startsWith('+++')) {
+                      color = isDark ? '#4ade80' : '#16a34a';
+                      bgColor = isDark ? 'rgba(74, 222, 128, 0.1)' : 'rgba(34, 197, 94, 0.1)';
+                    } else if (line.startsWith('-') && !line.startsWith('---')) {
+                      color = isDark ? '#f87171' : '#dc2626';
+                      bgColor = isDark ? 'rgba(248, 113, 113, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+                    } else if (line.startsWith('@@')) {
+                      color = isDark ? '#60a5fa' : '#2563eb';
+                      bgColor = isDark ? 'rgba(96, 165, 250, 0.1)' : 'rgba(37, 99, 235, 0.1)';
+                    } else if (line.startsWith('diff') || line.startsWith('index') || line.startsWith('---') || line.startsWith('+++')) {
+                      color = isDark ? '#a78bfa' : '#7c3aed';
+                    }
+
+                    return (
+                      <Text
+                        key={lineIdx}
+                        style={[
+                          styles.diffLineText,
+                          { color, backgroundColor: bgColor }
+                        ]}
+                      >
+                        {line}
+                      </Text>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            )}
+          </View>
         );
       })}
     </View>
@@ -473,26 +529,23 @@ function ProgressUpdatedActivity({ activity, isDark, colors }: { activity: Activ
           </TouchableOpacity>
         )}
 
-        {showCode && changeSetArtifacts.map((artifact, index) => (
-          <View key={index} style={styles.codeContainer}>
-            <ScrollView
-              style={styles.codeScrollVertical}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator
-            >
-              <ScrollView
-                horizontal
-                nestedScrollEnabled
-                showsHorizontalScrollIndicator
-              >
-                <DiffHighlighter
-                  code={(artifact.changeSet?.gitPatch?.unidiffPatch?.slice(0, 3000) || '') +
-                    ((artifact.changeSet?.gitPatch?.unidiffPatch?.length || 0) > 3000 ? '\n... (truncated)' : '')}
-                />
-              </ScrollView>
-            </ScrollView>
-          </View>
-        ))}
+        {showCode && changeSetArtifacts.map((artifact, index) => {
+          const patch = artifact.changeSet?.gitPatch;
+          if (!patch) return null;
+          return (
+            <View key={index} style={styles.codeContainer}>
+              {patch.suggestedCommitMessage && (
+                <View style={styles.commitMessageContainer}>
+                  <IconSymbol name="text.quote" size={14} color="#64748b" />
+                  <Text style={[styles.commitMessageText, isDark && styles.commitMessageTextDark]}>
+                    {patch.suggestedCommitMessage}
+                  </Text>
+                </View>
+              )}
+              <FileDiffViewer patch={patch.unidiffPatch} isDark={isDark} />
+            </View>
+          );
+        })}
 
         {/* 何もない場合 */}
         {!hasAnyContent && (
@@ -813,19 +866,73 @@ const styles = StyleSheet.create({
   // コード表示
   codeContainer: {
     marginTop: 8,
-    backgroundColor: '#0f172a',
+    gap: 8,
+  },
+  commitMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 10,
+    backgroundColor: 'rgba(100, 116, 139, 0.1)',
     borderRadius: 8,
-    maxHeight: 250,
+  },
+  commitMessageText: {
+    fontSize: 12,
+    fontFamily: 'monospace',
+    color: '#334155',
+    flex: 1,
+  },
+  commitMessageTextDark: {
+    color: '#cbd5e1',
+  },
+  diffContainer: {
+    gap: 8,
+  },
+  diffFileCard: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
     overflow: 'hidden',
   },
-  codeScrollVertical: {
-    maxHeight: 250,
-    padding: 10,
+  diffFileCardDark: {
+    backgroundColor: '#0f172a',
+    borderColor: '#334155',
   },
-  codeText: {
+  diffFileHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(100, 116, 139, 0.1)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(100, 116, 139, 0.1)',
+  },
+  diffFileHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  diffFileName: {
+    fontSize: 12,
+    fontWeight: '600',
     fontFamily: 'monospace',
-    fontSize: 10,
-    color: '#94a3b8',
+    color: '#1e293b',
+  },
+  diffFileNameDark: {
+    color: '#e2e8f0',
+  },
+  diffLinesContainer: {
+    maxHeight: 250,
+    padding: 8,
+  },
+  diffLineText: {
+    fontFamily: 'monospace',
+    fontSize: 11,
+    paddingHorizontal: 4,
+    lineHeight: 16,
   },
   
   // Media artifacts

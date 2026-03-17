@@ -45,6 +45,7 @@ export default function SessionDetailScreen() {
   const [messageInput, setMessageInput] = useState('');
   const [sessionState, setSessionState] = useState<string | null>(null);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
+  const [currentSubmittedPr, setCurrentSubmittedPr] = useState<string | import('@/constants/types').PullRequest | undefined>(submittedPr);
   const keyboardPadding = useRef(new Animated.Value(0)).current;
 
   const flatListRef = useRef<FlatList>(null);
@@ -135,8 +136,18 @@ export default function SessionDetailScreen() {
     if (session) {
       setSessionState(session.state);
       setCurrentSession(session);
+
+      // Update PR link if newly available from outputs
+      if (!currentSubmittedPr && session.state === 'COMPLETED' && session.outputs && session.outputs.length > 0) {
+        for (const output of session.outputs) {
+          if (output.pullRequest?.url) {
+            setCurrentSubmittedPr(output.pullRequest);
+            break;
+          }
+        }
+      }
     }
-  }, [id, fetchSession]);
+  }, [id, fetchSession, currentSubmittedPr]);
 
   // プラン承認ハンドラ
   const handleApprovePlan = useCallback(async (_planId: string) => {
@@ -237,6 +248,7 @@ export default function SessionDetailScreen() {
           headerRight: () => (
             <SessionHeaderRight
               sessionState={sessionState}
+              sessionUrl={currentSession?.url}
               isDark={isDark}
               t={t}
               showExportMenu={showExportMenu}
@@ -287,7 +299,7 @@ export default function SessionDetailScreen() {
               </View>
             }
             ListFooterComponent={
-              <PrCard submittedPr={submittedPr} isDark={isDark} t={t} />
+              <PrCard submittedPr={currentSubmittedPr} isDark={isDark} t={t} />
             }
           />
         )}
