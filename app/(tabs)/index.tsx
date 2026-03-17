@@ -10,6 +10,7 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -88,6 +89,7 @@ export default function SessionsScreen() {
     hasMoreSessions,
     isLoadingMoreSessions,
     approvePlan,
+    deleteSession,
   } = useJulesApi({ apiKey, t });
 
   // Extract PR URLs from sessions
@@ -126,8 +128,14 @@ export default function SessionsScreen() {
       );
     }
 
-    // Default Sort (Newest first)
+    // Default Sort: Awaiting states first, then Newest first
     result.sort((a, b) => {
+      const isAAwaiting = a.state === 'AWAITING_USER_FEEDBACK' || a.state === 'AWAITING_PLAN_APPROVAL';
+      const isBAwaiting = b.state === 'AWAITING_USER_FEEDBACK' || b.state === 'AWAITING_PLAN_APPROVAL';
+
+      if (isAAwaiting && !isBAwaiting) return -1;
+      if (!isAAwaiting && isBAwaiting) return 1;
+
       return Date.parse(b.updateTime) - Date.parse(a.updateTime);
     });
 
@@ -220,14 +228,34 @@ export default function SessionsScreen() {
     }
   }, [approvePlan, fetchSessions]);
 
+  const handleDeleteSession = useCallback((sessionName: string) => {
+    Alert.alert(
+      t('deleteSession'),
+      t('deleteSessionConfirm'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('delete'),
+          style: 'destructive',
+          onPress: async () => {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            await deleteSession(sessionName);
+          },
+        },
+      ]
+    );
+  }, [deleteSession, t]);
+
   const renderSessionItem = useCallback(({ item }: { item: Session }) => (
-    <MemoizedSessionCard
-      session={item}
-      onPress={() => openSession(item)}
-      onApprove={() => handleApprove(item.name)}
-      isApproving={approvingSessionId === item.name}
-    />
-  ), [openSession, handleApprove, approvingSessionId]);
+    <TouchableOpacity onLongPress={() => handleDeleteSession(item.name)} delayLongPress={500}>
+      <MemoizedSessionCard
+        session={item}
+        onPress={() => openSession(item)}
+        onApprove={() => handleApprove(item.name)}
+        isApproving={approvingSessionId === item.name}
+      />
+    </TouchableOpacity>
+  ), [openSession, handleApprove, approvingSessionId, handleDeleteSession]);
 
   const clearSearch = useCallback(() => {
     setSearchQuery('');

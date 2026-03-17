@@ -28,13 +28,24 @@ export interface Source {
   };
 }
 
+export interface GitPatch {
+  unidiffPatch: string;
+  baseCommitId: string;
+  suggestedCommitMessage?: string;
+}
+
+export interface ChangeSet {
+  source: string;
+  gitPatch?: GitPatch;
+}
+
 /**
  * PR object
  */
 export interface PullRequest {
-  url?: string;
-  title?: string;
-  description?: string;
+  url: string;
+  title: string;
+  description: string;
 }
 
 /**
@@ -42,6 +53,7 @@ export interface PullRequest {
  */
 export interface SessionOutput {
   pullRequest?: PullRequest;
+  changeSet?: ChangeSet;
   [key: string]: unknown;
 }
 
@@ -67,6 +79,7 @@ export interface Session {
   updateTime: string;
   outputs?: SessionOutput[];
   submittedPr?: string;
+  url?: string;
 }
 
 // プランステップ
@@ -88,13 +101,7 @@ export interface BashOutput {
 // アーティファクト
 export interface Artifact {
   bashOutput?: BashOutput;
-  changeSet?: {
-    source: string;
-    gitPatch?: {
-      unidiffPatch: string;
-      baseCommitId?: string;
-    };
-  };
+  changeSet?: ChangeSet;
   media?: {
     mimeType: string;
     data: string; // base64-encoded string (API returns as 'format: byte' which is base64 in JSON)

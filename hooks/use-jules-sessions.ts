@@ -79,22 +79,105 @@ export function useJulesSessions({ julesFetch, translate, setIsLoading, setError
     }
   }, [julesFetch, translate, setIsLoading, setError]);
 
-  // Fetch activities
+  // Delete session
+  const deleteSession = useCallback(
+    async (sessionName: string): Promise<boolean> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        await julesFetch(`/${sessionName}`, {
+          method: 'DELETE',
+        });
+
+        // Remove from local state
+        setSessions((prev) => prev.filter((s) => s.name !== sessionName));
+        return true;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : translate('deleteSessionFailed', 'Failed to delete session');
+        setError(message);
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [julesFetch, translate, setIsLoading, setError, setSessions]
+  );
+
+  // Fetch single activity
+  const fetchActivity = useCallback(
+    async (activityName: string, silent: boolean = false): Promise<Activity | null> => {
+      if (!silent) setIsLoading(true);
+      setError(null);
+      try {
+        const activity = await julesFetch<Activity>(`/${activityName}`);
+        return activity;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : translate('fetchActivityFailed', 'Failed to fetch activity');
+        setError(message);
+        return null;
+      } finally {
+        if (!silent) setIsLoading(false);
+      }
+    },
+    [julesFetch, translate, setIsLoading, setError]
+  );
+
+  // Fetch activities with full pagination
   const fetchActivities = useCallback(
     async (sessionName: string, silent: boolean = false): Promise<Activity[]> => {
       if (!silent) setIsLoading(true);
       setError(null);
+      let allActivities: Activity[] = [];
+      let pageToken: string | undefined = undefined;
+
       try {
-        const data = await julesFetch<ListActivitiesResponse>(
-          `/${sessionName}/activities?pageSize=50`
-        );
-        const sorted = (data.activities || []).sort(
+        do {
+          const endpoint = `/${sessionName}/activities?pageSize=50${pageToken ? `&pageToken=${pageToken}` : ''}`;
+          const data = await julesFetch<ListActivitiesResponse>(endpoint);
+          allActivities = [...allActivities, ...(data.activities || [])];
+          pageToken = data.nextPageToken;
+        } while (pageToken);
+
+        const sorted = allActivities.sort(
           (a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime()
         );
         return sorted;
       } catch (err) {
         const message = err instanceof Error ? err.message : translate('fetchActivitiesFailed', 'Failed to fetch chat history...');
         setError(message);
+        return [];
+      } finally {
+        if (!silent) setIsLoading(false);
+      }
+    },
+    [julesFetch, translate, setIsLoading, setError]
+  );
+
+  // Fetch activities since a specific time for diff polling
+  const fetchActivitiesSince = useCallback(
+    async (sessionName: string, sinceTime: string, silent: boolean = true): Promise<Activity[]> => {
+      if (!silent) setIsLoading(true);
+      setError(null);
+      let allActivities: Activity[] = [];
+      let pageToken: string | undefined = undefined;
+
+      try {
+        do {
+          const filter = encodeURIComponent(`create_time > "${sinceTime}"`);
+          const endpoint = `/${sessionName}/activities?pageSize=50&filter=${filter}${pageToken ? `&pageToken=${pageToken}` : ''}`;
+          const data = await julesFetch<ListActivitiesResponse>(endpoint);
+          allActivities = [...allActivities, ...(data.activities || [])];
+          pageToken = data.nextPageToken;
+        } while (pageToken);
+
+        const sorted = allActivities.sort(
+          (a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime()
+        );
+        return sorted;
+      } catch (err) {
+        // Fallback silently on polling errors
+        const message = err instanceof Error ? err.message : translate('fetchActivitiesFailed', 'Failed to fetch chat history...');
+        if (!silent) setError(message);
         return [];
       } finally {
         if (!silent) setIsLoading(false);
@@ -218,9 +301,12 @@ export function useJulesSessions({ julesFetch, translate, setIsLoading, setError
     fetchSessions,
     fetchMoreSessions,
     fetchSession,
+    fetchActivity,
     fetchActivities,
+    fetchActivitiesSince,
     createSession,
     approvePlan,
     sendMessage,
+    deleteSession,
   };
 }

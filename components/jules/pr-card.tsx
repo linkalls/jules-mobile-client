@@ -3,8 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { isValidExternalLink } from '@/utils/url';
 
+import type { PullRequest } from '@/constants/types';
+
 interface PrCardProps {
-  submittedPr: string | undefined;
+  submittedPr?: string | PullRequest;
   isDark: boolean;
   t: (key: string) => string;
 }
@@ -12,17 +14,27 @@ interface PrCardProps {
 export function PrCard({ submittedPr, isDark, t }: PrCardProps) {
   if (!submittedPr) return null;
 
+  const isObject = typeof submittedPr === 'object';
+  const url = isObject ? submittedPr.url : submittedPr;
+  const title = isObject ? submittedPr.title : 'Pull Request Submitted';
+  const description = isObject ? submittedPr.description : null;
+
   return (
     <View style={[styles.prCard, isDark && styles.prCardDark]}>
       <View style={styles.prHeader}>
         <IconSymbol name="link" size={16} color="#2563eb" />
-        <Text style={[styles.prTitle, isDark && styles.prTitleDark]}>Pull Request Submitted</Text>
+        <Text style={[styles.prTitle, isDark && styles.prTitleDark]}>{title}</Text>
       </View>
+      {description && (
+        <Text style={[styles.prDescription, isDark && styles.prDescriptionDark]}>
+          {description}
+        </Text>
+      )}
       <TouchableOpacity
         style={styles.prButton}
         onPress={() => {
-          if (isValidExternalLink(submittedPr)) {
-            void Linking.openURL(submittedPr);
+          if (url && isValidExternalLink(url)) {
+            void Linking.openURL(url);
           } else {
             Alert.alert(t('error'), t('unableToOpenLink'));
           }
@@ -62,6 +74,15 @@ const styles = StyleSheet.create({
   },
   prTitleDark: {
     color: '#e2e8f0',
+  },
+  prDescription: {
+    fontSize: 13,
+    color: '#475569',
+    marginBottom: 12,
+    lineHeight: 18,
+  },
+  prDescriptionDark: {
+    color: '#94a3b8',
   },
   prButton: {
     flexDirection: 'row',
