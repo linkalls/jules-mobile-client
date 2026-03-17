@@ -311,7 +311,7 @@ function PromptInput({
       <View style={styles.labelRow}>
         <Text style={[styles.label, isDark && styles.labelDark]}>{t('promptLabel')}</Text>
         <Text style={[styles.charCounter, isDark && styles.charCounterDark]}>
-          {prompt.length} / 5000
+          {prompt.length} chars
         </Text>
       </View>
       <TextInput
@@ -322,7 +322,6 @@ function PromptInput({
         placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
         multiline
         textAlignVertical="top"
-        maxLength={5000}
       />
     </View>
   );
@@ -424,6 +423,8 @@ function SubmitButton({
   t,
   colors,
 }: any) {
+  const buttonLabel = isLoading ? 'Creating...' : 'Start Task';
+
   return (
     <TouchableOpacity
       style={[
@@ -441,7 +442,7 @@ function SubmitButton({
         <View style={styles.createButtonContent}>
           <IconSymbol name="plus" size={20} color="#94a3b8" />
           <Text style={[styles.createButtonText, styles.createButtonTextDisabled]}>
-            {t('startSession')}
+            {buttonLabel}
           </Text>
         </View>
       ) : (
@@ -451,8 +452,12 @@ function SubmitButton({
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
         >
-          <IconSymbol name="plus" size={20} color="#ffffff" />
-          <Text style={styles.createButtonText}>{t('startSession')}</Text>
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <IconSymbol name="plus" size={20} color="#ffffff" />
+          )}
+          <Text style={styles.createButtonText}>{buttonLabel}</Text>
         </LinearGradient>
       )}
     </TouchableOpacity>

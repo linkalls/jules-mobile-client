@@ -6,5 +6,6 @@ export { CodeBlock } from './code-block';
 export { SessionHeaderRight } from './session-header-right';
 export { ErrorBanner } from './error-banner';
 export { ApprovalBanner } from './approval-banner';
+export { FeedbackBanner } from './feedback-banner';
 export { SessionInput } from './session-input';
 export { PrCard } from './pr-card';

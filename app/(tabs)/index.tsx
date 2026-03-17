@@ -17,7 +17,7 @@ import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { SessionCard, SessionCardSkeleton } from '@/components/jules';
+import { SessionCard, SwipeableSessionCard, SessionCardSkeleton } from '@/components/jules/session-card';
 import { useJulesApi } from '@/hooks/use-jules-api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Session } from '@/constants/types';
@@ -30,9 +30,9 @@ import {
 } from '@/hooks/use-secure-storage';
 import { Colors } from '@/constants/theme';
 
-// Memoized SessionCard wrapper for performance
-const MemoizedSessionCard = memo((props: React.ComponentProps<typeof SessionCard>) => (
-  <SessionCard {...props} />
+// Memoized SwipeableSessionCard wrapper for performance
+const MemoizedSessionCard = memo((props: React.ComponentProps<typeof SwipeableSessionCard>) => (
+  <SwipeableSessionCard {...props} />
 ));
 MemoizedSessionCard.displayName = 'MemoizedSessionCard';
 
@@ -162,6 +162,15 @@ export default function SessionsScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
 
+  // バックグラウンドポーリング (30秒ごと)
+  useEffect(() => {
+    if (!apiKey) return;
+    const interval = setInterval(() => {
+      void fetchSessions(true); // silent=true でローディング表示なし
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [apiKey, fetchSessions]);
+
   // Load saved filter state and presets
   useEffect(() => {
     const loadFilterState = async () => {
@@ -253,6 +262,7 @@ export default function SessionsScreen() {
         onPress={() => openSession(item)}
         onApprove={() => handleApprove(item.name)}
         isApproving={approvingSessionId === item.name}
+        onDelete={() => handleDeleteSession(item.name)}
       />
     </TouchableOpacity>
   ), [openSession, handleApprove, approvingSessionId, handleDeleteSession]);
@@ -385,7 +395,11 @@ export default function SessionsScreen() {
               autoCorrect={false}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={clearSearch}>
+              <TouchableOpacity
+                onPress={clearSearch}
+                accessibilityLabel="Clear search"
+                accessibilityRole="button"
+              >
                 <IconSymbol name="xmark.circle.fill" size={18} color={colors.icon} />
               </TouchableOpacity>
             )}
@@ -406,6 +420,8 @@ export default function SessionsScreen() {
                         isActive && styles.filterChipActive,
                       ]}
                       onPress={() => setActiveFilter(item.key)}
+                      accessibilityLabel={`Filter by ${t(item.labelKey)}`}
+                      accessibilityRole="button"
                     >
                       <Text
                         style={[
@@ -428,6 +444,8 @@ export default function SessionsScreen() {
                         key={item.id}
                         style={[styles.filterChip, isDark && styles.filterChipDark]}
                         onPress={() => applyPreset(item)}
+                        accessibilityLabel={`Apply preset ${item.name}`}
+                        accessibilityRole="button"
                       >
                         <Text style={[styles.filterChipText, isDark && styles.filterChipTextDark]} numberOfLines={1}>
                           {item.name}
@@ -439,7 +457,11 @@ export default function SessionsScreen() {
               </View>
             </ScrollView>
 
-            <TouchableOpacity onPress={() => void saveCurrentPreset()}>
+            <TouchableOpacity
+              onPress={() => void saveCurrentPreset()}
+              accessibilityLabel={t('saveCurrentFilter')}
+              accessibilityRole="button"
+            >
               <Text style={[styles.savePresetText, { color: colors.primary }]} numberOfLines={1}>{t('saveCurrentFilter')}</Text>
             </TouchableOpacity>
           </View>
