@@ -154,8 +154,17 @@ bun reset-project  # Reset to clean state
 
 ### API Key Setup
 
+You can configure your Jules API key in two ways:
+
+**Method 1: Environment Variable (Recommended for development)**
+Create a `.env` file in the root directory and add your key:
+```bash
+JULES_API_KEY=your_api_key_here
+```
+
+**Method 2: In-App Settings**
 1. Open the app
-2. Navigate to **Settings** tab
+2. Navigate to the **Settings** tab
 3. Enter your Jules API Key
 4. The key is securely stored on your device
 

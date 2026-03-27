@@ -133,12 +133,21 @@ bun reset-project  # クリーン状態にリセット
 
 ### APIキーの設定
 
+Jules APIキーは2つの方法で設定できます：
+
+**方法1：環境変数（開発時に推奨）**
+ルートディレクトリに`.env`ファイルを作成し、キーを追加します：
+```bash
+JULES_API_KEY=あなたの_api_key
+```
+
+**方法2：アプリ内設定**
 1. アプリを開く
 2. **Settings**タブに移動
 3. Jules APIキーを入力
 4. キーはデバイスにセキュアに保存されます
 
->  APIキーは[Google Cloud Console](https://console.cloud.google.com/)またはJulesの設定ページから取得できます。
+> 💡 APIキーは[Google Cloud Console](https://console.cloud.google.com/)またはJulesの設定ページから取得できます。
 
 ##  プロジェクト構成
 
