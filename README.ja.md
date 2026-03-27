@@ -28,11 +28,11 @@
 
 <p align="center">
   <a href="README.md">🇺🇸 English</a> •
-  <a href="docs/ARCHITECTURE.md">📐 アーキテクチャ</a> •
-  <a href="docs/API.md">🔌 API リファレンス</a> •
-  <a href="docs/MODE_SELECTION.md">🎯 モード選択</a> •
-  <a href="docs/Agent.md">🤖 エージェントガイド</a> •
-  <a href="docs/FAQ.md">❓ FAQ</a> •
+  <a href="docs/architecture/overview.md">📐 アーキテクチャ</a> •
+  <a href="docs/api/reference.md">🔌 API リファレンス</a> •
+  <a href="docs/features/mode-selection.md">🎯 モード選択</a> •
+  <a href="AGENTS.md">🤖 エージェントガイド</a> •
+  <a href="docs/guides/faq.md">❓ FAQ</a> •
   <a href="CONTRIBUTING.md">🤝 貢献</a>
 </p>
 
@@ -186,7 +186,7 @@ jules-mobile-client/
 - **アクティビティ表示** - ポーリングによるリアルタイムチャット履歴
 - **プラン承認** - AI生成プランの確認
 
-詳細は[APIリファレンス](docs/API.md)を参照。
+詳細は[APIリファレンス](docs/api/reference.md)を参照。
 
 ## ️ 技術スタック
 

@@ -28,12 +28,12 @@
 
 <p align="center">
   <a href="README.ja.md">🇯🇵 日本語</a> •
-  <a href="docs/ARCHITECTURE.md">📐 Architecture</a> •
-  <a href="docs/API.md">🔌 API</a> •
-  <a href="docs/MODE_SELECTION.md">🎯 Modes</a> •
-  <a href="docs/SECURITY.md">🔐 Security</a> •
-  <a href="docs/PRODUCTION.md">🚀 Production</a> •
-  <a href="docs/FAQ.md">❓ FAQ</a>
+  <a href="docs/architecture/overview.md">📐 Architecture</a> •
+  <a href="docs/api/reference.md">🔌 API</a> •
+  <a href="docs/features/mode-selection.md">🎯 Modes</a> •
+  <a href="docs/deployment/security.md">🔐 Security</a> •
+  <a href="docs/deployment/production.md">🚀 Production</a> •
+  <a href="docs/guides/faq.md">❓ FAQ</a>
 </p>
 
 ---
@@ -207,7 +207,7 @@ The app integrates with the [Jules API](https://jules.googleapis.com/v1alpha) to
 - **View Activities** - Real-time chat history with polling
 - **Approve Plans** - Confirm AI-generated plans
 
-See [API Reference](docs/API.md) for detailed documentation.
+See [API Reference](docs/api/reference.md) for detailed documentation.
 
 ## 🛠️ Tech Stack
 
@@ -250,8 +250,8 @@ eas build --platform ios --profile production
 
 Having issues? Check our comprehensive troubleshooting guide:
 
-- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[FAQ](docs/FAQ.md)** - Frequently asked questions
+- **[Troubleshooting Guide](docs/guides/troubleshooting.md)** - Common issues and solutions
+- **[FAQ](docs/guides/faq.md)** - Frequently asked questions
 
 ### Quick Fixes
 
@@ -270,16 +270,16 @@ bun run reset-project
 
 | Document | Description |
 |----------|-------------|
-| [FAQ](docs/FAQ.md) | Frequently asked questions |
-| [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and solutions |
-| [Architecture](docs/ARCHITECTURE.md) | App architecture overview |
-| [API Reference](docs/API.md) | Jules API integration details |
-| [Components](docs/COMPONENTS.md) | Component documentation |
-| [Development](docs/DEVELOPMENT.md) | Development setup guide |
-| [Mode Selection](docs/MODE_SELECTION.md) | Start vs Review modes |
-| [Security](docs/SECURITY.md) | Security best practices |
-| [Production Deployment](docs/PRODUCTION.md) | Production deployment guide |
-| [Agent Guide](docs/Agent.md) | Guide for AI agents |
+| [FAQ](docs/guides/faq.md) | Frequently asked questions |
+| [Troubleshooting](docs/guides/troubleshooting.md) | Common issues and solutions |
+| [Architecture](docs/architecture/overview.md) | App architecture overview |
+| [API Reference](docs/api/reference.md) | Jules API integration details |
+| [Components](docs/architecture/components.md) | Component documentation |
+| [Development](docs/guides/development.md) | Development setup guide |
+| [Mode Selection](docs/features/mode-selection.md) | Start vs Review modes |
+| [Security](docs/deployment/security.md) | Security best practices |
+| [Production Deployment](docs/deployment/production.md) | Production deployment guide |
+| [Agent Guide](AGENTS.md) | Guide for AI agents |
 | [Contributing](CONTRIBUTING.md) | How to contribute |
 
 ## 🤝 Contributing
@@ -363,7 +363,7 @@ This project is licensed under the **BSD 2-Clause License** - see the [LICENSE](
 - Implement proper API key management for teams
 - Set up monitoring and rate limiting
 
-See [docs/SECURITY.md](docs/SECURITY.md) for security best practices.
+See [docs/deployment/security.md](docs/deployment/security.md) for security best practices.
 
 ## 🙏 Acknowledgments
 
