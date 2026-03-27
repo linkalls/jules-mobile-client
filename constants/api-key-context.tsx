@@ -16,7 +16,7 @@ interface ApiKeyProviderProps {
 }
 
 export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
-  const [apiKey, setApiKeyState] = useState<string>('');
+  const [apiKey, setApiKeyState] = useState<string>(process.env.JULES_API_KEY || process.env.EXPO_PUBLIC_JULES_API_KEY || '');
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load API key on mount

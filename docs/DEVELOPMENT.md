@@ -39,6 +39,15 @@ bun web     # Web browser
 
 ### 3. Configure API Key
 
+You can configure your API key using an environment variable or via the app's settings UI.
+
+**Method 1: Environment Variable (Recommended)**
+Create a `.env` file in the root directory:
+```bash
+JULES_API_KEY=your_api_key_here
+```
+
+**Method 2: In-App Settings**
 1. Open the app on your device/simulator
 2. Go to Settings tab
 3. Enter your Jules API Key
