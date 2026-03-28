@@ -239,7 +239,7 @@ export function useJulesSessions({ julesFetch, translate, setIsLoading, setError
           sourceContext: {
             source: sourceName,
           },
-          title: prompt.trim(),
+          title: prompt.trim().slice(0, 30) + (prompt.trim().length > 30 ? '...' : ''),
           automationMode: 'AUTO_CREATE_PR',
         };
 

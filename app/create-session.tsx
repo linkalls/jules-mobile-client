@@ -178,6 +178,11 @@ export default function CreateSessionScreen() {
       return;
     }
 
+    if (prompt.length > 50000) {
+      Alert.alert(t('error'), t('promptTooLong'));
+      return;
+    }
+
     // Get source object from sourcesMap (validRecentRepos are already included in sources)
     const source = sourcesMap.get(selectedSource);
     const defaultBranch = source?.githubRepo?.defaultBranch?.displayName || 'main';

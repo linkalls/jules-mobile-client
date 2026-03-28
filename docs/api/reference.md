@@ -618,8 +618,8 @@ const handleCreateSession = async () => {
      return;
    }
 
-   if (prompt.length > 5000) {
-     Alert.alert('Error', 'Description is too long (max 5000 characters)');
+   if (prompt.length > 50000) {
+     Alert.alert('Error', 'Description is too long (max 50000 characters)');
      return;
    }
    ```
