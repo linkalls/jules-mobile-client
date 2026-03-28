@@ -31,6 +31,7 @@ export function PromptInput({
         placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
         multiline
         textAlignVertical="top"
+        maxLength={50000}
       />
     </View>
   );
