@@ -17,8 +17,8 @@ Welcome to the documentation for the Jules Mobile Client. This directory contain
 - [Chat Interface](features/chat-interface.md)
 
 ### 🚀 Deployment & Security
-- [Production Deployment](deployment/production.md)
-- [Security Guidelines](deployment/security.md)
+- [Production Deployment](deployment/production.md) ([🇯🇵](deployment/production.ja.md))
+- [Security Guidelines](deployment/security.md) ([🇯🇵](deployment/security.ja.md))
 
 ### 📖 Guides
 - [Development Setup](guides/development.md)

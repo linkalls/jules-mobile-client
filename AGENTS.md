@@ -81,6 +81,7 @@ When assigned a task, follow this exact workflow:
 ### 3.5. State & Data Management
 - **API Calls:** All communication with the Jules API must go through the centralized hooks in `hooks/use-jules-api.ts`. Do not use raw `fetch` in components.
 - **Secure Storage:** Sensitive data (like API keys) must be stored using `expo-secure-store` via the `use-secure-storage.ts` hook. Do not use `AsyncStorage`.
+- **Exporting Data:** The application supports exporting session data (as Markdown or JSON) via the `hooks/use-export-session.ts` hook, which integrates with `expo-file-system` and `expo-sharing`. When working on features related to session export or data sharing, refer to this hook.
 
 ---
 

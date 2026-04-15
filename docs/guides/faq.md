@@ -144,6 +144,15 @@ Currently, the app does not support deleting sessions. Sessions are managed thro
 
 Session control (pause/stop) is not currently supported in the mobile app. Sessions run until completion or failure.
 
+### Can I export or share sessions?
+
+Yes! You can export session activities to Markdown or JSON format:
+1. Open the session you want to export.
+2. Tap the share/export icon in the top right corner.
+3. Choose either **Export as Markdown** or **Export as JSON**.
+4. Use your device's native share sheet to save or share the file.
+*(Note: Sharing may not be supported on the Web platform.)*
+
 ---
 
 ## Repositories
