@@ -290,6 +290,19 @@ bun start --clear
 
 ---
 
+## Export & Sharing Issues
+
+### Export failed or Sharing is not available
+
+**Problem**: Exporting a session fails or the native share sheet does not appear.
+
+**Solution**:
+1. **Check Platform**: Sharing to other apps is supported natively on iOS and Android. If you are using the app on the web, `expo-sharing` might not be fully supported.
+2. **Check Permissions**: If an export fails, it could be due to file system permissions. Ensure the app has permission to write files and access storage.
+3. **Wait for Large Sessions**: If you are trying to export a very large session, it may take a few moments. Please be patient while the app generates the Markdown or JSON file.
+
+---
+
 ## Performance Issues
 
 ### Slow List Scrolling

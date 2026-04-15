@@ -32,6 +32,8 @@
   <a href="docs/api/reference.md">🔌 API リファレンス</a> •
   <a href="docs/features/mode-selection.md">🎯 モード選択</a> •
   <a href="AGENTS.md">🤖 エージェントガイド</a> •
+  <a href="docs/deployment/security.ja.md">🔐 セキュリティ</a> •
+  <a href="docs/deployment/production.ja.md">🚀 本番環境への展開</a> •
   <a href="docs/guides/faq.md">❓ FAQ</a> •
   <a href="CONTRIBUTING.md">🤝 貢献</a>
 </p>
