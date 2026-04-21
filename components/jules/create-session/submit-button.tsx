@@ -4,14 +4,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { styles } from './styles';
+import type { TranslationKey } from '@/constants/i18n';
+import type { ThemeColors } from '@/constants/theme';
 
 interface SubmitButtonProps {
   selectedSource: string;
   prompt: string;
   isLoading: boolean;
   handleCreate: () => void;
-  t: (key: any) => string;
-  colors: any;
+  t: (key: TranslationKey) => string;
+  colors: ThemeColors;
 }
 
 export function SubmitButton({
@@ -22,7 +24,7 @@ export function SubmitButton({
   t,
   colors,
 }: SubmitButtonProps) {
-  const buttonLabel = isLoading ? 'Creating...' : 'Start Task';
+  const buttonLabel = isLoading ? t('creating') : t('startTask');
 
   return (
     <TouchableOpacity

@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { isValidExternalLink } from '@/utils/url';
+import type { TranslationKey } from '@/constants/i18n';
 
-export function getSessionStateText(state: string | null, t: (key: string) => string): string {
+export function getSessionStateText(state: string | null, t: (key: TranslationKey) => string): string {
   if (!state) return '';
   switch (state) {
     case 'QUEUED': return t('stateQueued');
@@ -23,7 +24,7 @@ interface SessionHeaderRightProps {
   sessionState: string | null;
   sessionUrl?: string;
   isDark: boolean;
-  t: (key: string) => string;
+  t: (key: TranslationKey) => string;
   showExportMenu: () => void;
   loadActivities: () => void;
 }

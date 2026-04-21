@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
@@ -17,7 +17,14 @@ export default function StatisticsScreen() {
   const colors = isDark ? Colors.dark : Colors.light;
   const { t } = useI18n();
   const { apiKey } = useApiKey();
-  const { sessions } = useJulesApi({ apiKey, t });
+  const { sessions, fetchSessions } = useJulesApi({ apiKey, t });
+
+  // Fetch sessions on mount so statistics are populated
+  useEffect(() => {
+    if (apiKey) {
+      void fetchSessions(true);
+    }
+  }, [apiKey, fetchSessions]);
 
   const stats = useMemo(() => {
     const results = { total: sessions.length, active: 0, completed: 0, failed: 0 };

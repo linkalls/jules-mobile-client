@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
-
-const API_KEY_STORAGE_KEY = 'jules_api_key';
+import { STORAGE_KEYS } from './storage-keys';
 
 interface ApiKeyContextType {
   apiKey: string;
@@ -23,7 +22,7 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
   useEffect(() => {
     const loadApiKey = async () => {
       try {
-        const savedKey = await SecureStore.getItemAsync(API_KEY_STORAGE_KEY);
+        const savedKey = await SecureStore.getItemAsync(STORAGE_KEYS.API_KEY);
         if (savedKey) {
           setApiKeyState(savedKey);
         }
@@ -39,7 +38,7 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
   const setApiKey = useCallback(async (key: string) => {
     setApiKeyState(key);
     try {
-      await SecureStore.setItemAsync(API_KEY_STORAGE_KEY, key);
+      await SecureStore.setItemAsync(STORAGE_KEYS.API_KEY, key);
     } catch {
       // Ignore
     }

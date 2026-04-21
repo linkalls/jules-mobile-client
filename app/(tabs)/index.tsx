@@ -256,15 +256,13 @@ export default function SessionsScreen() {
   }, [deleteSession, t]);
 
   const renderSessionItem = useCallback(({ item }: { item: Session }) => (
-    <TouchableOpacity onLongPress={() => handleDeleteSession(item.name)} delayLongPress={500}>
-      <MemoizedSessionCard
-        session={item}
-        onPress={() => openSession(item)}
-        onApprove={() => handleApprove(item.name)}
-        isApproving={approvingSessionId === item.name}
-        onDelete={() => handleDeleteSession(item.name)}
-      />
-    </TouchableOpacity>
+    <MemoizedSessionCard
+      session={item}
+      onPress={() => openSession(item)}
+      onApprove={() => handleApprove(item.name)}
+      isApproving={approvingSessionId === item.name}
+      onDelete={() => handleDeleteSession(item.name)}
+    />
   ), [openSession, handleApprove, approvingSessionId, handleDeleteSession]);
 
   const clearSearch = useCallback(() => {
@@ -316,10 +314,7 @@ export default function SessionsScreen() {
       {/* Modern Header with Gradient */}
       <View style={[styles.header, isDark && styles.headerDark]}>
         <LinearGradient
-          colors={isDark 
-            ? [colors.surface, colors.surfaceSecondary]
-            : [colors.surface, colors.surfaceSecondary]
-          }
+          colors={[colors.surface, colors.surfaceSecondary]}
           style={StyleSheet.absoluteFill}
         />
         <View style={styles.headerContent}>

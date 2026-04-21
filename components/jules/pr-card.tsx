@@ -2,13 +2,14 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { isValidExternalLink } from '@/utils/url';
+import type { TranslationKey } from '@/constants/i18n';
 
 import type { PullRequest } from '@/constants/types';
 
 interface PrCardProps {
   submittedPr?: string | PullRequest;
   isDark: boolean;
-  t: (key: string) => string;
+  t: (key: TranslationKey) => string;
 }
 
 export function PrCard({ submittedPr, isDark, t }: PrCardProps) {
@@ -16,7 +17,7 @@ export function PrCard({ submittedPr, isDark, t }: PrCardProps) {
 
   const isObject = typeof submittedPr === 'object';
   const url = isObject ? submittedPr.url : submittedPr;
-  const title = isObject ? submittedPr.title : 'Pull Request Submitted';
+  const title = isObject ? submittedPr.title : t('pullRequestSubmitted');
   const description = isObject ? submittedPr.description : null;
 
   return (
@@ -41,7 +42,7 @@ export function PrCard({ submittedPr, isDark, t }: PrCardProps) {
         }}
         activeOpacity={0.7}
       >
-        <Text style={styles.prButtonText}>View PR</Text>
+        <Text style={styles.prButtonText}>{t('viewPr')}</Text>
         <IconSymbol name="chevron.right" size={16} color="#ffffff" />
       </TouchableOpacity>
     </View>

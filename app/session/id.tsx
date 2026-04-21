@@ -48,6 +48,8 @@ export default function SessionDetailScreen() {
   const [sessionState, setSessionState] = useState<string | null>(null);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [currentSubmittedPr, setCurrentSubmittedPr] = useState<string | import('@/constants/types').PullRequest | undefined>(submittedPr);
+  // Ref mirror of currentSubmittedPr to avoid stale closures inside setInterval
+  const currentSubmittedPrRef = useRef(currentSubmittedPr);
   const keyboardPadding = useRef(new Animated.Value(0)).current;
 
   const flatListRef = useRef<FlatList>(null);
@@ -90,6 +92,10 @@ export default function SessionDetailScreen() {
     };
   }, [keyboardPadding]);
 
+  // Keep ref in sync with state to avoid stale closures in the polling interval
+  useEffect(() => {
+    currentSubmittedPrRef.current = currentSubmittedPr;
+  }, [currentSubmittedPr]);
 
   // アクティビティ読み込み（初回＋ポーリング）
   useEffect(() => {
@@ -126,7 +132,8 @@ export default function SessionDetailScreen() {
           setSessionState(session.state);
           setCurrentSession(session);
 
-          if (session.state === 'COMPLETED' && !currentSubmittedPr) {
+          // Use ref to read the latest value without causing a stale closure
+          if (session.state === 'COMPLETED' && !currentSubmittedPrRef.current) {
             for (const output of session.outputs ?? []) {
               if (output.pullRequest?.url) {
                 setCurrentSubmittedPr(output.pullRequest);
@@ -227,13 +234,13 @@ export default function SessionDetailScreen() {
   };
 
   const STATE_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-    QUEUED:                  { label: 'Queued',           color: '#64748b', icon: 'clock' },
-    IN_PROGRESS:             { label: 'Working...',       color: '#2563eb', icon: 'arrow.clockwise' },
-    AWAITING_PLAN_APPROVAL:  { label: 'Needs Approval',   color: '#f59e0b', icon: 'hand.raised' },
-    AWAITING_USER_FEEDBACK:  { label: 'Waiting for You',  color: '#8b5cf6', icon: 'bubble.left' },
-    COMPLETED:               { label: 'Completed',        color: '#10b981', icon: 'checkmark.circle' },
-    FAILED:                  { label: 'Failed',           color: '#ef4444', icon: 'xmark.circle' },
-    PAUSED:                  { label: 'Paused',           color: '#94a3b8', icon: 'pause.circle' },
+    QUEUED:                  { label: t('stateQueued'),                color: '#64748b', icon: 'clock' },
+    IN_PROGRESS:             { label: t('stateInProgress'),            color: '#2563eb', icon: 'arrow.clockwise' },
+    AWAITING_PLAN_APPROVAL:  { label: t('stateAwaitingPlanApproval'), color: '#f59e0b', icon: 'hand.raised' },
+    AWAITING_USER_FEEDBACK:  { label: t('stateAwaitingUserFeedback'), color: '#8b5cf6', icon: 'bubble.left' },
+    COMPLETED:               { label: t('stateCompleted'),             color: '#10b981', icon: 'checkmark.circle' },
+    FAILED:                  { label: t('stateFailed'),                color: '#ef4444', icon: 'xmark.circle' },
+    PAUSED:                  { label: t('statePaused'),                color: '#94a3b8', icon: 'pause.circle' },
   };
 
   // Export session handler
@@ -377,7 +384,7 @@ export default function SessionDetailScreen() {
                   >
                     <IconSymbol name="arrow.triangle.pull" size={18} color="#ffffff" />
                     <View style={{ flex: 1, marginLeft: 8 }}>
-                      <Text style={styles.prBannerTitle}>Pull Request Created!</Text>
+                      <Text style={styles.prBannerTitle}>{t('pullRequestCreated')}</Text>
                       {typeof currentSubmittedPr !== 'string' && currentSubmittedPr?.title && (
                         <Text style={styles.prBannerSubtitle} numberOfLines={1}>
                           {currentSubmittedPr.title}
@@ -397,9 +404,7 @@ export default function SessionDetailScreen() {
                 </Text>
               </View>
             }
-            ListFooterComponent={
-              <PrCard submittedPr={currentSubmittedPr} isDark={isDark} t={t} />
-            }
+            ListFooterComponent={null}
           />
         )}
 

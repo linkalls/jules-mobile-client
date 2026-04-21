@@ -2,11 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import type { TranslationKey } from '@/constants/i18n';
 
 interface FeedbackBannerProps {
   sessionState: string | null;
   isDark: boolean;
-  t: (key: string) => string;
+  t: (key: TranslationKey) => string;
 }
 
 export function FeedbackBanner({ sessionState, isDark, t }: FeedbackBannerProps) {
@@ -22,7 +23,7 @@ export function FeedbackBanner({ sessionState, isDark, t }: FeedbackBannerProps)
       />
       <IconSymbol name="bubble.left.and.bubble.right.fill" size={18} color="#8b5cf6" />
       <Text style={[styles.text, { color: isDark ? '#c4b5fd' : '#7c3aed' }]}>
-        Jules is waiting for your response
+        {t('julesWaitingForResponse')}
       </Text>
     </View>
   );

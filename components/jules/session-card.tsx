@@ -54,6 +54,7 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress, o
   
   const isAwaitingFeedback = session.state === 'AWAITING_USER_FEEDBACK';
   const isAwaitingApproval = session.state === 'AWAITING_PLAN_APPROVAL';
+  const isActiveState = session.state === 'ACTIVE' || session.state === 'IN_PROGRESS';
 
   // Animation for press effect
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -62,20 +63,23 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress, o
   
   useEffect(() => {
     if (isAwaitingFeedback || isAwaitingApproval) {
-      Animated.loop(
+      const anim = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, { toValue: 1.02, duration: 800, useNativeDriver: true }),
           Animated.timing(pulseAnim, { toValue: 1,    duration: 800, useNativeDriver: true }),
         ])
-      ).start();
+      );
+      anim.start();
+      return () => anim.stop();
     } else {
       pulseAnim.setValue(1);
     }
   }, [isAwaitingFeedback, isAwaitingApproval, pulseAnim]);
 
   useEffect(() => {
-    // Subtle glow animation
-    Animated.loop(
+    if (!isActiveState) return;
+    // Only run the glow animation for active sessions
+    const anim = Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
           toValue: 1,
@@ -88,8 +92,10 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress, o
           useNativeDriver: true,
         }),
       ])
-    ).start();
-  }, [glowAnim]);
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [isActiveState, glowAnim]);
 
   const handlePressIn = () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -185,8 +191,6 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress, o
     }
   };
 
-  const isActiveState = session.state === 'ACTIVE' || session.state === 'IN_PROGRESS';
-  
   const glowOpacity = glowAnim.interpolate({
     inputRange: [0, 1],
     outputRange: isActiveState ? [0.3, 0.7] : [0, 0],
@@ -254,7 +258,7 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress, o
               {isApproving ? (
                 <ActivityIndicator size="small" color="#ffffff" />
               ) : (
-                <Text style={styles.approveButtonText}>Approve Plan</Text>
+                <Text style={styles.approveButtonText}>{t('approvePlan')}</Text>
               )}
             </TouchableOpacity>
           </View>

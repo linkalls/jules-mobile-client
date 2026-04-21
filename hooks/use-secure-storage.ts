@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import type { Source } from '@/constants/types';
+import { STORAGE_KEYS } from '@/constants/storage-keys';
 
 export type SessionFilterState = 'all' | 'inProgress' | 'awaitingPlanApproval' | 'failed' | 'completed';
 
@@ -16,14 +17,6 @@ export interface LastSessionFilter {
   state: SessionFilterState;
 }
 
-const API_KEY_STORAGE_KEY = 'jules_api_key';
-const THEME_STORAGE_KEY = 'jules_theme';
-const LANGUAGE_STORAGE_KEY = 'jules_language';
-const RECENT_REPOS_STORAGE_KEY = 'jules_recent_repos';
-const SESSION_FILTER_PRESETS_STORAGE_KEY = 'jules_session_filter_presets';
-const LAST_SESSION_FILTER_STORAGE_KEY = 'jules_last_session_filter';
-const CACHED_SOURCES_STORAGE_KEY = 'jules_cached_sources';
-
 /**
  * SecureStoreを使用したセキュアストレージフック
  */
@@ -34,7 +27,7 @@ export function useSecureStorage() {
   const saveApiKey = useCallback(async (key: string): Promise<void> => {
     setIsLoading(true);
     try {
-      await SecureStore.setItemAsync(API_KEY_STORAGE_KEY, key);
+      await SecureStore.setItemAsync(STORAGE_KEYS.API_KEY, key);
     } finally {
       setIsLoading(false);
     }
@@ -43,7 +36,7 @@ export function useSecureStorage() {
   // APIキーの取得
   const getApiKey = useCallback(async (): Promise<string | null> => {
     try {
-      return await SecureStore.getItemAsync(API_KEY_STORAGE_KEY);
+      return await SecureStore.getItemAsync(STORAGE_KEYS.API_KEY);
     } catch {
       return null;
     }
@@ -52,7 +45,7 @@ export function useSecureStorage() {
   // APIキーの削除
   const deleteApiKey = useCallback(async (): Promise<void> => {
     try {
-      await SecureStore.deleteItemAsync(API_KEY_STORAGE_KEY);
+      await SecureStore.deleteItemAsync(STORAGE_KEYS.API_KEY);
     } catch {
       // 無視
     }
@@ -61,7 +54,7 @@ export function useSecureStorage() {
   // テーマの保存 (非機密情報なのでSecureStoreでもOK)
   const saveTheme = useCallback(async (theme: 'light' | 'dark'): Promise<void> => {
     try {
-      await SecureStore.setItemAsync(THEME_STORAGE_KEY, theme);
+      await SecureStore.setItemAsync(STORAGE_KEYS.THEME, theme);
     } catch {
       // 無視
     }
@@ -70,7 +63,7 @@ export function useSecureStorage() {
   // テーマの取得
   const getTheme = useCallback(async (): Promise<'light' | 'dark' | null> => {
     try {
-      const theme = await SecureStore.getItemAsync(THEME_STORAGE_KEY);
+      const theme = await SecureStore.getItemAsync(STORAGE_KEYS.THEME);
       return theme as 'light' | 'dark' | null;
     } catch {
       return null;
@@ -80,7 +73,7 @@ export function useSecureStorage() {
   // 言語の保存
   const saveLanguage = useCallback(async (lang: 'ja' | 'en'): Promise<void> => {
     try {
-      await SecureStore.setItemAsync(LANGUAGE_STORAGE_KEY, lang);
+      await SecureStore.setItemAsync(STORAGE_KEYS.LANGUAGE, lang);
     } catch {
       // 無視
     }
@@ -89,7 +82,7 @@ export function useSecureStorage() {
   // 言語の取得
   const getLanguage = useCallback(async (): Promise<'ja' | 'en' | null> => {
     try {
-      const lang = await SecureStore.getItemAsync(LANGUAGE_STORAGE_KEY);
+      const lang = await SecureStore.getItemAsync(STORAGE_KEYS.LANGUAGE);
       return lang as 'ja' | 'en' | null;
     } catch {
       return null;
@@ -99,7 +92,7 @@ export function useSecureStorage() {
   // 最近使用したリポジトリの保存
   const saveRecentRepo = useCallback(async (repo: Source): Promise<void> => {
     try {
-      const stored = await SecureStore.getItemAsync(RECENT_REPOS_STORAGE_KEY);
+      const stored = await SecureStore.getItemAsync(STORAGE_KEYS.RECENT_REPOS);
       let recent: Source[] = stored ? JSON.parse(stored) : [];
       
       // 既存のものを削除して先頭に追加
@@ -109,7 +102,7 @@ export function useSecureStorage() {
       // 最大5個まで保持
       recent = recent.slice(0, 5);
       
-      await SecureStore.setItemAsync(RECENT_REPOS_STORAGE_KEY, JSON.stringify(recent));
+      await SecureStore.setItemAsync(STORAGE_KEYS.RECENT_REPOS, JSON.stringify(recent));
     } catch {
       // 無視
     }
@@ -118,7 +111,7 @@ export function useSecureStorage() {
   // 最近使用したリポジトリの取得
   const getRecentRepos = useCallback(async (): Promise<Source[]> => {
     try {
-      const stored = await SecureStore.getItemAsync(RECENT_REPOS_STORAGE_KEY);
+      const stored = await SecureStore.getItemAsync(STORAGE_KEYS.RECENT_REPOS);
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -128,14 +121,14 @@ export function useSecureStorage() {
   // セッション一覧のフィルタプリセット保存
   const saveSessionFilterPreset = useCallback(async (preset: SessionFilterPreset): Promise<void> => {
     try {
-      const stored = await SecureStore.getItemAsync(SESSION_FILTER_PRESETS_STORAGE_KEY);
+      const stored = await SecureStore.getItemAsync(STORAGE_KEYS.SESSION_FILTER_PRESETS);
       let presets: SessionFilterPreset[] = stored ? JSON.parse(stored) : [];
 
       presets = presets.filter((p) => p.id !== preset.id);
       presets.unshift(preset);
       presets = presets.slice(0, 8);
 
-      await SecureStore.setItemAsync(SESSION_FILTER_PRESETS_STORAGE_KEY, JSON.stringify(presets));
+      await SecureStore.setItemAsync(STORAGE_KEYS.SESSION_FILTER_PRESETS, JSON.stringify(presets));
     } catch {
       // 無視
     }
@@ -143,7 +136,7 @@ export function useSecureStorage() {
 
   const getSessionFilterPresets = useCallback(async (): Promise<SessionFilterPreset[]> => {
     try {
-      const stored = await SecureStore.getItemAsync(SESSION_FILTER_PRESETS_STORAGE_KEY);
+      const stored = await SecureStore.getItemAsync(STORAGE_KEYS.SESSION_FILTER_PRESETS);
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -152,7 +145,7 @@ export function useSecureStorage() {
 
   const saveLastSessionFilter = useCallback(async (filter: LastSessionFilter): Promise<void> => {
     try {
-      await SecureStore.setItemAsync(LAST_SESSION_FILTER_STORAGE_KEY, JSON.stringify(filter));
+      await SecureStore.setItemAsync(STORAGE_KEYS.LAST_SESSION_FILTER, JSON.stringify(filter));
     } catch {
       // 無視
     }
@@ -160,7 +153,7 @@ export function useSecureStorage() {
 
   const getLastSessionFilter = useCallback(async (): Promise<LastSessionFilter | null> => {
     try {
-      const stored = await SecureStore.getItemAsync(LAST_SESSION_FILTER_STORAGE_KEY);
+      const stored = await SecureStore.getItemAsync(STORAGE_KEYS.LAST_SESSION_FILTER);
       return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
@@ -170,7 +163,7 @@ export function useSecureStorage() {
   // キャッシュされたソースの保存
   const saveCachedSources = useCallback(async (sources: Source[]): Promise<void> => {
     try {
-      await SecureStore.setItemAsync(CACHED_SOURCES_STORAGE_KEY, JSON.stringify(sources));
+      await SecureStore.setItemAsync(STORAGE_KEYS.CACHED_SOURCES, JSON.stringify(sources));
     } catch {
       // 無視
     }
@@ -179,7 +172,7 @@ export function useSecureStorage() {
   // キャッシュされたソースの取得
   const getCachedSources = useCallback(async (): Promise<Source[]> => {
     try {
-      const stored = await SecureStore.getItemAsync(CACHED_SOURCES_STORAGE_KEY);
+      const stored = await SecureStore.getItemAsync(STORAGE_KEYS.CACHED_SOURCES);
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];

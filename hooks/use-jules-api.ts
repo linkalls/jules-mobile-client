@@ -47,6 +47,5 @@ export function useJulesApi({ apiKey, t }: UseJulesApiOptions) {
     ...sourcesApi,
     // Sessions with lazy loading
     ...sessionsApi,
-    fetchActivitiesSince: sessionsApi.fetchActivitiesSince,
   };
 }

@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import type { TranslationKey } from '@/constants/i18n';
 
 interface ApprovalBannerProps {
   sessionState: string | null;
   id: string | undefined;
   isDark: boolean;
-  t: (key: string) => string;
+  t: (key: TranslationKey) => string;
   handleApprovePlan: (planId: string) => void;
 }
 
@@ -19,7 +20,10 @@ export function ApprovalBanner({ sessionState, id, isDark, t, handleApprovePlan 
       </Text>
       <TouchableOpacity
         style={styles.approvalBannerButton}
-        onPress={() => void handleApprovePlan('')}
+        onPress={() => void handleApprovePlan(id)}
+        accessibilityRole="button"
+        accessibilityLabel={t('approve')}
+        accessibilityHint={t('planWaitingApproval')}
       >
         <Text style={styles.approvalBannerButtonText}>{t('approve')}</Text>
       </TouchableOpacity>

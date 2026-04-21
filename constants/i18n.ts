@@ -91,6 +91,9 @@ const translations = {
     stateInProgress: '実行中',
     statePaused: '一時停止',
     fetchSessionFailed: 'セッションの取得に失敗したよ',
+    deleteSessionFailed: 'セッションの削除に失敗したよ',
+    fetchActivityFailed: 'アクティビティの取得に失敗したよ',
+    fetchSourceFailed: 'ソースの取得に失敗したよ',
     
     // Licenses
     licenses: 'オープンソースライセンス',
@@ -124,6 +127,18 @@ const translations = {
     viewOnGitHub: 'GitHubで見る',
     unableToOpenLink: 'リンクを開けませんでした。デバイスの設定を確認してください。',
     
+    // Session actions
+    delete: '削除',
+    deleteSession: 'セッションを削除',
+    deleteSessionConfirm: 'このセッションを削除しますか？',
+    approvePlan: 'プランを承認',
+    creating: '作成中...',
+    startTask: 'タスクを開始',
+    pullRequestCreated: 'プルリクエストが作成されました！',
+    pullRequestSubmitted: 'プルリクエストが提出されました',
+    viewPr: 'PRを見る',
+    julesWaitingForResponse: 'Julesがあなたの返答を待っています',
+
     // Statistics
     statistics: '統計情報',
     totalSessions: '総セッション数',
@@ -232,6 +247,9 @@ const translations = {
     stateInProgress: 'In Progress',
     statePaused: 'Paused',
     fetchSessionFailed: 'Failed to fetch session',
+    deleteSessionFailed: 'Failed to delete session',
+    fetchActivityFailed: 'Failed to fetch activity',
+    fetchSourceFailed: 'Failed to fetch source',
     
     // Licenses
     licenses: 'Open Source Licenses',
@@ -265,6 +283,18 @@ const translations = {
     viewOnGitHub: 'View on GitHub',
     unableToOpenLink: 'Unable to open this link. Please check your device settings.',
     
+    // Session actions
+    delete: 'Delete',
+    deleteSession: 'Delete Session',
+    deleteSessionConfirm: 'Are you sure you want to delete this session?',
+    approvePlan: 'Approve Plan',
+    creating: 'Creating...',
+    startTask: 'Start Task',
+    pullRequestCreated: 'Pull Request Created!',
+    pullRequestSubmitted: 'Pull Request Submitted',
+    viewPr: 'View PR',
+    julesWaitingForResponse: 'Jules is waiting for your response',
+
     // Statistics
     statistics: 'Statistics',
     totalSessions: 'Total Sessions',

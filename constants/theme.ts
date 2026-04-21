@@ -104,7 +104,7 @@ export const Colors = {
     codeDefault: '#d4d4d4',
     codeBackground: '#1e1e1e',
     codeTagBackground: '#333',
-    codeTagText: '#666',
+    codeTagText: '#aaa',
   },
 };
 

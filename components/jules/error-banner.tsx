@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import type { TranslationKey } from '@/constants/i18n';
 
 interface ErrorBannerProps {
   error: string | null;
   isDark: boolean;
-  t: (key: string) => string;
+  t: (key: TranslationKey) => string;
   clearError: () => void;
 }
 
