@@ -37,6 +37,9 @@ export function SessionInput({
           onChangeText={setMessageInput}
           placeholder={t('replyPlaceholder')}
           placeholderTextColor={isDark ? '#475569' : '#94a3b8'}
+          multiline
+          maxLength={50000}
+          textAlignVertical="top"
         />
         <TouchableOpacity
           style={[styles.sendButton, !messageInput.trim() && styles.sendButtonDisabled]}
@@ -75,8 +78,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
+    paddingTop: 12,
     fontSize: 15,
     color: '#0f172a',
+    minHeight: 44,
+    maxHeight: 120,
   },
   inputDark: {
     backgroundColor: '#0f172a',
