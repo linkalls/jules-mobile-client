@@ -11,14 +11,12 @@ import {
   Platform,
   Animated,
   Linking,
-  Alert,
   ActionSheetIOS,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { ActivityItem, ActivityItemSkeleton } from '@/components/jules';
 import { useJulesApi } from '@/hooks/use-jules-api';
@@ -27,6 +25,7 @@ import { shareSession } from '@/hooks/use-export-session';
 import type { Activity, Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
+import { useAlert } from '@/contexts/alert-context';
 import { SessionHeaderRight } from '@/components/jules/session-header-right';
 import { ErrorBanner } from '@/components/jules/error-banner';
 import { ApprovalBanner } from '@/components/jules/approval-banner';
@@ -239,7 +238,7 @@ export default function SessionDetailScreen() {
   // Export session handler
   const handleExportSession = useCallback(async (format: 'markdown' | 'json') => {
     if (!currentSession || activities.length === 0) {
-      Alert.alert(t('error'), t('noSessionDataToExport'));
+      showAlert(t('error'), t('noSessionDataToExport'), undefined, 'error');
       return;
     }
 
@@ -250,12 +249,12 @@ export default function SessionDetailScreen() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : t('exportFailed');
       if (errorMessage.includes('not available')) {
-        Alert.alert(t('error'), t('sharingNotAvailable'));
+        showAlert(t('error'), t('sharingNotAvailable'), undefined, 'error');
       } else {
-        Alert.alert(t('error'), errorMessage);
+        showAlert(t('error'), errorMessage, undefined, 'error');
       }
     }
-  }, [currentSession, activities, t]);
+  }, [currentSession, activities, t, showAlert]);
 
   // Show export menu
   const showExportMenu = useCallback(() => {
@@ -277,17 +276,17 @@ export default function SessionDetailScreen() {
       );
     } else {
       // Android - show simple alert
-      Alert.alert(
+      showAlert(
         t('exportSession'),
         t('chooseExportFormat'),
         [
-          { text: t('cancel'), style: 'cancel' },
+          { text: t('cancel'), style: 'cancel', onPress: () => {} },
           { text: t('exportAsMarkdown'), onPress: () => void handleExportSession('markdown') },
           { text: t('exportAsJSON'), onPress: () => void handleExportSession('json') },
         ]
       );
     }
-  }, [t, handleExportSession]);
+  }, [t, handleExportSession, showAlert]);
 
 
   return (
@@ -370,11 +369,7 @@ export default function SessionDetailScreen() {
                     if (url) void Linking.openURL(url);
                   }}
                 >
-                  <LinearGradient
-                    colors={['#059669', '#10b981']}
-                    style={styles.prBannerGradient}
-                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                  >
+                  <View style={[styles.prBannerGradient, { backgroundColor: '#10b981' }]}>
                     <IconSymbol name="arrow.triangle.pull" size={18} color="#ffffff" />
                     <View style={{ flex: 1, marginLeft: 8 }}>
                       <Text style={styles.prBannerTitle}>Pull Request Created!</Text>
@@ -385,7 +380,7 @@ export default function SessionDetailScreen() {
                       )}
                     </View>
                     <IconSymbol name="chevron.right" size={14} color="rgba(255,255,255,0.7)" />
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               ) : null
             }

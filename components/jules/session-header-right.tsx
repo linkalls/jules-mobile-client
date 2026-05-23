@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { isValidExternalLink } from '@/utils/url';
+import { useAlert } from '@/contexts/alert-context';
 
 export function getSessionStateText(state: string | null, t: (key: string) => string): string {
   if (!state) return '';
@@ -29,6 +30,8 @@ interface SessionHeaderRightProps {
 }
 
 export function SessionHeaderRight({ sessionState, sessionUrl, isDark, t, showExportMenu, loadActivities }: SessionHeaderRightProps) {
+  const { showAlert } = useAlert();
+
   return (
     <View style={styles.headerRightContainer}>
       {sessionState && (
@@ -55,7 +58,7 @@ export function SessionHeaderRight({ sessionState, sessionUrl, isDark, t, showEx
             if (isValidExternalLink(sessionUrl)) {
               void Linking.openURL(sessionUrl);
             } else {
-              Alert.alert(t('error'), t('unableToOpenLink'));
+              showAlert(t('error'), t('unableToOpenLink'), undefined, 'error');
             }
           }}
           accessibilityLabel="Open in Web"

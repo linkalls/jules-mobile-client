@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, ActivityIndicator } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Swipeable } from 'react-native-gesture-handler';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -214,16 +213,10 @@ export const SessionCard = React.memo(function SessionCard({ session, onPress, o
           />
         )}
         
-        {/* Gradient accent for active sessions */}
+        {/* Flat accent for active sessions */}
         {isActiveState && (
-          <LinearGradient
-            colors={isDark 
-              ? ['rgba(129, 140, 248, 0.1)', 'rgba(52, 211, 153, 0.1)']
-              : ['rgba(99, 102, 241, 0.05)', 'rgba(16, 185, 129, 0.05)']
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradientOverlay}
+          <View
+            style={[styles.gradientOverlay, { backgroundColor: isDark ? 'rgba(129, 140, 248, 0.05)' : 'rgba(99, 102, 241, 0.03)' }]}
           />
         )}
         

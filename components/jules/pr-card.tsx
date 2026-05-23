@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { isValidExternalLink } from '@/utils/url';
+import { useAlert } from '@/contexts/alert-context';
 
 import type { PullRequest } from '@/constants/types';
 
@@ -12,6 +13,8 @@ interface PrCardProps {
 }
 
 export function PrCard({ submittedPr, isDark, t }: PrCardProps) {
+  const { showAlert } = useAlert();
+
   if (!submittedPr) return null;
 
   const isObject = typeof submittedPr === 'object';
@@ -36,7 +39,7 @@ export function PrCard({ submittedPr, isDark, t }: PrCardProps) {
           if (url && isValidExternalLink(url)) {
             void Linking.openURL(url);
           } else {
-            Alert.alert(t('error'), t('unableToOpenLink'));
+            showAlert(t('error'), t('unableToOpenLink'), undefined, 'error');
           }
         }}
         activeOpacity={0.7}

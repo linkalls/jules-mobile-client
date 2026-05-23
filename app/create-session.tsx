@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -19,6 +18,7 @@ import { useSecureStorage } from '@/hooks/use-secure-storage';
 import { useSourcesCache } from '@/hooks/use-sources-cache';
 import type { Source } from '@/constants/types';
 import { Colors } from '@/constants/theme';
+import { useAlert } from '@/contexts/alert-context';
 
 import { FormSkeleton } from '@/components/jules/create-session/form-skeleton';
 import { SourceSelector } from '@/components/jules/create-session/source-selector';
@@ -38,6 +38,7 @@ export default function CreateSessionScreen() {
   const { apiKey } = useApiKey();
   const { saveRecentRepo, getRecentRepos } = useSecureStorage();
   const { getCachedSources, saveCachedSources } = useSourcesCache();
+  const { showAlert } = useAlert();
   const [selectedSource, setSelectedSource] = useState('');
   const [prompt, setPrompt] = useState('');
   const [requirePlanApproval, setRequirePlanApproval] = useState(false); // false = Start/Run, true = Review
@@ -174,12 +175,12 @@ export default function CreateSessionScreen() {
   // Create session and save to recent repos
   const handleCreate = useCallback(async () => {
     if (!selectedSource || !prompt.trim()) {
-      Alert.alert(t('error'), t('inputError'));
+      showAlert(t('error'), t('inputError'), undefined, 'error');
       return;
     }
 
     if (prompt.length > 50000) {
-      Alert.alert(t('error'), t('promptTooLong'));
+      showAlert(t('error'), t('promptTooLong'), undefined, 'error');
       return;
     }
 
@@ -191,14 +192,14 @@ export default function CreateSessionScreen() {
     if (session && source) {
       // Save to recent repos
       await saveRecentRepo(source);
-      Alert.alert(t('createSuccess'), '', [
+      showAlert(t('createSuccess'), undefined, [
         {
           text: 'OK',
           onPress: () => router.back(),
         },
-      ]);
+      ], 'success');
     }
-  }, [selectedSource, prompt, requirePlanApproval, sourcesMap, createSession, saveRecentRepo, t]);
+  }, [selectedSource, prompt, requirePlanApproval, sourcesMap, createSession, saveRecentRepo, t, showAlert]);
 
   return (
     <>

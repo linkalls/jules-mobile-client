@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { styles } from './styles';
@@ -45,19 +44,14 @@ export function SubmitButton({
           </Text>
         </View>
       ) : (
-        <LinearGradient
-          colors={[colors.primary, colors.primaryLight]}
-          style={styles.createButtonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
+        <View style={[styles.createButtonGradient, { backgroundColor: colors.primary }]}>
           {isLoading ? (
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
             <IconSymbol name="plus" size={20} color="#ffffff" />
           )}
           <Text style={styles.createButtonText}>{buttonLabel}</Text>
-        </LinearGradient>
+        </View>
       )}
     </TouchableOpacity>
   );

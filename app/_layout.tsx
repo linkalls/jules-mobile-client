@@ -5,6 +5,7 @@ import 'react-native-reanimated';
 
 import { ApiKeyProvider } from '@/constants/api-key-context';
 import { I18nProvider } from '@/constants/i18n-context';
+import { AlertProvider } from '@/contexts/alert-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function RootLayout() {
@@ -13,15 +14,17 @@ export default function RootLayout() {
   return (
     <ApiKeyProvider>
       <I18nProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-            <Stack.Screen name="create-session" options={{ presentation: 'modal', title: 'New Task' }} />
-            <Stack.Screen name="session/[id]" options={{ title: 'Session' }} />
-          </Stack>
-          <StatusBar style="auto" />
-        </ThemeProvider>
+        <AlertProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+              <Stack.Screen name="create-session" options={{ presentation: 'modal', title: 'New Task' }} />
+              <Stack.Screen name="session/[id]" options={{ title: 'Session' }} />
+            </Stack>
+            <StatusBar style="auto" />
+          </ThemeProvider>
+        </AlertProvider>
       </I18nProvider>
     </ApiKeyProvider>
   );

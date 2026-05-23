@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
@@ -56,66 +55,46 @@ export default function StatisticsScreen() {
         <ScrollView contentContainerStyle={styles.content}>
           {/* Total Sessions */}
           <View style={[styles.statCard, isDark && styles.statCardDark]}>
-            <LinearGradient
-              colors={isDark ? ['#1e3a8a', '#1e40af'] : ['#3b82f6', '#2563eb']}
-              style={styles.statGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+            <View style={[styles.statGradient, { backgroundColor: isDark ? '#1e40af' : '#3b82f6' }]}>
               <View style={styles.statIcon}>
                 <IconSymbol name="bubble.left.and.bubble.right" size={28} color="#ffffff" />
               </View>
               <Text style={styles.statLabel}>{t('totalSessions')}</Text>
               <Text style={styles.statValue}>{stats.total}</Text>
-            </LinearGradient>
+            </View>
           </View>
 
           {/* Active Sessions */}
           <View style={[styles.statCard, isDark && styles.statCardDark]}>
-            <LinearGradient
-              colors={isDark ? ['#15803d', '#16a34a'] : ['#22c55e', '#16a34a']}
-              style={styles.statGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+            <View style={[styles.statGradient, { backgroundColor: isDark ? '#16a34a' : '#22c55e' }]}>
               <View style={styles.statIcon}>
                 <IconSymbol name="arrow.clockwise" size={28} color="#ffffff" />
               </View>
               <Text style={styles.statLabel}>{t('activeSessions')}</Text>
               <Text style={styles.statValue}>{stats.active}</Text>
-            </LinearGradient>
+            </View>
           </View>
 
           {/* Completed Sessions */}
           <View style={[styles.statCard, isDark && styles.statCardDark]}>
-            <LinearGradient
-              colors={isDark ? ['#059669', '#10b981'] : ['#34d399', '#10b981']}
-              style={styles.statGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+            <View style={[styles.statGradient, { backgroundColor: isDark ? '#10b981' : '#34d399' }]}>
               <View style={styles.statIcon}>
                 <IconSymbol name="checkmark.circle.fill" size={28} color="#ffffff" />
               </View>
               <Text style={styles.statLabel}>{t('completedSessions')}</Text>
               <Text style={styles.statValue}>{stats.completed}</Text>
-            </LinearGradient>
+            </View>
           </View>
 
           {/* Failed Sessions */}
           <View style={[styles.statCard, isDark && styles.statCardDark]}>
-            <LinearGradient
-              colors={isDark ? ['#b91c1c', '#dc2626'] : ['#ef4444', '#dc2626']}
-              style={styles.statGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+            <View style={[styles.statGradient, { backgroundColor: isDark ? '#dc2626' : '#ef4444' }]}>
               <View style={styles.statIcon}>
                 <IconSymbol name="xmark.circle.fill" size={28} color="#ffffff" />
               </View>
               <Text style={styles.statLabel}>{t('failedSessions')}</Text>
               <Text style={styles.statValue}>{stats.failed}</Text>
-            </LinearGradient>
+            </View>
           </View>
 
           {/* Info Section */}

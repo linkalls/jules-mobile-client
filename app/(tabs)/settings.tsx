@@ -6,14 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
   Switch,
   Appearance,
   Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -21,6 +19,7 @@ import { useSecureStorage } from '@/hooks/use-secure-storage';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
+import { useAlert } from '@/contexts/alert-context';
 import { Colors } from '@/constants/theme';
 import { isValidExternalLink } from '@/utils/url';
 
@@ -93,6 +92,7 @@ export default function SettingsScreen() {
   const colors = isDark ? Colors.dark : Colors.light;
 
   const { apiKey, setApiKey: saveApiKeyToContext } = useApiKey();
+  const { showAlert } = useAlert();
   const [localApiKey, setLocalApiKey] = useState(apiKey);
   const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
   const [manualDarkMode, setManualDarkMode] = useState(isDark);
@@ -120,10 +120,10 @@ export default function SettingsScreen() {
     try {
       await saveApiKeyToContext(localApiKey);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert(t('savedSuccess'));
+      showAlert(t('savedSuccess'), undefined, undefined, 'success');
     } catch {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert(t('error'), t('savedError'));
+      showAlert(t('error'), t('savedError'), undefined, 'error');
     }
   };
 
@@ -144,31 +144,24 @@ export default function SettingsScreen() {
   const openURL = async (url: string) => {
     try {
       if (!isValidExternalLink(url)) {
-        Alert.alert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please check your device settings.');
+        showAlert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please check your device settings.', undefined, 'error');
         return;
       }
       const supported = await Linking.canOpenURL(url);
       if (supported) {
         await Linking.openURL(url);
       } else {
-        Alert.alert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please check your device settings.');
+        showAlert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please check your device settings.', undefined, 'error');
       }
     } catch (error) {
-      Alert.alert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please try again later.');
+      showAlert(t('error'), t('unableToOpenLink') || 'Unable to open this link. Please try again later.', undefined, 'error');
     }
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      {/* Modern Header with Gradient */}
+      {/* Modern Header */}
       <View style={[styles.header, isDark && styles.headerDark]}>
-        <LinearGradient
-          colors={isDark 
-            ? [colors.surface, colors.surfaceSecondary]
-            : [colors.surface, colors.surfaceSecondary]
-          }
-          style={StyleSheet.absoluteFill}
-        />
         <View style={styles.headerContent}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>{t('settings')}</Text>
         </View>
@@ -212,15 +205,10 @@ export default function SettingsScreen() {
           onPress={handleSave} 
           activeOpacity={0.9}
         >
-          <LinearGradient
-            colors={[colors.primary, colors.primaryLight]}
-            style={styles.saveButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
+          <View style={[styles.saveButtonGradient, { backgroundColor: colors.primary }]}>
             <IconSymbol name="checkmark.circle.fill" size={20} color="#ffffff" />
             <Text style={styles.saveButtonText}>{t('save')}</Text>
-          </LinearGradient>
+          </View>
         </TouchableOpacity>
 
         {/* テーマ切り替え */}

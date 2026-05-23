@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, Image } from 'react-native';
 import Markdown from 'react-native-markdown-display';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -245,14 +244,9 @@ function AgentMessageActivity({ activity, isDark, colors, formatTime, getMarkdow
     <View style={styles.container}>
       <View style={[styles.bubble, styles.bubbleAgent, isDark && styles.bubbleAgentDark]}>
         <View style={styles.avatarContainer}>
-          <LinearGradient
-            colors={[colors.primary, colors.primaryLight]}
-            style={styles.avatar}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
+          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
             <IconSymbol name="sparkles" size={14} color="#ffffff" />
-          </LinearGradient>
+          </View>
         </View>
         <View style={styles.bubbleContent}>
           <View style={styles.header}>
@@ -272,12 +266,7 @@ function UserMessageActivity({ activity, isDark, colors, formatTime }: { activit
   return (
     <View style={[styles.container, styles.containerUser]}>
       <View style={styles.bubble}>
-        <LinearGradient
-          colors={[colors.primary, colors.primaryLight]}
-          style={[styles.bubbleUser]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
+        <View style={[styles.bubbleUser, { backgroundColor: colors.primary }]}>
           <View style={styles.header}>
             <Text style={styles.senderUser}>You</Text>
             <Text style={styles.timeUser}>{formatTime(activity.createTime)}</Text>
@@ -285,7 +274,7 @@ function UserMessageActivity({ activity, isDark, colors, formatTime }: { activit
           <Text style={styles.messageUser} selectable>
             {activity.userMessaged!.userMessage}
           </Text>
-        </LinearGradient>
+        </View>
         <View style={styles.avatarContainer}>
           <View style={[styles.avatar, styles.avatarUser]}>
             <IconSymbol name="person.fill" size={14} color={colors.primary} />
@@ -302,12 +291,9 @@ function PlanGeneratedActivity({ activity, isDark, colors }: { activity: Activit
     <View style={styles.container}>
       <View style={[styles.card, isDark && styles.cardDark]}>
         <View style={styles.cardHeader}>
-          <LinearGradient
-            colors={[colors.success, '#34d399']}
-            style={styles.cardIconContainer}
-          >
+          <View style={[styles.cardIconContainer, { backgroundColor: colors.success }]}>
             <IconSymbol name="doc.text" size={16} color="#ffffff" />
-          </LinearGradient>
+          </View>
           <Text style={[styles.cardTitle, { color: colors.text }]}>Plan Generated</Text>
         </View>
         {plan.steps?.map((step, index) => (
@@ -331,21 +317,11 @@ function PlanApprovalRequestedActivity({ activity, isDark, colors, onApprovePlan
   const planId = activity.planApprovalRequested!.planId;
   return (
     <View style={styles.container}>
-      <View style={[styles.card, styles.approvalCard, isDark && styles.cardDark]}>
-        <LinearGradient
-          colors={isDark
-            ? ['rgba(251, 191, 36, 0.1)', 'rgba(251, 191, 36, 0.05)']
-            : ['rgba(245, 158, 11, 0.08)', 'rgba(245, 158, 11, 0.03)']
-          }
-          style={StyleSheet.absoluteFill}
-        />
+      <View style={[styles.card, styles.approvalCard, isDark && styles.cardDark, { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.1)' : 'rgba(245, 158, 11, 0.08)' }]}>
         <View style={styles.cardHeader}>
-          <LinearGradient
-            colors={[colors.warning, '#fbbf24']}
-            style={styles.cardIconContainer}
-          >
+          <View style={[styles.cardIconContainer, { backgroundColor: colors.warning }]}>
             <IconSymbol name="hand.raised" size={16} color="#ffffff" />
-          </LinearGradient>
+          </View>
           <Text style={[styles.cardTitle, { color: colors.text }]}>Approval Required</Text>
         </View>
         <Text style={[styles.description, { color: colors.icon }]}>
@@ -360,15 +336,10 @@ function PlanApprovalRequestedActivity({ activity, isDark, colors, onApprovePlan
             }}
             activeOpacity={0.9}
           >
-            <LinearGradient
-              colors={[colors.success, '#34d399']}
-              style={styles.approveButtonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
+            <View style={[styles.approveButtonGradient, { backgroundColor: colors.success }]}>
               <IconSymbol name="checkmark.circle.fill" size={20} color="#ffffff" />
               <Text style={styles.approveButtonText}>Approve Plan</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         )}
       </View>

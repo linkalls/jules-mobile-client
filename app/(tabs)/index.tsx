@@ -10,11 +10,9 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SessionCard, SwipeableSessionCard, SessionCardSkeleton } from '@/components/jules/session-card';
@@ -23,6 +21,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { Session } from '@/constants/types';
 import { useI18n } from '@/constants/i18n-context';
 import { useApiKey } from '@/constants/api-key-context';
+import { useAlert } from '@/contexts/alert-context';
 import {
   useSecureStorage,
   type SessionFilterPreset,
@@ -63,6 +62,7 @@ export default function SessionsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { t } = useI18n();
+  const { showAlert } = useAlert();
   const colors = isDark ? Colors.dark : Colors.light;
 
   const { apiKey } = useApiKey();
@@ -238,11 +238,11 @@ export default function SessionsScreen() {
   }, [approvePlan, fetchSessions]);
 
   const handleDeleteSession = useCallback((sessionName: string) => {
-    Alert.alert(
+    showAlert(
       t('deleteSession'),
       t('deleteSessionConfirm'),
       [
-        { text: t('cancel'), style: 'cancel' },
+        { text: t('cancel'), style: 'cancel', onPress: () => {} },
         {
           text: t('delete'),
           style: 'destructive',
@@ -253,7 +253,7 @@ export default function SessionsScreen() {
         },
       ]
     );
-  }, [deleteSession, t]);
+  }, [deleteSession, t, showAlert]);
 
   const renderSessionItem = useCallback(({ item }: { item: Session }) => (
     <TouchableOpacity onLongPress={() => handleDeleteSession(item.name)} delayLongPress={500}>
@@ -313,25 +313,13 @@ export default function SessionsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      {/* Modern Header with Gradient */}
+      {/* Modern Header */}
       <View style={[styles.header, isDark && styles.headerDark]}>
-        <LinearGradient
-          colors={isDark 
-            ? [colors.surface, colors.surfaceSecondary]
-            : [colors.surface, colors.surfaceSecondary]
-          }
-          style={StyleSheet.absoluteFill}
-        />
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
-            <LinearGradient
-              colors={[colors.primary, colors.primaryLight]}
-              style={styles.logoContainer}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+            <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
               <IconSymbol name="terminal" size={20} color={colors.surface} />
-            </LinearGradient>
+            </View>
             <View>
               <Text style={[styles.headerTitle, { color: colors.text }]}>Jules Client</Text>
               <Text style={[styles.headerSubtitle, { color: colors.icon }]}>
@@ -550,14 +538,9 @@ export default function SessionsScreen() {
             accessibilityRole="button"
             accessibilityHint="Create a new coding task session"
           >
-            <LinearGradient
-              colors={[colors.primary, colors.primaryLight]}
-              style={styles.fabGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
+            <View style={[styles.fabGradient, { backgroundColor: colors.primary }]}>
               <IconSymbol name="plus" size={28} color={colors.surface} />
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </Animated.View>
       )}
