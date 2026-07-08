@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "jules-mobile-clcient",
-    "slug": "jules-mobile-clcient",
+    "name": "jules-mobile-client",
+    "slug": "jules-mobile-client",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "julesmobileclcient",
+    "scheme": "julesmobileclient",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -21,7 +21,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize",
-      "package": "com.potetotown.julesmobileclcient"
+      "package": "com.potetotown.julesmobileclient"
     },
     "web": {
       "output": "static",
